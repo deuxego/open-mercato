@@ -1,6 +1,6 @@
 import { expect, request as playwrightRequest, test, type APIResponse } from '@playwright/test'
 import { apiRequest, getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api'
-import { readJsonSafe } from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures'
+import { readJsonSafe } from '@open-mercato/core/modules/core/__integration__/helpers/generalFixtures'
 
 type JsonRecord = Record<string, unknown>
 const BASE_URL = process.env.BASE_URL?.trim() || 'http://localhost:3000'
