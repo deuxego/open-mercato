@@ -1683,10 +1683,17 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.3, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.8, @babel/runtime@npm:^7.14.6, @babel/runtime@npm:^7.17.2, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.25.9, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.6.3, @babel/runtime@npm:^7.8.7":
+"@babel/runtime@npm:^7.1.2, @babel/runtime@npm:^7.10.3, @babel/runtime@npm:^7.12.13, @babel/runtime@npm:^7.12.5, @babel/runtime@npm:^7.13.8, @babel/runtime@npm:^7.20.7, @babel/runtime@npm:^7.25.9, @babel/runtime@npm:^7.5.5, @babel/runtime@npm:^7.6.3, @babel/runtime@npm:^7.8.7":
   version: 7.28.6
   resolution: "@babel/runtime@npm:7.28.6"
   checksum: 10/fbcd439cb74d4a681958eb064c509829e3f46d8a4bfaaf441baa81bb6733d1e680bccc676c813883d7741bcaada1d0d04b15aa320ef280b5734e2192b50decf9
+  languageName: node
+  linkType: hard
+
+"@babel/runtime@npm:^7.14.6, @babel/runtime@npm:^7.17.2":
+  version: 7.29.2
+  resolution: "@babel/runtime@npm:7.29.2"
+  checksum: 10/f55ba4052aa0255055b34371a145fbe69c29b37b49eaea14805b095bfb4153701486416e89392fd27ec8abafa53868be86e960b9f8f959fff91f2c8ac2a14b02
   languageName: node
   linkType: hard
 
@@ -8481,7 +8488,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@types/prismjs@npm:^1.0.0, @types/prismjs@npm:^1.26.0":
+"@types/prismjs@npm:^1.0.0":
+  version: 1.26.6
+  resolution: "@types/prismjs@npm:1.26.6"
+  checksum: 10/37c056eb7a9130ef6548d7655af78ea575c8eaa9167ea2dd64d8719384b1af4a385ffe928aa4939da607ce276703a6787bdac8ecc79a373e2a73ddf6d75bc161
+  languageName: node
+  linkType: hard
+
+"@types/prismjs@npm:^1.26.0":
   version: 1.26.5
   resolution: "@types/prismjs@npm:1.26.5"
   checksum: 10/617099479db9550119d0f84272dc79d64b2cf3e0d7a17167fe740d55fdf0f155697d935409464392d164e62080c2c88d649cf4bc4fdd30a87127337536657277
@@ -8905,9 +8919,9 @@ __metadata:
   linkType: hard
 
 "@uiw/copy-to-clipboard@npm:~1.0.12":
-  version: 1.0.19
-  resolution: "@uiw/copy-to-clipboard@npm:1.0.19"
-  checksum: 10/acd1ee43690149cac57f333d45106237abc353b2900ef5d30fb9d20470101f3c946014d0c0500d24e12d10a7d29eec68a86276c7f97700923d33d3507183749b
+  version: 1.0.20
+  resolution: "@uiw/copy-to-clipboard@npm:1.0.20"
+  checksum: 10/d871b18561b2fdda5d629ca3d67887e3dcb89267fd3351e52bd808ba414b988470f5421e8380094d08c8180858cfc1dc63c126bbd159602b6b9f8833642094e7
   languageName: node
   linkType: hard
 
@@ -9264,7 +9278,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@xyflow/react@npm:^12.10.0, @xyflow/react@npm:^12.6.0":
+"@xyflow/react@npm:^12.6.0":
   version: 12.10.0
   resolution: "@xyflow/react@npm:12.10.0"
   dependencies:
@@ -15215,7 +15229,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"hast-util-to-string@npm:^3.0.0":
+"hast-util-to-string@npm:^3.0.0, hast-util-to-string@npm:^3.0.1":
   version: 3.0.1
   resolution: "hast-util-to-string@npm:3.0.1"
   dependencies:
@@ -19737,7 +19751,6 @@ __metadata:
     "@types/semver": "npm:^7.7.1"
     "@uiw/react-markdown-preview": "npm:^5.1.5"
     "@uiw/react-md-editor": "npm:^4.0.11"
-    "@xyflow/react": "npm:^12.10.0"
     ai: "npm:^6.0.0"
     awilix: "npm:^12.0.5"
     bcryptjs: "npm:^3.0.3"
@@ -22362,6 +22375,18 @@ __metadata:
   languageName: node
   linkType: hard
 
+"refractor@npm:^5.0.0":
+  version: 5.0.0
+  resolution: "refractor@npm:5.0.0"
+  dependencies:
+    "@types/hast": "npm:^3.0.0"
+    "@types/prismjs": "npm:^1.0.0"
+    hastscript: "npm:^9.0.0"
+    parse-entities: "npm:^4.0.0"
+  checksum: 10/a14ceb938ed6f7f17dfa44660d3f3aff33e8896710bd76af0b411778791918bf20f923a191ff197fbc6a8e3f06c4371b83882f46ce76736f804dbe2b82b0be94
+  languageName: node
+  linkType: hard
+
 "regenerate-unicode-properties@npm:^10.2.2":
   version: 10.2.2
   resolution: "regenerate-unicode-properties@npm:10.2.2"
@@ -22477,7 +22502,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rehype-parse@npm:^9.0.0":
+"rehype-parse@npm:^9.0.0, rehype-parse@npm:^9.0.1":
   version: 9.0.1
   resolution: "rehype-parse@npm:9.0.1"
   dependencies:
@@ -22503,16 +22528,16 @@ __metadata:
   linkType: hard
 
 "rehype-prism-plus@npm:~2.0.0":
-  version: 2.0.1
-  resolution: "rehype-prism-plus@npm:2.0.1"
+  version: 2.0.2
+  resolution: "rehype-prism-plus@npm:2.0.2"
   dependencies:
-    hast-util-to-string: "npm:^3.0.0"
+    hast-util-to-string: "npm:^3.0.1"
     parse-numeric-range: "npm:^1.3.0"
-    refractor: "npm:^4.8.0"
-    rehype-parse: "npm:^9.0.0"
-    unist-util-filter: "npm:^5.0.0"
-    unist-util-visit: "npm:^5.0.0"
-  checksum: 10/afbf7e04f4b0a2df65fa0d3a8bb743a646c144e58fe824768a119f2214165e3717e2d24d9a74a2e6cf118215cfe2ae69d629dcc3b25fd4575516a86104a097cb
+    refractor: "npm:^5.0.0"
+    rehype-parse: "npm:^9.0.1"
+    unist-util-filter: "npm:^5.0.1"
+    unist-util-visit: "npm:^5.1.0"
+  checksum: 10/fbc1cdadd5ac89c7eede91678742e8a186c3f9f9ceed478cfed63c190e6c9a0ad45548a957f4f338c046bdb2189d2b634f243c4c459f581e15b7954918349853
   languageName: node
   linkType: hard
 
@@ -25282,7 +25307,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"unist-util-filter@npm:^5.0.0":
+"unist-util-filter@npm:^5.0.0, unist-util-filter@npm:^5.0.1":
   version: 5.0.1
   resolution: "unist-util-filter@npm:5.0.1"
   dependencies:
@@ -25347,6 +25372,17 @@ __metadata:
     unist-util-is: "npm:^6.0.0"
     unist-util-visit-parents: "npm:^6.0.0"
   checksum: 10/f2bbde23641e9ade7640358c06ddeec0f38342322eb8e7819d9ee380b0f859d25d084dde22bf63db0280b3b2f36575f15aa1d6c23acf276c91c2493cf799e3b0
+  languageName: node
+  linkType: hard
+
+"unist-util-visit@npm:^5.1.0":
+  version: 5.1.0
+  resolution: "unist-util-visit@npm:5.1.0"
+  dependencies:
+    "@types/unist": "npm:^3.0.0"
+    unist-util-is: "npm:^6.0.0"
+    unist-util-visit-parents: "npm:^6.0.0"
+  checksum: 10/340fc1929062d21156200284105caad79cc188bd98f285b60aba887492a70e6e6cadbc7e383a68909c7e0fdd83f855cb9f4184ad8e5aa153eb2d810445aea8e5
   languageName: node
   linkType: hard
 
