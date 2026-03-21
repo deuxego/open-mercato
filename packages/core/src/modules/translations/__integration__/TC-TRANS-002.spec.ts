@@ -1,9 +1,14 @@
 import { expect, test } from '@playwright/test'
 import { apiRequest, getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api'
-import { createProductFixture, deleteCatalogProductIfExists } from '@open-mercato/core/modules/core/__integration__/helpers/catalogFixtures'
+import {
+  createDictionaryFixture,
+  createDictionaryEntryFixture,
+  deleteDictionaryEntryIfExists,
+  deleteDictionaryIfExists,
+} from '@open-mercato/core/modules/core/__integration__/helpers/dictionariesFixtures'
 import { deleteTranslationIfExists } from './helpers/translationFixtures'
 
-const ENTITY_TYPE = 'catalog:catalog_product'
+const ENTITY_TYPE = 'dictionaries:dictionary_entry'
 
 /**
  * TC-TRANS-002: Translation CRUD Lifecycle
@@ -13,102 +18,110 @@ test.describe('TC-TRANS-002: Translation CRUD Lifecycle', () => {
   test('should return 404 for non-existent translation', async ({ request }) => {
     const adminToken = await getAuthToken(request, 'admin')
     const saToken = await getAuthToken(request, 'superadmin')
-    const productTitle = `QA TC-TRANS-002-1 ${Date.now()}`
-    const sku = `QA-TRANS-002-1-${Date.now()}`
-    let productId: string | null = null
+    const dictKey = `qa-trans-002-1-${Date.now()}`
+    let dictionaryId: string | null = null
+    let entryId: string | null = null
 
     try {
-      productId = await createProductFixture(request, adminToken, { title: productTitle, sku })
-      const response = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${productId}`, { token: saToken })
+      dictionaryId = await createDictionaryFixture(request, adminToken, { key: dictKey, name: `QA TC-TRANS-002-1 ${Date.now()}` })
+      entryId = await createDictionaryEntryFixture(request, adminToken, dictionaryId, { value: dictKey, label: `Label ${Date.now()}` })
+      const response = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${entryId}`, { token: saToken })
       expect(response.status()).toBe(404)
     } finally {
-      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, productId)
-      await deleteCatalogProductIfExists(request, adminToken, productId)
+      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, entryId)
+      await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)
+      await deleteDictionaryIfExists(request, adminToken, dictionaryId)
     }
   })
 
   test('should create and retrieve a translation', async ({ request }) => {
     const adminToken = await getAuthToken(request, 'admin')
     const saToken = await getAuthToken(request, 'superadmin')
-    const productTitle = `QA TC-TRANS-002-2 ${Date.now()}`
-    const sku = `QA-TRANS-002-2-${Date.now()}`
-    let productId: string | null = null
+    const dictKey = `qa-trans-002-2-${Date.now()}`
+    let dictionaryId: string | null = null
+    let entryId: string | null = null
 
     try {
-      productId = await createProductFixture(request, adminToken, { title: productTitle, sku })
+      dictionaryId = await createDictionaryFixture(request, adminToken, { key: dictKey, name: `QA TC-TRANS-002-2 ${Date.now()}` })
+      entryId = await createDictionaryEntryFixture(request, adminToken, dictionaryId, { value: dictKey, label: `Label ${Date.now()}` })
 
-      const putResponse = await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${productId}`, {
+      const putResponse = await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${entryId}`, {
         token: saToken,
-        data: { de: { title: 'Deutscher Titel' } },
+        data: { de: { label: 'Deutsches Label' } },
       })
       expect(putResponse.ok()).toBeTruthy()
       const putBody = (await putResponse.json()) as { translations: Record<string, Record<string, string>> }
-      expect(putBody.translations.de.title).toBe('Deutscher Titel')
+      expect(putBody.translations.de.label).toBe('Deutsches Label')
 
-      const getResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${productId}`, { token: saToken })
+      const getResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${entryId}`, { token: saToken })
       expect(getResponse.ok()).toBeTruthy()
       const getBody = (await getResponse.json()) as { translations: Record<string, Record<string, string>> }
-      expect(getBody.translations.de.title).toBe('Deutscher Titel')
+      expect(getBody.translations.de.label).toBe('Deutsches Label')
     } finally {
-      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, productId)
-      await deleteCatalogProductIfExists(request, adminToken, productId)
+      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, entryId)
+      await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)
+      await deleteDictionaryIfExists(request, adminToken, dictionaryId)
     }
   })
 
   test('should upsert translations (add locale, update existing)', async ({ request }) => {
     const adminToken = await getAuthToken(request, 'admin')
     const saToken = await getAuthToken(request, 'superadmin')
-    const productTitle = `QA TC-TRANS-002-3 ${Date.now()}`
-    const sku = `QA-TRANS-002-3-${Date.now()}`
-    let productId: string | null = null
+    const dictKey = `qa-trans-002-3-${Date.now()}`
+    let dictionaryId: string | null = null
+    let entryId: string | null = null
 
     try {
-      productId = await createProductFixture(request, adminToken, { title: productTitle, sku })
+      dictionaryId = await createDictionaryFixture(request, adminToken, { key: dictKey, name: `QA TC-TRANS-002-3 ${Date.now()}` })
+      entryId = await createDictionaryEntryFixture(request, adminToken, dictionaryId, { value: dictKey, label: `Label ${Date.now()}` })
 
-      await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${productId}`, {
+      await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${entryId}`, {
         token: saToken,
-        data: { de: { title: 'Original' } },
+        data: { de: { label: 'Original' } },
       })
 
-      const upsertResponse = await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${productId}`, {
+      const upsertResponse = await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${entryId}`, {
         token: saToken,
-        data: { de: { title: 'Aktualisiert' }, fr: { title: 'Titre Français' } },
+        data: { de: { label: 'Aktualisiert' }, fr: { label: 'Label Français' } },
       })
       expect(upsertResponse.ok()).toBeTruthy()
 
-      const getResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${productId}`, { token: saToken })
+      const getResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${entryId}`, { token: saToken })
       const body = (await getResponse.json()) as { translations: Record<string, Record<string, string>> }
-      expect(body.translations.de.title).toBe('Aktualisiert')
-      expect(body.translations.fr.title).toBe('Titre Français')
+      expect(body.translations.de.label).toBe('Aktualisiert')
+      expect(body.translations.fr.label).toBe('Label Français')
     } finally {
-      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, productId)
-      await deleteCatalogProductIfExists(request, adminToken, productId)
+      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, entryId)
+      await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)
+      await deleteDictionaryIfExists(request, adminToken, dictionaryId)
     }
   })
 
   test('should delete translations and confirm 404', async ({ request }) => {
     const adminToken = await getAuthToken(request, 'admin')
     const saToken = await getAuthToken(request, 'superadmin')
-    const productTitle = `QA TC-TRANS-002-4 ${Date.now()}`
-    const sku = `QA-TRANS-002-4-${Date.now()}`
-    let productId: string | null = null
+    const dictKey = `qa-trans-002-4-${Date.now()}`
+    let dictionaryId: string | null = null
+    let entryId: string | null = null
 
     try {
-      productId = await createProductFixture(request, adminToken, { title: productTitle, sku })
+      dictionaryId = await createDictionaryFixture(request, adminToken, { key: dictKey, name: `QA TC-TRANS-002-4 ${Date.now()}` })
+      entryId = await createDictionaryEntryFixture(request, adminToken, dictionaryId, { value: dictKey, label: `Label ${Date.now()}` })
 
-      await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${productId}`, {
+      await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${entryId}`, {
         token: saToken,
-        data: { de: { title: 'Zu löschen' } },
+        data: { de: { label: 'Zu löschen' } },
       })
 
-      const deleteResponse = await apiRequest(request, 'DELETE', `/api/translations/${ENTITY_TYPE}/${productId}`, { token: saToken })
+      const deleteResponse = await apiRequest(request, 'DELETE', `/api/translations/${ENTITY_TYPE}/${entryId}`, { token: saToken })
       expect(deleteResponse.status()).toBe(204)
 
-      const getResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${productId}`, { token: saToken })
+      const getResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${entryId}`, { token: saToken })
       expect(getResponse.status()).toBe(404)
     } finally {
-      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, productId)
-      await deleteCatalogProductIfExists(request, adminToken, productId)
+      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, entryId)
+      await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)
+      await deleteDictionaryIfExists(request, adminToken, dictionaryId)
     }
   })
 })

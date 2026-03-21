@@ -1,15 +1,16 @@
 import { expect, test } from '@playwright/test';
 import { getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api';
-import { createCompanyFixture } from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures';
 import {
   acquireRecordLock,
-  cleanupCompany,
+  cleanupTodo,
+  createTodoFixture,
   forceReleaseRecordLock,
   getRecordLockSettings,
   listNotificationsByType,
   saveRecordLockSettings,
-  updateCompany,
+  updateTodo,
   waitForNotification,
+  LOCK_RESOURCE_KIND,
   type RecordLockSettings,
 } from './helpers/recordLocks';
 
@@ -24,7 +25,7 @@ test.describe('TC-LOCK-005: Pessimistic force release and takeover', () => {
     const adminToken = await getAuthToken(request, 'admin');
 
     let previousSettings: RecordLockSettings | null = null;
-    let companyId: string | null = null;
+    let todoId: string | null = null;
 
     try {
       previousSettings = await getRecordLockSettings(request, superadminToken);
@@ -32,23 +33,23 @@ test.describe('TC-LOCK-005: Pessimistic force release and takeover', () => {
         ...previousSettings,
         enabled: true,
         strategy: 'pessimistic',
-        enabledResources: ['customers.company'],
+        enabledResources: [LOCK_RESOURCE_KIND],
         allowForceUnlock: true,
       });
 
-      companyId = await createCompanyFixture(request, adminToken, `QA TC-LOCK-005 Company ${Date.now()}`);
+      todoId = await createTodoFixture(request, adminToken, `QA TC-LOCK-005 Todo ${Date.now()}`);
 
-      const ownerAcquire = await acquireRecordLock(request, superadminToken, 'customers.company', companyId);
+      const ownerAcquire = await acquireRecordLock(request, superadminToken, LOCK_RESOURCE_KIND, todoId);
       expect(ownerAcquire.status).toBe(200);
       expect(ownerAcquire.body?.ok).toBe(true);
       const ownerLockToken =
         (ownerAcquire.body?.lock as { token?: string | null } | undefined)?.token ?? null;
       expect(ownerLockToken).toBeTruthy();
 
-      const blockedUpdate = await updateCompany(
+      const blockedUpdate = await updateTodo(
         request,
         adminToken,
-        companyId,
+        todoId,
         `QA TC-LOCK-005 Blocked ${Date.now()}`,
       );
       expect(blockedUpdate.status).toBe(423);
@@ -64,8 +65,8 @@ test.describe('TC-LOCK-005: Pessimistic force release and takeover', () => {
       const forceRelease = await forceReleaseRecordLock(
         request,
         adminToken,
-        'customers.company',
-        companyId,
+        LOCK_RESOURCE_KIND,
+        todoId,
         'qa_tc_lock_005_takeover',
       );
       expect(forceRelease.status).toBe(200);
@@ -88,16 +89,16 @@ test.describe('TC-LOCK-005: Pessimistic force release and takeover', () => {
       );
       expect(forceReleaseNotification.type).toBe('record_locks.lock.force_released');
 
-      const updateAfterForceRelease = await updateCompany(
+      const updateAfterForceRelease = await updateTodo(
         request,
         adminToken,
-        companyId,
+        todoId,
         `QA TC-LOCK-005 Updated ${Date.now()}`,
       );
       expect(updateAfterForceRelease.status).toBe(200);
       expect(updateAfterForceRelease.body?.ok).toBe(true);
     } finally {
-      await cleanupCompany(request, adminToken, companyId);
+      await cleanupTodo(request, adminToken, todoId);
       if (previousSettings) {
         await saveRecordLockSettings(request, superadminToken, previousSettings).catch(() => {});
       }

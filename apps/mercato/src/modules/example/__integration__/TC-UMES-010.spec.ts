@@ -16,7 +16,7 @@ test.describe('TC-UMES-010: DevTools panel', () => {
   })
 
   test('opens and closes via Ctrl+Shift+U keyboard shortcut', async ({ page }) => {
-    await page.goto('/backend/customers/people')
+    await page.goto('/backend/todos')
     await page.waitForLoadState('domcontentloaded')
 
     // Panel should NOT be visible initially
@@ -32,7 +32,7 @@ test.describe('TC-UMES-010: DevTools panel', () => {
   })
 
   test('shows extension count badge and registered extensions', async ({ page }) => {
-    await page.goto('/backend/customers/people')
+    await page.goto('/backend/todos')
     await page.waitForLoadState('domcontentloaded')
 
     // Open the DevTools panel
@@ -50,7 +50,7 @@ test.describe('TC-UMES-010: DevTools panel', () => {
   })
 
   test('switches between tabs', async ({ page }) => {
-    await page.goto('/backend/customers/people')
+    await page.goto('/backend/todos')
     await page.waitForLoadState('domcontentloaded')
 
     await page.keyboard.press('Control+Shift+U')
@@ -68,7 +68,7 @@ test.describe('TC-UMES-010: DevTools panel', () => {
   })
 
   test('refresh button updates data', async ({ page }) => {
-    await page.goto('/backend/customers/people')
+    await page.goto('/backend/todos')
     await page.waitForLoadState('domcontentloaded')
 
     await page.keyboard.press('Control+Shift+U')
@@ -85,7 +85,7 @@ test.describe('TC-UMES-010: DevTools panel', () => {
   })
 
   test('close button dismisses the panel', async ({ page }) => {
-    await page.goto('/backend/customers/people')
+    await page.goto('/backend/todos')
     await page.waitForLoadState('domcontentloaded')
 
     await page.keyboard.press('Control+Shift+U')
@@ -97,7 +97,7 @@ test.describe('TC-UMES-010: DevTools panel', () => {
   })
 
   test('conflicts tab shows no conflicts message when clean', async ({ page }) => {
-    await page.goto('/backend/customers/people')
+    await page.goto('/backend/todos')
     await page.waitForLoadState('domcontentloaded')
 
     await page.keyboard.press('Control+Shift+U')
@@ -108,8 +108,8 @@ test.describe('TC-UMES-010: DevTools panel', () => {
   })
 
   test('timing tab shows enricher timing data after API call', async ({ page }) => {
-    // Navigate to customer list which triggers enrichers
-    await page.goto('/backend/customers/people')
+    // Navigate to todo list which triggers enrichers
+    await page.goto('/backend/todos')
     await page.waitForLoadState('domcontentloaded')
 
     await page.keyboard.press('Control+Shift+U')
@@ -118,11 +118,11 @@ test.describe('TC-UMES-010: DevTools panel', () => {
     const devToolsPanel = page.locator('.fixed.inset-y-0.right-0')
     await devToolsPanel.getByRole('button', { name: 'Timing' }).click()
 
-    // After the customer list loads, enrichers should have run and logged timing
+    // After the todo list loads, enrichers should have run and logged timing
     // The timing data may need a refresh to show up
     await devToolsPanel.getByRole('button', { name: 'Refresh' }).click()
 
-    // Check if timing data appeared (enricher timing entries from the customer list enricher)
+    // Check if timing data appeared (enricher timing entries from the todo list)
     // If no timing data is available yet, the "No timing data" message is acceptable
     const timingContent = devToolsPanel.locator('text=/ms$/')
     const noTimingMsg = devToolsPanel.getByText('No timing data')
@@ -131,7 +131,7 @@ test.describe('TC-UMES-010: DevTools panel', () => {
   })
 
   test('shows footer with toggle hint', async ({ page }) => {
-    await page.goto('/backend/customers/people')
+    await page.goto('/backend/todos')
     await page.waitForLoadState('domcontentloaded')
 
     await page.keyboard.press('Control+Shift+U')

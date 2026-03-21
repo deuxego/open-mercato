@@ -1,13 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api';
-import { createCompanyFixture } from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures';
 import {
   acquireRecordLock,
   buildScopeCookieFromToken,
-  cleanupCompany,
+  cleanupTodo,
+  createTodoFixture,
   getRecordLockSettings,
   releaseRecordLock,
   saveRecordLockSettings,
+  LOCK_RESOURCE_KIND,
   type RecordLockSettings,
 } from './helpers/recordLocks';
 
@@ -25,7 +26,7 @@ test.describe('TC-LOCK-006: Lock payload exposes participant ring with redacted 
     const ownerIp = '198.51.100.24';
 
     let previousSettings: RecordLockSettings | null = null;
-    let companyId: string | null = null;
+    let todoId: string | null = null;
     let ownerLockToken: string | null = null;
 
     try {
@@ -34,17 +35,17 @@ test.describe('TC-LOCK-006: Lock payload exposes participant ring with redacted 
         ...previousSettings,
         enabled: true,
         strategy: 'optimistic',
-        enabledResources: ['customers.company'],
+        enabledResources: [LOCK_RESOURCE_KIND],
         allowForceUnlock: true,
       });
 
-      companyId = await createCompanyFixture(request, adminToken, `QA TC-LOCK-006 Company ${Date.now()}`);
+      todoId = await createTodoFixture(request, adminToken, `QA TC-LOCK-006 Todo ${Date.now()}`);
 
       const ownerAcquire = await acquireRecordLock(
         request,
         superadminToken,
-        'customers.company',
-        companyId,
+        LOCK_RESOURCE_KIND,
+        todoId,
         {
           ...(superadminScopeHeaders ?? {}),
           'x-forwarded-for': `${ownerIp}, 10.0.0.1`,
@@ -57,8 +58,8 @@ test.describe('TC-LOCK-006: Lock payload exposes participant ring with redacted 
       const viewerAcquire = await acquireRecordLock(
         request,
         adminToken,
-        'customers.company',
-        companyId,
+        LOCK_RESOURCE_KIND,
+        todoId,
       );
       expect(viewerAcquire.status).toBe(200);
       expect(viewerAcquire.body?.acquired).toBe(true);
@@ -92,19 +93,19 @@ test.describe('TC-LOCK-006: Lock payload exposes participant ring with redacted 
       expect(ownerParticipant?.lockedByEmail ?? null).toMatch(/^[a-z0-9]{1,2}\*\*@[a-z0-9]{1,4}\*\*\.[a-z0-9.]+$/);
       expect(otherParticipants.length).toBeGreaterThanOrEqual(1);
     } finally {
-      if (ownerLockToken && companyId) {
+      if (ownerLockToken && todoId) {
         await releaseRecordLock(
           request,
           superadminToken,
-          'customers.company',
-          companyId,
+          LOCK_RESOURCE_KIND,
+          todoId,
           ownerLockToken,
           'cancelled',
           undefined,
           superadminScopeHeaders,
         ).catch(() => {});
       }
-      await cleanupCompany(request, adminToken, companyId);
+      await cleanupTodo(request, adminToken, todoId);
       if (previousSettings) {
         await saveRecordLockSettings(request, superadminToken, previousSettings).catch(() => {});
       }

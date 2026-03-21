@@ -1,10 +1,15 @@
 import { expect, test } from '@playwright/test'
 import { apiRequest, getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api'
-import { createProductFixture, deleteCatalogProductIfExists } from '@open-mercato/core/modules/core/__integration__/helpers/catalogFixtures'
+import {
+  createDictionaryFixture,
+  createDictionaryEntryFixture,
+  deleteDictionaryEntryIfExists,
+  deleteDictionaryIfExists,
+} from '@open-mercato/core/modules/core/__integration__/helpers/dictionariesFixtures'
 import { login } from '@open-mercato/core/modules/core/__integration__/helpers/auth'
 import { deleteTranslationIfExists, getLocales, setLocales } from './helpers/translationFixtures'
 
-const ENTITY_TYPE = 'catalog:catalog_product'
+const ENTITY_TYPE = 'dictionaries:dictionary_entry'
 
 /**
  * Helper: set a value directly into a ComboboxInput using allowCustomValues.
@@ -32,25 +37,27 @@ test.describe('TC-TRANS-005: Translation Manager Standalone', () => {
     const adminToken = await getAuthToken(request, 'admin')
     const saToken = await getAuthToken(request, 'superadmin')
     const originalLocales = await getLocales(request, adminToken)
-    const productTitle = `QA TC-TRANS-005-1 ${Date.now()}`
-    const sku = `QA-TRANS-005-1-${Date.now()}`
-    let productId: string | null = null
+    const dictKey = `qa-trans-005-1-${Date.now()}`
+    let dictionaryId: string | null = null
+    let entryId: string | null = null
 
     try {
       await setLocales(request, adminToken, [...new Set([...originalLocales, 'de'])])
-      productId = await createProductFixture(request, adminToken, { title: productTitle, sku })
+      dictionaryId = await createDictionaryFixture(request, adminToken, { key: dictKey, name: `QA TC-TRANS-005-1 ${Date.now()}` })
+      entryId = await createDictionaryEntryFixture(request, adminToken, dictionaryId, { value: dictKey, label: `Label ${Date.now()}` })
 
       await login(page, 'superadmin')
       await page.goto('/backend/config/translations')
       await expect(page.getByRole('heading', { name: 'Translations' })).toBeVisible()
 
       await fillCombobox(page, 'Select an entity', ENTITY_TYPE)
-      await fillCombobox(page, 'Search records...', productId!)
+      await fillCombobox(page, 'Search records...', entryId!)
 
       await expect(page.getByText('Base value')).toBeVisible()
     } finally {
-      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, productId)
-      await deleteCatalogProductIfExists(request, adminToken, productId)
+      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, entryId)
+      await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)
+      await deleteDictionaryIfExists(request, adminToken, dictionaryId)
       await setLocales(request, adminToken, originalLocales).catch(() => {})
     }
   })
@@ -59,19 +66,21 @@ test.describe('TC-TRANS-005: Translation Manager Standalone', () => {
     const adminToken = await getAuthToken(request, 'admin')
     const saToken = await getAuthToken(request, 'superadmin')
     const originalLocales = await getLocales(request, adminToken)
-    const productTitle = `QA TC-TRANS-005-2 ${Date.now()}`
-    const sku = `QA-TRANS-005-2-${Date.now()}`
-    let productId: string | null = null
+    const dictKey = `qa-trans-005-2-${Date.now()}`
+    const entryLabel = `Label ${Date.now()}`
+    let dictionaryId: string | null = null
+    let entryId: string | null = null
 
     try {
       await setLocales(request, adminToken, [...new Set([...originalLocales, 'de'])])
-      productId = await createProductFixture(request, adminToken, { title: productTitle, sku })
+      dictionaryId = await createDictionaryFixture(request, adminToken, { key: dictKey, name: `QA TC-TRANS-005-2 ${Date.now()}` })
+      entryId = await createDictionaryEntryFixture(request, adminToken, dictionaryId, { value: dictKey, label: entryLabel })
 
       await login(page, 'superadmin')
       await page.goto('/backend/config/translations')
 
       await fillCombobox(page, 'Select an entity', ENTITY_TYPE)
-      await fillCombobox(page, 'Search records...', productId!)
+      await fillCombobox(page, 'Search records...', entryId!)
 
       const managerCard = page.locator('.bg-card').filter({
         has: page.getByRole('button', { name: 'Save translations' }),
@@ -79,19 +88,20 @@ test.describe('TC-TRANS-005: Translation Manager Standalone', () => {
       const deTab = managerCard.getByRole('button', { name: 'DE' })
       await deTab.click()
 
-      const titleInput = page.locator('table input').first()
-      await titleInput.fill('Deutscher Titel QA')
+      const labelInput = page.locator('table input').first()
+      await labelInput.fill('Deutsches Label QA')
 
       await page.getByRole('button', { name: 'Save translations' }).click()
       await expect(page.getByText('Translations saved').first()).toBeVisible()
 
-      const getResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${productId}`, { token: saToken })
+      const getResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${entryId}`, { token: saToken })
       expect(getResponse.ok()).toBeTruthy()
       const body = (await getResponse.json()) as { translations: Record<string, Record<string, string>> }
-      expect(body.translations.de.title).toBe('Deutscher Titel QA')
+      expect(body.translations.de.label).toBe('Deutsches Label QA')
     } finally {
-      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, productId)
-      await deleteCatalogProductIfExists(request, adminToken, productId)
+      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, entryId)
+      await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)
+      await deleteDictionaryIfExists(request, adminToken, dictionaryId)
       await setLocales(request, adminToken, originalLocales).catch(() => {})
     }
   })
@@ -100,24 +110,25 @@ test.describe('TC-TRANS-005: Translation Manager Standalone', () => {
     const adminToken = await getAuthToken(request, 'admin')
     const saToken = await getAuthToken(request, 'superadmin')
     const originalLocales = await getLocales(request, adminToken)
-    const productTitle = `QA TC-TRANS-005-3 ${Date.now()}`
-    const sku = `QA-TRANS-005-3-${Date.now()}`
-    let productId: string | null = null
+    const dictKey = `qa-trans-005-3-${Date.now()}`
+    let dictionaryId: string | null = null
+    let entryId: string | null = null
 
     try {
       await setLocales(request, adminToken, [...new Set([...originalLocales, 'de'])])
-      productId = await createProductFixture(request, adminToken, { title: productTitle, sku })
+      dictionaryId = await createDictionaryFixture(request, adminToken, { key: dictKey, name: `QA TC-TRANS-005-3 ${Date.now()}` })
+      entryId = await createDictionaryEntryFixture(request, adminToken, dictionaryId, { value: dictKey, label: `Label ${Date.now()}` })
 
-      await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${productId}`, {
+      await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${entryId}`, {
         token: saToken,
-        data: { de: { title: 'Persistenter Titel' } },
+        data: { de: { label: 'Persistentes Label' } },
       })
 
       await login(page, 'superadmin')
       await page.goto('/backend/config/translations')
 
       await fillCombobox(page, 'Select an entity', ENTITY_TYPE)
-      await fillCombobox(page, 'Search records...', productId!)
+      await fillCombobox(page, 'Search records...', entryId!)
 
       const managerCard = page.locator('.bg-card').filter({
         has: page.getByRole('button', { name: 'Save translations' }),
@@ -125,10 +136,11 @@ test.describe('TC-TRANS-005: Translation Manager Standalone', () => {
       const deTab = managerCard.getByRole('button', { name: 'DE' })
       await deTab.click()
 
-      await expect(page.locator('table input').first()).toHaveValue('Persistenter Titel')
+      await expect(page.locator('table input').first()).toHaveValue('Persistentes Label')
     } finally {
-      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, productId)
-      await deleteCatalogProductIfExists(request, adminToken, productId)
+      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, entryId)
+      await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)
+      await deleteDictionaryIfExists(request, adminToken, dictionaryId)
       await setLocales(request, adminToken, originalLocales).catch(() => {})
     }
   })

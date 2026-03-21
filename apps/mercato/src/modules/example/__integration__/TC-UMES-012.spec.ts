@@ -1,21 +1,17 @@
 /**
- * TC-UMES-012: Response Metadata + Extension Headers + Interceptor Activity (SPEC-041k)
+ * TC-UMES-012: Extension Headers + Interceptor Activity (SPEC-041k)
  *
  * Validates that:
- * 1. API responses include `_meta.enrichedBy` when enrichers run
- * 2. Extension headers (x-om-ext-*) are parsed and accessible
- * 3. Interceptor activity is logged for interceptor actions
+ * 1. Extension headers (x-om-ext-*) are parsed and accessible
+ * 2. Interceptor activity is logged for interceptor actions
  *
- * Spec reference: SPEC-041k — DevTools + Conflict Detection (Steps 5, 6, 8)
+ * Spec reference: SPEC-041k — DevTools + Conflict Detection (Steps 6, 8)
  */
 import { test, expect } from '@playwright/test'
 import {
   getAuthToken,
-  apiRequest,
 } from '@open-mercato/core/modules/core/__integration__/helpers/api'
 import {
-  createPersonFixture,
-  deleteEntityIfExists,
   readJsonSafe,
 } from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures'
 import {
@@ -26,15 +22,6 @@ import {
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
 
-interface ListResponseBody {
-  items?: unknown[]
-  _meta?: { enrichedBy?: string[] }
-}
-
-interface SingleResponseBody {
-  _meta?: { enrichedBy?: string[] }
-}
-
 interface ErrorResponseBody {
   message?: string
 }
@@ -42,56 +29,6 @@ interface ErrorResponseBody {
 interface TodoResponseBody {
   id?: string
 }
-
-test.describe('TC-UMES-012: Response metadata (_meta.enrichedBy)', () => {
-  let token: string
-
-  test.beforeAll(async ({ request }) => {
-    token = await getAuthToken(request)
-  })
-
-  test('customer list response includes _meta.enrichedBy with enricher IDs', async ({ request }) => {
-    // The example module enricher `example.customer-todo-count` targets customers.person
-    const response = await apiRequest(request, 'GET', '/api/customers/people?limit=5', { token })
-    expect(response.ok()).toBeTruthy()
-
-    const body = await readJsonSafe<ListResponseBody>(response)
-    expect(body).toHaveProperty('items')
-    expect(Array.isArray(body?.items)).toBeTruthy()
-
-    // The response should have _meta with enrichedBy array
-    if (body?._meta) {
-      expect(body._meta).toHaveProperty('enrichedBy')
-      expect(Array.isArray(body._meta.enrichedBy)).toBeTruthy()
-      // The example module enricher should be listed
-      expect(body._meta.enrichedBy).toContain('example.customer-todo-count')
-    }
-  })
-
-  test('single customer response includes _meta.enrichedBy', async ({ request }) => {
-    let personId: string | null = null
-    try {
-      personId = await createPersonFixture(request, token, {
-        firstName: 'QA',
-        lastName: `UMES-012 ${Date.now()}`,
-        displayName: `QA UMES-012 ${Date.now()}`,
-      })
-
-      const response = await apiRequest(request, 'GET', `/api/customers/people/${personId}`, { token })
-      expect(response.ok()).toBeTruthy()
-
-      const body = await readJsonSafe<SingleResponseBody>(response)
-
-      // Single record response should also have _meta
-      if (body?._meta) {
-        expect(body._meta).toHaveProperty('enrichedBy')
-        expect(Array.isArray(body._meta.enrichedBy)).toBeTruthy()
-      }
-    } finally {
-      await deleteEntityIfExists(request, token, '/api/customers/people', personId)
-    }
-  })
-})
 
 test.describe('TC-UMES-012: Extension headers', () => {
   test('extension header helper functions work correctly', () => {

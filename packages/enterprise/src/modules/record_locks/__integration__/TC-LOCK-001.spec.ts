@@ -1,13 +1,14 @@
 import { expect, test } from '@playwright/test';
 import { getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api';
-import { createCompanyFixture } from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures';
 import {
   acquireRecordLock,
-  cleanupCompany,
+  cleanupTodo,
+  createTodoFixture,
   getRecordLockSettings,
   releaseRecordLock,
   saveRecordLockSettings,
-  updateCompany,
+  updateTodo,
+  LOCK_RESOURCE_KIND,
   type RecordLockSettings,
 } from './helpers/recordLocks';
 
@@ -22,7 +23,7 @@ test.describe('TC-LOCK-001: Pessimistic lock blocks a second editor', () => {
     const adminToken = await getAuthToken(request, 'admin');
 
     let previousSettings: RecordLockSettings | null = null;
-    let companyId: string | null = null;
+    let todoId: string | null = null;
     let ownerLockToken: string | null = null;
 
     try {
@@ -31,22 +32,22 @@ test.describe('TC-LOCK-001: Pessimistic lock blocks a second editor', () => {
         ...previousSettings,
         enabled: true,
         strategy: 'pessimistic',
-        enabledResources: ['customers.company'],
+        enabledResources: [LOCK_RESOURCE_KIND],
       });
 
-      companyId = await createCompanyFixture(request, adminToken, `QA TC-LOCK-001 Company ${Date.now()}`);
+      todoId = await createTodoFixture(request, adminToken, `QA TC-LOCK-001 Todo ${Date.now()}`);
 
-      const ownerAcquire = await acquireRecordLock(request, superadminToken, 'customers.company', companyId);
+      const ownerAcquire = await acquireRecordLock(request, superadminToken, LOCK_RESOURCE_KIND, todoId);
       expect(ownerAcquire.status).toBe(200);
       expect(ownerAcquire.body?.ok).toBe(true);
       ownerLockToken =
         (ownerAcquire.body?.lock as { token?: string | null } | undefined)?.token ?? null;
       expect(ownerLockToken).toBeTruthy();
 
-      const blockedUpdate = await updateCompany(
+      const blockedUpdate = await updateTodo(
         request,
         adminToken,
-        companyId,
+        todoId,
         `QA TC-LOCK-001 Blocked Update ${Date.now()}`,
       );
       expect(blockedUpdate.status).toBe(423);
@@ -55,27 +56,27 @@ test.describe('TC-LOCK-001: Pessimistic lock blocks a second editor', () => {
       const ownerRelease = await releaseRecordLock(
         request,
         superadminToken,
-        'customers.company',
-        companyId,
+        LOCK_RESOURCE_KIND,
+        todoId,
         ownerLockToken as string,
       );
       expect(ownerRelease.status).toBe(200);
       expect(ownerRelease.body?.released).toBe(true);
       ownerLockToken = null;
 
-      const updateAfterRelease = await updateCompany(
+      const updateAfterRelease = await updateTodo(
         request,
         adminToken,
-        companyId,
+        todoId,
         `QA TC-LOCK-001 Unblocked Update ${Date.now()}`,
       );
       expect(updateAfterRelease.status).toBe(200);
       expect(updateAfterRelease.body?.ok).toBe(true);
     } finally {
-      if (ownerLockToken && companyId) {
-        await releaseRecordLock(request, superadminToken, 'customers.company', companyId, ownerLockToken).catch(() => {});
+      if (ownerLockToken && todoId) {
+        await releaseRecordLock(request, superadminToken, LOCK_RESOURCE_KIND, todoId, ownerLockToken).catch(() => {});
       }
-      await cleanupCompany(request, adminToken, companyId);
+      await cleanupTodo(request, adminToken, todoId);
       if (previousSettings) {
         await saveRecordLockSettings(request, superadminToken, previousSettings).catch(() => {});
       }

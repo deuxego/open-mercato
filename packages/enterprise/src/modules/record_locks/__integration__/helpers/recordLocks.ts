@@ -1,8 +1,10 @@
 import { expect, type APIRequestContext, type APIResponse } from '@playwright/test';
 import { apiRequest } from '@open-mercato/core/modules/core/__integration__/helpers/api';
-import { deleteEntityIfExists } from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures';
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000';
+
+export const LOCK_RESOURCE_KIND = 'example.todo';
+export const LOCK_ENTITY_API = '/api/example/todos';
 
 export type RecordLockSettings = {
   enabled: boolean;
@@ -193,19 +195,38 @@ export async function forceReleaseRecordLock(
   );
 }
 
-export async function updateCompany(
+export async function createTodoFixture(
   request: APIRequestContext,
   token: string,
-  companyId: string,
-  displayName: string,
+  title: string,
+): Promise<string> {
+  const response = await apiRequest(request, 'POST', LOCK_ENTITY_API, {
+    token,
+    data: { title, priority: 'medium' },
+  });
+
+  expect(response.ok(), `Failed to create todo: ${response.status()}`).toBeTruthy();
+
+  const payload = (await readJsonSafe(response)) as Record<string, unknown> | null;
+  const id = typeof payload?.id === 'string' ? payload.id : null;
+  expect(id, 'No id in todo creation response').toBeTruthy();
+
+  return id as string;
+}
+
+export async function updateTodo(
+  request: APIRequestContext,
+  token: string,
+  todoId: string,
+  title: string,
   lockHeaders?: RecordLockMutationHeaders,
   extraHeaders?: Record<string, string>,
 ): Promise<ApiCallResult<Record<string, unknown>>> {
   const requestHeaders: Record<string, string> = { ...(extraHeaders ?? {}) };
 
   if (lockHeaders) {
-    requestHeaders['x-om-record-lock-kind'] = 'customers.company';
-    requestHeaders['x-om-record-lock-resource-id'] = companyId;
+    requestHeaders['x-om-record-lock-kind'] = LOCK_RESOURCE_KIND;
+    requestHeaders['x-om-record-lock-resource-id'] = todoId;
 
     if (lockHeaders.token) {
       requestHeaders['x-om-record-lock-token'] = lockHeaders.token;
@@ -227,11 +248,11 @@ export async function updateCompany(
   return requestJson<Record<string, unknown>>(
     request,
     'PUT',
-    '/api/customers/companies',
+    LOCK_ENTITY_API,
     token,
     {
-      id: companyId,
-      displayName,
+      id: todoId,
+      title,
     },
     requestHeaders,
   );
@@ -265,31 +286,28 @@ export function buildScopeCookieFromToken(token: string): string | null {
   }
 }
 
-export async function getCompanyDisplayName(
+export async function getTodoTitle(
   request: APIRequestContext,
   token: string,
-  companyId: string,
+  todoId: string,
 ): Promise<string | null> {
   const response = await apiRequest(
     request,
     'GET',
-    `/api/customers/companies?id=${encodeURIComponent(companyId)}&pageSize=5`,
+    `${LOCK_ENTITY_API}?id=${encodeURIComponent(todoId)}&pageSize=5`,
     { token },
   );
 
-  expect(response.ok(), `Failed to read company ${companyId}: ${response.status()}`).toBeTruthy();
+  expect(response.ok(), `Failed to read todo ${todoId}: ${response.status()}`).toBeTruthy();
 
   const payload = (await readJsonSafe(response)) as { items?: Array<Record<string, unknown>> } | null;
   const rows = Array.isArray(payload?.items) ? payload.items : [];
-  const row = rows.find((item) => typeof item.id === 'string' && item.id === companyId) ?? rows[0] ?? null;
+  const row = rows.find((item) => typeof item.id === 'string' && item.id === todoId) ?? rows[0] ?? null;
 
   if (!row) return null;
 
-  const snake = row.display_name;
-  if (typeof snake === 'string') return snake;
-
-  const camel = row.displayName;
-  if (typeof camel === 'string') return camel;
+  const title = row.title;
+  if (typeof title === 'string') return title;
 
   return null;
 }
@@ -357,10 +375,15 @@ export async function executeNotificationAction(
   );
 }
 
-export async function cleanupCompany(
+export async function cleanupTodo(
   request: APIRequestContext,
   token: string | null,
-  companyId: string | null,
+  todoId: string | null,
 ): Promise<void> {
-  await deleteEntityIfExists(request, token, '/api/customers/companies', companyId);
+  if (!token || !todoId) return;
+  try {
+    await apiRequest(request, 'DELETE', `${LOCK_ENTITY_API}?id=${encodeURIComponent(todoId)}`, { token });
+  } catch {
+    return;
+  }
 }

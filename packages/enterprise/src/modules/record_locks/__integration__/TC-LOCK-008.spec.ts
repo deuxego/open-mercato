@@ -1,12 +1,13 @@
 import { expect, test } from '@playwright/test';
 import { login } from '@open-mercato/core/modules/core/__integration__/helpers/auth';
 import { apiRequest, getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api';
-import { createCompanyFixture } from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures';
 import {
-  cleanupCompany,
+  cleanupTodo,
+  createTodoFixture,
   getRecordLockSettings,
   listNotificationsByType,
   saveRecordLockSettings,
+  LOCK_RESOURCE_KIND,
   type RecordLockSettings,
 } from './helpers/recordLocks';
 
@@ -21,7 +22,7 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
     const adminToken = await getAuthToken(request, 'admin');
 
     let previousSettings: RecordLockSettings | null = null;
-    let companyId: string | null = null;
+    let todoId: string | null = null;
     const legacyPollRequests: string[] = [];
 
     const onRequest = (rawRequest: { url: () => string }) => {
@@ -42,10 +43,10 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
         ...previousSettings,
         enabled: true,
         strategy: 'optimistic',
-        enabledResources: ['customers.company'],
+        enabledResources: [LOCK_RESOURCE_KIND],
       });
 
-      companyId = await createCompanyFixture(request, adminToken, `QA TC-LOCK-008 Company ${Date.now()}`);
+      todoId = await createTodoFixture(request, adminToken, `QA TC-LOCK-008 Todo ${Date.now()}`);
 
       await login(page, 'admin');
       page.on('request', onRequest);
@@ -53,7 +54,7 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
         (response) => response.url().includes('/api/record_locks/acquire') && response.request().method() === 'POST',
         { timeout: 15_000 },
       );
-      await page.goto(`/backend/customers/companies/${encodeURIComponent(companyId)}`);
+      await page.goto(`/backend/example/todos/${encodeURIComponent(todoId)}/edit`);
       await page.waitForLoadState('domcontentloaded');
       const acquireResponse = await acquireResponsePromise;
       expect(acquireResponse.ok()).toBeTruthy();
@@ -80,8 +81,8 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
           severity: 'warning',
           sourceModule: 'record_locks',
           sourceEntityType: 'record_locks:record',
-          sourceEntityId: companyId,
-          bodyVariables: { resourceKind: 'customers.company' },
+          sourceEntityId: todoId,
+          bodyVariables: { resourceKind: LOCK_RESOURCE_KIND },
         },
       });
       expect(createNotificationResponse.ok()).toBeTruthy();
@@ -91,7 +92,7 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
         adminToken,
         'record_locks.record.deleted',
       );
-      expect(delivered.some((item) => item.sourceEntityId === companyId)).toBe(true);
+      expect(delivered.some((item) => item.sourceEntityId === todoId)).toBe(true);
 
       await expect.poll(async () => {
         return page.evaluate(() => {
@@ -102,7 +103,7 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
       expect(legacyPollRequests).toHaveLength(0);
     } finally {
       page.off('request', onRequest);
-      await cleanupCompany(request, adminToken, companyId);
+      await cleanupTodo(request, adminToken, todoId);
       if (previousSettings) {
         await saveRecordLockSettings(request, superadminToken, previousSettings).catch(() => {});
       }

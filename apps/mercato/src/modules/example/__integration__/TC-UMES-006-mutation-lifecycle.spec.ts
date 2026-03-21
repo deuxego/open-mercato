@@ -1,9 +1,8 @@
 /**
  * TC-UMES-006: Mutation Lifecycle — API Integration Tests (Phase M)
  *
- * Validates mutation guard registry (m1), sync event subscribers (m2),
- * and command interceptors (m4) through API-level tests against the
- * example todo CRUD endpoints.
+ * Validates mutation guard registry (m1) and sync event subscribers (m2)
+ * through API-level tests against the example todo CRUD endpoints.
  *
  * Spec reference: SPEC-041m — Mutation Lifecycle Hooks
  * Source scenarios:
@@ -11,7 +10,6 @@
  *   - .ai/qa/scenarios/TC-UMES-ML02-sync-subscriber-auto-default-priority.md
  *   - .ai/qa/scenarios/TC-UMES-ML03-sync-subscriber-blocks-uncomplete.md
  *   - .ai/qa/scenarios/TC-UMES-ML04-sync-subscriber-audit-delete.md
- *   - .ai/qa/scenarios/TC-UMES-ML07-command-interceptor-customer-audit.md
  *   - .ai/qa/scenarios/TC-UMES-ML08-sync-before-update-with-previous-data.md
  *   - .ai/qa/scenarios/TC-UMES-ML09-sync-before-delete-blocks-operation.md
  *   - .ai/qa/scenarios/TC-UMES-ML10-full-mutation-lifecycle-e2e.md
@@ -21,10 +19,6 @@ import {
   getAuthToken,
   apiRequest,
 } from '@open-mercato/core/modules/core/__integration__/helpers/api'
-import {
-  createCompanyFixture,
-  deleteEntityIfExists,
-} from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures'
 
 async function createTodo(
   request: Parameters<typeof apiRequest>[0],
@@ -332,33 +326,6 @@ test.describe('TC-UMES-006: Mutation Lifecycle — API Tests', () => {
     const payload = await verifyResponse.json()
     const items = payload?.items ?? payload?.data ?? []
     expect(items.find((item: Record<string, unknown>) => item.id === todoId)).toBeUndefined()
-  })
-
-  // ── Phase m4: Command Interceptors ─────────────────────────────────
-
-  test('TC-UMES-ML07: command interceptor runs on customer operations without blocking', async ({
-    request,
-  }) => {
-    let companyId: string | null = null
-    try {
-      // Create a company — interceptor targets customers.*
-      companyId = await createCompanyFixture(request, adminToken, `ML07-Interceptor-${Date.now()}`)
-      expect(typeof companyId).toBe('string')
-
-      // Update the company — interceptor should observe but not block
-      const updateResponse = await apiRequest(
-        request,
-        'PUT',
-        '/api/customers/companies',
-        {
-          token: adminToken,
-          data: { id: companyId, name: `ML07-Interceptor-Updated-${Date.now()}` },
-        },
-      )
-      expect(updateResponse.ok()).toBeTruthy()
-    } finally {
-      await deleteEntityIfExists(request, adminToken, '/api/customers/companies', companyId)
-    }
   })
 
   // ── Full E2E Lifecycle ─────────────────────────────────────────────

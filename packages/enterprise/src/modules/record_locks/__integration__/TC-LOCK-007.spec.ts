@@ -1,16 +1,17 @@
 import { expect, test, type APIRequestContext } from '@playwright/test';
 import { getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api';
-import { createCompanyFixture } from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures';
 import {
   acquireRecordLock,
   buildScopeCookieFromToken,
-  cleanupCompany,
-  getCompanyDisplayName,
+  cleanupTodo,
+  createTodoFixture,
+  getTodoTitle,
   getRecordLockSettings,
   releaseRecordLock,
   saveRecordLockSettings,
-  updateCompany,
+  updateTodo,
   waitForNotification,
+  LOCK_RESOURCE_KIND,
   type RecordLockSettings,
   type NotificationItem,
 } from './helpers/recordLocks';
@@ -20,21 +21,21 @@ type ConflictContext = {
   notification: NotificationItem;
   ownerLockToken: string;
   baseLogId: string;
-  incomingName: string;
+  incomingTitle: string;
 };
 
 async function createConflictScenario(
   request: APIRequestContext,
   superadminToken: string,
   adminToken: string,
-  companyId: string,
+  todoId: string,
   superadminScopeHeaders?: Record<string, string>,
 ): Promise<ConflictContext> {
   const acquire = await acquireRecordLock(
     request,
     superadminToken,
-    'customers.company',
-    companyId,
+    LOCK_RESOURCE_KIND,
+    todoId,
     superadminScopeHeaders,
   );
   expect(acquire.status).toBe(200);
@@ -45,14 +46,14 @@ async function createConflictScenario(
   expect(ownerLockToken).toBeTruthy();
   expect(baseLogId).toBeTruthy();
 
-  const incomingName = `QA TC-LOCK-007 Incoming ${Date.now()}`;
-  const incomingUpdate = await updateCompany(request, adminToken, companyId, incomingName);
+  const incomingTitle = `QA TC-LOCK-007 Incoming ${Date.now()}`;
+  const incomingUpdate = await updateTodo(request, adminToken, todoId, incomingTitle);
   expect(incomingUpdate.status).toBe(200);
 
-  const conflictAttempt = await updateCompany(
+  const conflictAttempt = await updateTodo(
     request,
     superadminToken,
-    companyId,
+    todoId,
     `QA TC-LOCK-007 Mine ${Date.now()}`,
     {
       token: ownerLockToken,
@@ -79,7 +80,7 @@ async function createConflictScenario(
     notification,
     ownerLockToken: ownerLockToken as string,
     baseLogId: baseLogId as string,
-    incomingName,
+    incomingTitle,
   };
 }
 
@@ -96,7 +97,7 @@ test.describe('TC-LOCK-007: Conflict notification changed fields and apply/rejec
     const superadminScopeHeaders = superadminScopeCookie ? { cookie: superadminScopeCookie } : undefined;
 
     let previousSettings: RecordLockSettings | null = null;
-    let companyId: string | null = null;
+    let todoId: string | null = null;
     let ownerLockToken: string | null = null;
 
     try {
@@ -105,30 +106,30 @@ test.describe('TC-LOCK-007: Conflict notification changed fields and apply/rejec
         ...previousSettings,
         enabled: true,
         strategy: 'optimistic',
-        enabledResources: ['customers.company'],
+        enabledResources: [LOCK_RESOURCE_KIND],
         notifyOnConflict: true,
       });
 
-      companyId = await createCompanyFixture(request, adminToken, `QA TC-LOCK-007 Company A ${Date.now()}`);
+      todoId = await createTodoFixture(request, adminToken, `QA TC-LOCK-007 Todo A ${Date.now()}`);
 
       const conflict = await createConflictScenario(
         request,
         superadminToken,
         adminToken,
-        companyId,
+        todoId,
         superadminScopeHeaders,
       );
       ownerLockToken = conflict.ownerLockToken;
 
-      expect(conflict.notification.bodyVariables?.changedFields?.toLowerCase()).toContain('display');
+      expect(conflict.notification.bodyVariables?.changedFields?.toLowerCase()).toContain('title');
       const actionIds = (conflict.notification.actions ?? []).map((item) => item.id);
       expect(actionIds).toEqual([]);
 
       const releaseResult = await releaseRecordLock(
         request,
         superadminToken,
-        'customers.company',
-        companyId,
+        LOCK_RESOURCE_KIND,
+        todoId,
         conflict.ownerLockToken,
         'conflict_resolved',
         {
@@ -141,8 +142,8 @@ test.describe('TC-LOCK-007: Conflict notification changed fields and apply/rejec
       expect(releaseResult.body?.ok).toBe(true);
       expect((releaseResult.body as { conflictResolved?: boolean } | null)?.conflictResolved).toBe(true);
 
-      const finalName = await getCompanyDisplayName(request, adminToken, companyId);
-      expect(finalName).toBe(conflict.incomingName);
+      const finalTitle = await getTodoTitle(request, adminToken, todoId);
+      expect(finalTitle).toBe(conflict.incomingTitle);
 
       await waitForNotification(
         request,
@@ -152,19 +153,19 @@ test.describe('TC-LOCK-007: Conflict notification changed fields and apply/rejec
       );
       ownerLockToken = null;
     } finally {
-      if (ownerLockToken && companyId) {
+      if (ownerLockToken && todoId) {
         await releaseRecordLock(
           request,
           superadminToken,
-          'customers.company',
-          companyId,
+          LOCK_RESOURCE_KIND,
+          todoId,
           ownerLockToken,
           'cancelled',
           undefined,
           superadminScopeHeaders,
         ).catch(() => {});
       }
-      await cleanupCompany(request, adminToken, companyId);
+      await cleanupTodo(request, adminToken, todoId);
       if (previousSettings) {
         await saveRecordLockSettings(request, superadminToken, previousSettings).catch(() => {});
       }
@@ -178,7 +179,7 @@ test.describe('TC-LOCK-007: Conflict notification changed fields and apply/rejec
     const superadminScopeHeaders = superadminScopeCookie ? { cookie: superadminScopeCookie } : undefined;
 
     let previousSettings: RecordLockSettings | null = null;
-    let companyId: string | null = null;
+    let todoId: string | null = null;
     let ownerLockToken: string | null = null;
 
     try {
@@ -187,27 +188,27 @@ test.describe('TC-LOCK-007: Conflict notification changed fields and apply/rejec
         ...previousSettings,
         enabled: true,
         strategy: 'optimistic',
-        enabledResources: ['customers.company'],
+        enabledResources: [LOCK_RESOURCE_KIND],
         notifyOnConflict: true,
       });
 
-      companyId = await createCompanyFixture(request, adminToken, `QA TC-LOCK-007 Company B ${Date.now()}`);
+      todoId = await createTodoFixture(request, adminToken, `QA TC-LOCK-007 Todo B ${Date.now()}`);
 
       const conflict = await createConflictScenario(
         request,
         superadminToken,
         adminToken,
-        companyId,
+        todoId,
         superadminScopeHeaders,
       );
       ownerLockToken = conflict.ownerLockToken;
-      const keepMineName = `QA TC-LOCK-007 Keep Mine ${Date.now()}`;
+      const keepMineTitle = `QA TC-LOCK-007 Keep Mine ${Date.now()}`;
 
-      const updateResult = await updateCompany(
+      const updateResult = await updateTodo(
         request,
         superadminToken,
-        companyId,
-        keepMineName,
+        todoId,
+        keepMineTitle,
         {
           token: conflict.ownerLockToken,
           baseLogId: conflict.baseLogId,
@@ -219,8 +220,8 @@ test.describe('TC-LOCK-007: Conflict notification changed fields and apply/rejec
       expect(updateResult.status).toBe(200);
       expect(updateResult.body?.ok).toBe(true);
 
-      const finalName = await getCompanyDisplayName(request, adminToken, companyId);
-      expect(finalName).toBe(keepMineName);
+      const finalTitle = await getTodoTitle(request, adminToken, todoId);
+      expect(finalTitle).toBe(keepMineTitle);
 
       await waitForNotification(
         request,
@@ -230,19 +231,19 @@ test.describe('TC-LOCK-007: Conflict notification changed fields and apply/rejec
       );
       ownerLockToken = null;
     } finally {
-      if (ownerLockToken && companyId) {
+      if (ownerLockToken && todoId) {
         await releaseRecordLock(
           request,
           superadminToken,
-          'customers.company',
-          companyId,
+          LOCK_RESOURCE_KIND,
+          todoId,
           ownerLockToken,
           'cancelled',
           undefined,
           superadminScopeHeaders,
         ).catch(() => {});
       }
-      await cleanupCompany(request, adminToken, companyId);
+      await cleanupTodo(request, adminToken, todoId);
       if (previousSettings) {
         await saveRecordLockSettings(request, superadminToken, previousSettings).catch(() => {});
       }

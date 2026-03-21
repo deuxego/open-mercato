@@ -1,30 +1,34 @@
 import { expect, test, type Locator, type Page } from '@playwright/test'
 import { apiRequest, getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api'
-import { createCategoryFixture, deleteCatalogCategoryIfExists } from '@open-mercato/core/modules/core/__integration__/helpers/catalogFixtures'
+import {
+  createDictionaryFixture,
+  createDictionaryEntryFixture,
+  deleteDictionaryEntryIfExists,
+  deleteDictionaryIfExists,
+} from '@open-mercato/core/modules/core/__integration__/helpers/dictionariesFixtures'
 import { login } from '@open-mercato/core/modules/core/__integration__/helpers/auth'
 import { deleteTranslationIfExists, getLocales, setLocales } from './helpers/translationFixtures'
 
-const ENTITY_TYPE = 'catalog:catalog_product_category'
+const ENTITY_TYPE = 'dictionaries:dictionary_entry'
 
-async function openTranslationsDrawer(page: Page): Promise<Locator> {
-  const openButton = page.getByRole('button', { name: /Translation manager/ }).first()
-  const dialog = page.getByRole('dialog', { name: /Translations/i })
-
-  await expect(openButton).toBeVisible()
-  await expect(openButton).toBeEnabled()
-  await openButton.click()
-  await expect(dialog).toBeVisible()
-  return dialog
+async function fillCombobox(page: Page, placeholder: string, value: string) {
+  const input = page.getByPlaceholder(placeholder)
+  await expect(input).toBeEnabled({ timeout: 10_000 })
+  await input.click()
+  await input.fill(value)
+  await input.press('Enter')
+  await input.press('Tab')
+  await page.waitForTimeout(300)
 }
 
-async function waitForTranslationField(dialog: Locator, preferredPlaceholder?: string): Promise<Locator> {
-  const firstEditableField = dialog.locator('table').locator('input, textarea').first()
+async function waitForTranslationField(container: Locator, preferredPlaceholder?: string): Promise<Locator> {
+  const firstEditableField = container.locator('table').locator('input, textarea').first()
   await expect(firstEditableField).toBeVisible()
 
   const normalizedPlaceholder = preferredPlaceholder?.trim()
   if (!normalizedPlaceholder) return firstEditableField
 
-  const preferredField = dialog.getByPlaceholder(normalizedPlaceholder).first()
+  const preferredField = container.getByPlaceholder(normalizedPlaceholder).first()
   if (await preferredField.count()) {
     await expect(preferredField).toBeVisible()
     return preferredField
@@ -34,72 +38,82 @@ async function waitForTranslationField(dialog: Locator, preferredPlaceholder?: s
 }
 
 /**
- * TC-TRANS-007: Dynamic Header Action Injection on Category Edit
- * Verifies that the Translation Manager action auto-injects on entity types
- * beyond catalog products. Since injection-table.ts now dynamically generates
- * entries for all translatable entity types, this test confirms the mechanism
- * works for product categories.
+ * TC-TRANS-007: Dynamic Translation Manager for Multiple Entity Types
+ * Verifies that the standalone Translation Manager correctly handles translations
+ * for dictionary entries. This confirms the dynamic translatable-fields mechanism
+ * works for all registered entity types.
+ * (Adapted from the original category-edit drawer test.)
  */
-test.describe('TC-TRANS-007: Dynamic Header Action Injection on Category Edit', () => {
+test.describe('TC-TRANS-007: Dynamic Translation Manager for Multiple Entity Types', () => {
   test.use({ actionTimeout: 30_000 })
 
-  test('should show translation action on category edit page', async ({ page, request }) => {
+  test('should show translation fields for a dictionary entry', async ({ page, request }) => {
     const adminToken = await getAuthToken(request, 'admin')
     const originalLocales = await getLocales(request, adminToken)
-    const categoryName = `QA TC-TRANS-007-1 ${Date.now()}`
-    let categoryId: string | null = null
+    const dictKey = `qa-trans-007-1-${Date.now()}`
+    const entryLabel = `QA TC-TRANS-007-1 ${Date.now()}`
+    let dictionaryId: string | null = null
+    let entryId: string | null = null
 
     try {
       await setLocales(request, adminToken, [...new Set([...originalLocales, 'de'])])
-      categoryId = await createCategoryFixture(request, adminToken, { name: categoryName })
+      dictionaryId = await createDictionaryFixture(request, adminToken, { key: dictKey, name: `Dict ${Date.now()}` })
+      entryId = await createDictionaryEntryFixture(request, adminToken, dictionaryId, { value: dictKey, label: entryLabel })
 
       await login(page, 'superadmin')
-      await page.goto(`/backend/catalog/categories/${categoryId}/edit`)
+      await page.goto('/backend/config/translations')
 
-      const dialog = await openTranslationsDrawer(page)
-      await expect(dialog).toBeVisible()
-      await expect(dialog.getByRole('button', { name: 'Save translations' })).toBeVisible()
+      await fillCombobox(page, 'Select an entity', ENTITY_TYPE)
+      await fillCombobox(page, 'Search records...', entryId!)
+
+      await expect(page.getByRole('button', { name: 'Save translations' })).toBeVisible()
     } finally {
-      await deleteCatalogCategoryIfExists(request, adminToken, categoryId)
+      await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)
+      await deleteDictionaryIfExists(request, adminToken, dictionaryId)
       await setLocales(request, adminToken, originalLocales).catch(() => {})
     }
   })
 
-  test('should save a translation via the category drawer and verify via API', async ({ page, request }) => {
+  test('should save a translation for a dictionary entry and verify via API', async ({ page, request }) => {
     const adminToken = await getAuthToken(request, 'admin')
     const saToken = await getAuthToken(request, 'superadmin')
     const originalLocales = await getLocales(request, adminToken)
-    const categoryName = `QA TC-TRANS-007-2 ${Date.now()}`
-    let categoryId: string | null = null
+    const dictKey = `qa-trans-007-2-${Date.now()}`
+    const entryLabel = `QA TC-TRANS-007-2 ${Date.now()}`
+    let dictionaryId: string | null = null
+    let entryId: string | null = null
 
     try {
       await setLocales(request, adminToken, [...new Set([...originalLocales, 'de'])])
-      categoryId = await createCategoryFixture(request, adminToken, { name: categoryName })
+      dictionaryId = await createDictionaryFixture(request, adminToken, { key: dictKey, name: `Dict ${Date.now()}` })
+      entryId = await createDictionaryEntryFixture(request, adminToken, dictionaryId, { value: dictKey, label: entryLabel })
 
       await login(page, 'superadmin')
-      await page.goto(`/backend/catalog/categories/${categoryId}/edit`)
+      await page.goto('/backend/config/translations')
 
-      const dialog = await openTranslationsDrawer(page)
-      await expect(dialog).toBeVisible()
+      await fillCombobox(page, 'Select an entity', ENTITY_TYPE)
+      await fillCombobox(page, 'Search records...', entryId!)
 
-      const deTab = dialog.getByRole('button', { name: 'DE' })
+      const managerCard = page.locator('.bg-card').filter({
+        has: page.getByRole('button', { name: 'Save translations' }),
+      })
+      const deTab = managerCard.getByRole('button', { name: 'DE' })
       await deTab.click()
 
-      const translationField = await waitForTranslationField(dialog, categoryName)
-      await translationField.fill('Kategorie QA')
+      const translationField = await waitForTranslationField(managerCard, entryLabel)
+      await translationField.fill('Eintrag QA')
 
-      const saveTranslationsButton = dialog.getByRole('button', { name: 'Save translations' })
-      await expect(saveTranslationsButton).toBeVisible()
-      await saveTranslationsButton.click()
+      await page.getByRole('button', { name: 'Save translations' }).click()
       await expect(page.getByText('Translations saved').first()).toBeVisible()
 
-      const getResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${categoryId}`, { token: saToken })
+      const getResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${entryId}`, { token: saToken })
       expect(getResponse.ok()).toBeTruthy()
       const body = (await getResponse.json()) as { translations: Record<string, Record<string, string>> }
-      expect(body.translations.de.name).toBe('Kategorie QA')
+      expect(body.translations.de.label).toBe('Eintrag QA')
     } finally {
-      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, categoryId)
-      await deleteCatalogCategoryIfExists(request, adminToken, categoryId)
+      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, entryId)
+      await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)
+      await deleteDictionaryIfExists(request, adminToken, dictionaryId)
       await setLocales(request, adminToken, originalLocales).catch(() => {})
     }
   })

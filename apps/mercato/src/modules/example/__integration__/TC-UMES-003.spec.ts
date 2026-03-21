@@ -10,10 +10,6 @@ import { test, expect } from '@playwright/test'
 import {
   getAuthToken,
 } from '@open-mercato/core/modules/core/__integration__/helpers/api'
-import {
-  createPersonFixture,
-  deleteEntityIfExists,
-} from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures'
 
 const BASE_URL = process.env.BASE_URL || 'http://localhost:3000'
 const OM_EVENT_NAME = 'om:event'
@@ -587,40 +583,6 @@ test.describe('TC-UMES-003: Events & DOM Bridge', () => {
     await page.waitForLoadState('domcontentloaded')
     await page.getByTestId('phase-ab-open-todo-create').click()
     await expect(page).toHaveURL(/\/backend\/todos\/create(?:\?.*)?$/)
-  })
-
-  test('TC-UMES-E17: Phase D harness probe returns enriched customer payload', async ({
-    page,
-    request,
-  }) => {
-    const adminToken = await getAuthToken(request, 'admin')
-    let personId: string | null = null
-
-    try {
-      personId = await createPersonFixture(request, adminToken, {
-        firstName: `QA-UMES-E17-${Date.now()}`,
-        lastName: 'Harness',
-        displayName: `QA UMES E17 ${Date.now()}`,
-      })
-
-      const { login } = await import(
-        '@open-mercato/core/modules/core/__integration__/helpers/auth'
-      )
-      await login(page, 'admin')
-      await page.goto('/backend/umes-handlers')
-      await page.waitForLoadState('domcontentloaded')
-
-      await page.getByTestId('phase-d-person-id').fill(personId)
-      await page.getByTestId('phase-d-probe-title').fill('')
-      await page.getByTestId('phase-d-run-probe').click()
-
-      await expect(page.getByTestId('phase-d-status')).toContainText('ok')
-      await expect(page.getByTestId('phase-d-result')).toContainText(personId)
-      await expect(page.getByTestId('phase-d-result')).toContainText('_example')
-      await expect(page.getByTestId('phase-d-result')).toContainText('example.customer-todo-count')
-    } finally {
-      await deleteEntityIfExists(request, adminToken, '/api/customers/people', personId)
-    }
   })
 
   test('TC-UMES-E18: blocked-save example prevents submit and reports save guard reason', async ({

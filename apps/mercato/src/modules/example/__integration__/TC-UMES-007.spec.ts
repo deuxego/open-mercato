@@ -165,11 +165,11 @@ test.describe('TC-UMES-007: Mutation Lifecycle — Showcase Page', () => {
     await expect(phaseGLink).toHaveAttribute('href', '/backend/umes-extensions')
   })
 
-  test('TC-UMES-ML-nav2: phase m4 link navigates to customers page', async ({
+  test('TC-UMES-ML-nav2: phase m4 link navigates to todos page', async ({
     page,
   }) => {
-    const customersLink = page.getByRole('link', { name: /Open customers/i })
-    await expect(customersLink).toBeVisible()
-    await expect(customersLink).toHaveAttribute('href', '/backend/customers/people')
+    const todosLink = page.getByRole('link', { name: /Open todos/i })
+    await expect(todosLink).toBeVisible()
+    await expect(todosLink).toHaveAttribute('href', '/backend/todos')
   })
 })

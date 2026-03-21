@@ -1,16 +1,17 @@
 import { expect, test } from '@playwright/test';
 import { getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api';
-import { createCompanyFixture } from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures';
 import {
   acquireRecordLock,
-  cleanupCompany,
+  cleanupTodo,
+  createTodoFixture,
   buildScopeCookieFromToken,
-  getCompanyDisplayName,
+  getTodoTitle,
   getRecordLockSettings,
   releaseRecordLock,
   saveRecordLockSettings,
-  updateCompany,
+  updateTodo,
   waitForNotification,
+  LOCK_RESOURCE_KIND,
   type RecordLockSettings,
 } from './helpers/recordLocks';
 
@@ -27,7 +28,7 @@ test.describe('TC-LOCK-002: Optimistic conflict with accept incoming path', () =
     const superadminScopeHeaders = superadminScopeCookie ? { cookie: superadminScopeCookie } : undefined;
 
     let previousSettings: RecordLockSettings | null = null;
-    let companyId: string | null = null;
+    let todoId: string | null = null;
     let ownerLockToken: string | null = null;
 
     try {
@@ -36,17 +37,17 @@ test.describe('TC-LOCK-002: Optimistic conflict with accept incoming path', () =
         ...previousSettings,
         enabled: true,
         strategy: 'optimistic',
-        enabledResources: ['customers.company'],
+        enabledResources: [LOCK_RESOURCE_KIND],
         notifyOnConflict: true,
       });
 
-      companyId = await createCompanyFixture(request, adminToken, `QA TC-LOCK-002 Company ${Date.now()}`);
+      todoId = await createTodoFixture(request, adminToken, `QA TC-LOCK-002 Todo ${Date.now()}`);
 
       const acquire = await acquireRecordLock(
         request,
         superadminToken,
-        'customers.company',
-        companyId,
+        LOCK_RESOURCE_KIND,
+        todoId,
         superadminScopeHeaders,
       );
       expect(acquire.status).toBe(200);
@@ -56,14 +57,14 @@ test.describe('TC-LOCK-002: Optimistic conflict with accept incoming path', () =
       expect(ownerLockToken).toBeTruthy();
       expect(baseLogId).toBeTruthy();
 
-      const incomingName = `QA TC-LOCK-002 Incoming ${Date.now()}`;
-      const incomingUpdate = await updateCompany(request, adminToken, companyId, incomingName);
+      const incomingTitle = `QA TC-LOCK-002 Incoming ${Date.now()}`;
+      const incomingUpdate = await updateTodo(request, adminToken, todoId, incomingTitle);
       expect(incomingUpdate.status).toBe(200);
 
-      const staleUpdate = await updateCompany(
+      const staleUpdate = await updateTodo(
         request,
         superadminToken,
-        companyId,
+        todoId,
         `QA TC-LOCK-002 Mine ${Date.now()}`,
         {
           token: ownerLockToken,
@@ -82,8 +83,8 @@ test.describe('TC-LOCK-002: Optimistic conflict with accept incoming path', () =
       const releaseResult = await releaseRecordLock(
         request,
         superadminToken,
-        'customers.company',
-        companyId,
+        LOCK_RESOURCE_KIND,
+        todoId,
         ownerLockToken as string,
         'conflict_resolved',
         {
@@ -97,8 +98,8 @@ test.describe('TC-LOCK-002: Optimistic conflict with accept incoming path', () =
       expect(releaseResult.body?.conflictResolved).toBe(true);
       ownerLockToken = null;
 
-      const finalName = await getCompanyDisplayName(request, adminToken, companyId);
-      expect(finalName).toBe(incomingName);
+      const finalTitle = await getTodoTitle(request, adminToken, todoId);
+      expect(finalTitle).toBe(incomingTitle);
 
       const resolvedNotification = await waitForNotification(
         request,
@@ -108,19 +109,19 @@ test.describe('TC-LOCK-002: Optimistic conflict with accept incoming path', () =
       );
       expect(resolvedNotification.bodyVariables?.resolution).toBe('accept_incoming');
     } finally {
-      if (ownerLockToken && companyId) {
+      if (ownerLockToken && todoId) {
         await releaseRecordLock(
           request,
           superadminToken,
-          'customers.company',
-          companyId,
+          LOCK_RESOURCE_KIND,
+          todoId,
           ownerLockToken,
           'cancelled',
           undefined,
           superadminScopeHeaders,
         ).catch(() => {});
       }
-      await cleanupCompany(request, adminToken, companyId);
+      await cleanupTodo(request, adminToken, todoId);
       if (previousSettings) {
         await saveRecordLockSettings(request, superadminToken, previousSettings).catch(() => {});
       }
