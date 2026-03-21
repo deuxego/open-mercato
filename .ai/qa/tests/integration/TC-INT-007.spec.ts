@@ -22,13 +22,17 @@ function yarnBinary(): string {
 
 function runCommand(command: string, args: string[], cwd: string): string {
   const yarnCacheFolder = path.join(cwd, '.yarn', 'cache')
+  const env = { ...process.env }
+  delete env.NODE_EXTRA_CA_CERTS
   return execFileSync(command, args, {
     cwd,
     encoding: 'utf8',
+    timeout: 60_000,
     env: {
-      ...process.env,
+      ...env,
       FORCE_COLOR: '0',
       NODE_NO_WARNINGS: '1',
+      NODE_TLS_REJECT_UNAUTHORIZED: '1',
       YARN_CACHE_FOLDER: yarnCacheFolder,
       YARN_ENABLE_GLOBAL_CACHE: '0',
       YARN_NODE_LINKER: 'node-modules',

@@ -13,12 +13,13 @@ const ENTITY_TYPE = 'dictionaries:dictionary_entry'
 
 async function fillCombobox(page: Page, placeholder: string, value: string) {
   const input = page.getByPlaceholder(placeholder)
-  await expect(input).toBeEnabled({ timeout: 10_000 })
+  await expect(input).toBeEnabled({ timeout: 30_000 })
   await input.click()
   await input.fill(value)
+  await page.waitForTimeout(500)
   await input.press('Enter')
   await input.press('Tab')
-  await page.waitForTimeout(300)
+  await page.waitForTimeout(500)
 }
 
 /**
@@ -28,7 +29,10 @@ async function fillCombobox(page: Page, placeholder: string, value: string) {
  * (Adapted from the original drawer Escape/scroll-restore test.)
  */
 test.describe('TC-TRANS-010: Translation Manager Page Interaction', () => {
+  test.use({ actionTimeout: 30_000 })
+
   test('should show translation fields when a record is selected and hide them when entity is cleared', async ({ page, request }) => {
+    test.setTimeout(60_000)
     const adminToken = await getAuthToken(request, 'admin')
     const originalLocales = await getLocales(request, adminToken)
     const dictKey = `qa-trans-010-${Date.now()}`

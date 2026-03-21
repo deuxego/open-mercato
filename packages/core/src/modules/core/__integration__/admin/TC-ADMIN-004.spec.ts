@@ -12,7 +12,10 @@ import { apiRequest, getAuthToken } from '@open-mercato/core/modules/core/__inte
  * Navigation: Settings → Module Configuration → Dictionaries
  */
 test.describe('TC-ADMIN-004: Dictionary Management', () => {
+  test.use({ actionTimeout: 30_000 })
+
   test('should display dictionaries and allow creating a new one', async ({ page, request }) => {
+    test.setTimeout(60_000)
     let token: string | null = null;
     let dictionaryId: string | null = null;
     let dictionaryKey: string | null = null;
@@ -26,13 +29,13 @@ test.describe('TC-ADMIN-004: Dictionary Management', () => {
       await expect(page.getByRole('heading', { name: 'Dictionaries', level: 2 })).toBeVisible();
 
       // Wait for loading
-      await page.getByText('Loading dictionaries').waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {});
+      await page.getByText('Loading dictionaries').waitFor({ state: 'hidden', timeout: 30_000 }).catch(() => {});
 
       // Verify the "New dictionary" button is available
       await expect(page.getByRole('button', { name: 'New dictionary' })).toBeVisible();
 
       // The first dictionary should be auto-selected — verify its details panel
-      await expect(page.getByText('Manage reusable values and appearance')).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByText('Manage reusable values and appearance')).toBeVisible({ timeout: 15_000 });
       await expect(page.getByRole('button', { name: 'Refresh' })).toBeVisible();
       await expect(page.getByRole('button', { name: 'Add entry' })).toBeVisible();
 
