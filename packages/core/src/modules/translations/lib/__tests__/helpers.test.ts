@@ -125,7 +125,7 @@ describe('translation helpers', () => {
     })
 
     it('replaces underscores with hyphens in multi-word resource names', () => {
-      expect(buildEntityListUrl('resources:resource_type')).toBe('/api/resources/resource-types')
+      expect(buildEntityListUrl('example:example_item_type')).toBe('/api/example/item-types')
     })
 
     it('replaces underscores with hyphens after prefix stripping', () => {

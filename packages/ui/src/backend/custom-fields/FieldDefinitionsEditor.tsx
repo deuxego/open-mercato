@@ -973,7 +973,7 @@ const FieldDefinitionCard = React.memo(function FieldDefinitionCard({
           <div className="md:col-span-2">
             <label className="text-xs">Options source</label>
             <div className="rounded border bg-muted px-2 py-1 text-xs text-muted-foreground">
-              /api/currencies/options
+              /api/dictionaries/options
             </div>
           </div>
         )}
