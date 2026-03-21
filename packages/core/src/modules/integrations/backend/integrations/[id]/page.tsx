@@ -720,9 +720,7 @@ export default function IntegrationDetailPage({ params }: IntegrationDetailPageP
   const resolvedState = detail.state
   const CategoryIcon = resolvedIntegration.category ? CATEGORY_ICONS[resolvedIntegration.category] : null
   const HealthStatusIcon = resolvedState.lastHealthStatus ? HEALTH_STATUS_ICONS[resolvedState.lastHealthStatus] : null
-  const prioritizedInjectedTabs = injectedTabs
-  const leadingInjectedTab: IntegrationDetailInjectedTab | null = null
-  const trailingInjectedTabs = prioritizedInjectedTabs
+  const trailingInjectedTabs = injectedTabs
   const StateIcon = resolvedState.isEnabled ? CheckCircle2 : XCircle
   const stateBadgeClass = resolvedState.isEnabled
     ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'
@@ -846,17 +844,6 @@ export default function IntegrationDetailPage({ params }: IntegrationDetailPageP
                 <span>{t('integrations.detail.tabs.credentials')}</span>
               </span>
             </TabsTrigger>
-            {leadingInjectedTab ? (
-              <TabsTrigger
-                value={leadingInjectedTab.id}
-                className="mr-8 h-auto rounded-none border-b-2 border-transparent bg-transparent px-0 py-2.5 text-sm font-medium text-muted-foreground shadow-none transition-colors hover:bg-transparent hover:text-foreground aria-selected:border-foreground aria-selected:bg-transparent aria-selected:text-foreground aria-selected:shadow-none last:mr-0"
-              >
-                <span className="inline-flex items-center gap-2">
-                  <Settings className="h-4 w-4" />
-                  <span>{leadingInjectedTab.label}</span>
-                </span>
-              </TabsTrigger>
-            ) : null}
             {hasVersions ? (
               <TabsTrigger
                 value="version"
