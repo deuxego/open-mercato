@@ -22,24 +22,30 @@ function yarnBinary(): string {
 
 function runCommand(command: string, args: string[], cwd: string): string {
   const yarnCacheFolder = path.join(cwd, '.yarn', 'cache')
-  const env = { ...process.env }
-  // Strip variables that can cause spurious failures in temp directories
-  delete env.NODE_EXTRA_CA_CERTS
-  delete env.DOTENV_KEY
+  // Use a minimal env — dotenv injects 60+ app vars into process.env which can
+  // break yarn install in temp directories (DATABASE_URL, Redis URLs, etc.)
+  const cleanEnv: Record<string, string> = {
+    PATH: process.env.PATH || '/usr/local/bin:/usr/bin:/bin',
+    HOME: process.env.HOME || os.homedir(),
+    SHELL: process.env.SHELL || '/bin/bash',
+    USER: process.env.USER || '',
+    TMPDIR: process.env.TMPDIR || os.tmpdir(),
+    LANG: process.env.LANG || 'en_US.UTF-8',
+    FORCE_COLOR: '0',
+    NODE_NO_WARNINGS: '1',
+    YARN_CACHE_FOLDER: yarnCacheFolder,
+    YARN_ENABLE_GLOBAL_CACHE: '0',
+    YARN_NODE_LINKER: 'node-modules',
+    COREPACK_ENABLE_AUTO_PIN: '0',
+  }
+  if (process.env.COREPACK_ROOT) cleanEnv.COREPACK_ROOT = process.env.COREPACK_ROOT
   try {
     return execFileSync(command, args, {
       cwd,
       encoding: 'utf8',
       timeout: 60_000,
       stdio: ['pipe', 'pipe', 'pipe'],
-      env: {
-        ...env,
-        FORCE_COLOR: '0',
-        NODE_NO_WARNINGS: '1',
-        YARN_CACHE_FOLDER: yarnCacheFolder,
-        YARN_ENABLE_GLOBAL_CACHE: '0',
-        YARN_NODE_LINKER: 'node-modules',
-      },
+      env: cleanEnv,
     })
   } catch (err: any) {
     const stderr = err.stderr?.toString() || ''
