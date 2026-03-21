@@ -172,7 +172,6 @@ jobs:
         run: |
           VERSION="${{ needs.snapshot.outputs.snapshot_version }}"
           PACKAGES=(
-            "@open-mercato/ai-assistant"
             "@open-mercato/cache"
             "@open-mercato/cli"
             "@open-mercato/content"
@@ -182,7 +181,6 @@ jobs:
             "@open-mercato/onboarding"
             "@open-mercato/queue"
             "@open-mercato/scheduler"
-            "@open-mercato/search"
             "@open-mercato/shared"
             "@open-mercato/ui"
           )
