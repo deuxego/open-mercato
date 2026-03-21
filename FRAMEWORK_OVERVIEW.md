@@ -20,14 +20,12 @@
 - [RBAC & Security](#rbac--security)
 - [Customer Portal](#customer-portal)
 - [Event Bus & Real-Time (DOM Event Bridge)](#event-bus--real-time-dom-event-bridge)
-- [Search & Query Index](#search--query-index)
 - [Caching](#caching)
 - [Background Jobs & Workers](#background-jobs--workers)
 - [Scheduled Jobs](#scheduled-jobs)
 - [CLI & Code Generation](#cli--code-generation)
 - [i18n & Entity Translations](#i18n--entity-translations)
 - [Testing Infrastructure](#testing-infrastructure)
-- [AI Assistant & MCP Tools](#ai-assistant--mcp-tools)
 - [Enterprise Edition Modules](#enterprise-edition-modules)
 - [Backward Compatibility Contract](#backward-compatibility-contract)
 - [Standalone App Scaffolding](#standalone-app-scaffolding)
@@ -67,7 +65,6 @@
 | Package Manager | Yarn 4+ (workspaces) |
 | Encryption | Field-level encryption for PII/GDPR |
 | Auth | JWT + bcryptjs (cost ≥10) |
-| Search | Meilisearch (fulltext, vector, token) |
 | Queue | BullMQ (production) / Local file-based (dev) |
 | Cache | Redis / SQLite / Memory (strategy-based) |
 | Testing | Jest (unit), Playwright (integration) |
@@ -124,7 +121,6 @@ Every module lives in `src/modules/<module_name>/` and is auto-discovered by fil
 | `setup.ts` | `setup: ModuleSetupConfig` | Tenant init, role defaults, seed data |
 | `ce.ts` | `entities` | Custom entities / custom field sets |
 | `events.ts` | `eventsConfig` | Typed event declarations |
-| `search.ts` | `searchConfig` | Search indexing configuration |
 | `translations.ts` | `translatableFields` | Translatable field mappings |
 | `notifications.ts` | `notificationTypes` | Notification type definitions |
 | `notifications.client.ts` | — | Client-side notification renderers |
@@ -443,7 +439,6 @@ From `apps/mercato/src/modules.ts` — **34 modules** active:
 | `lib/testing/` | Test bootstrap utilities |
 | `modules/widgets/` | `InjectionPosition`, widget DSL helpers |
 | `modules/events/` | Event types, `isBroadcastEvent`, `isPortalBroadcastEvent` |
-| `modules/search/` | `SearchModuleConfig` types |
 
 ### `@open-mercato/ui` — UI Components
 
@@ -488,7 +483,6 @@ Auto-discovers all module files across packages and `apps/mercato/src/modules/`,
 - `entities.generated.ts` — entity registry
 - `di.generated.ts` — DI registrations
 - `entities.ids.generated.ts` — entity ID constants
-- `search.generated.ts` — search configurations
 - Dashboard/injection widget aggregations
 - `ai-tools.generated.ts` — AI tool registry
 - Custom outputs via `generators.ts` plugin declarations
@@ -570,7 +564,6 @@ Hub Modules (define adapter contracts)
 └── Webhook Hub
 
 Spoke Modules (each is its own npm package)
-├── packages/gateway-stripe/
 ├── packages/gateway-payu/
 ├── packages/carrier-inpost/
 └── ...
@@ -696,19 +689,6 @@ Subscribers can run **synchronously within the request pipeline**:
 
 ---
 
-## Search & Query Index
-
-- Powered by Meilisearch (fulltext, vector, token modes)
-- Per-module `search.ts` configuration with field weights and filters
-- Hybrid query layer in `query_index` module
-- Batch indexing, coverage tracking, stale detection
-- Custom field integration with search indexing
-- Automatic reindexing on entity changes
-- CLI commands for manual reindex and debugging
-- Admin UI for status and management
-
----
-
 ## Caching
 
 Three strategy options resolved via DI:
@@ -814,16 +794,6 @@ yarn test:integration:report # View HTML test report
 | Superadmin | superadmin@acme.com | secret |
 | Admin | admin@acme.com | secret |
 | Employee | employee@acme.com | secret |
-
----
-
-## AI Assistant & MCP Tools
-
-- MCP (Model Context Protocol) tool definitions per module via `ai-tools.ts`
-- Schema/API discovery tools for AI-assisted development
-- Command palette UI with tool execution
-- Session tokens with two-tier auth
-- In-app AI assistance for admin users
 
 ---
 

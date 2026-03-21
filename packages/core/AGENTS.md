@@ -1,6 +1,6 @@
 # Core Package — Agent Guidelines
 
-`@open-mercato/core` contains all core business modules (auth, catalog, customers, sales, etc.). This guide covers the full extensibility contract and module development patterns.
+`@open-mercato/core` contains all core business modules (auth, directory, entities, configs, notifications, integrations, data_sync, etc.). This guide covers the full extensibility contract and module development patterns.
 
 ## Core Modules
 
@@ -12,20 +12,22 @@
 | `audit_logs` | `src/modules/audit_logs/` | Activity and change logging |
 | `auth` | `src/modules/auth/` | Authentication and authorization |
 | `business_rules` | `src/modules/business_rules/` | Business rule engine |
-| `catalog` | `src/modules/catalog/` | Product catalog and pricing |
 | `configs` | `src/modules/configs/` | System configuration |
-| `currencies` | `src/modules/currencies/` | Multi-currency support |
-| `customers` | `src/modules/customers/` | Customer management (people, companies, deals) |
+| `customer_accounts` | `src/modules/customer_accounts/` | Customer identity and portal auth |
 | `dashboards` | `src/modules/dashboards/` | Dashboard widgets |
+| `data_sync` | `src/modules/data_sync/` | Data synchronization hub |
 | `dictionaries` | `src/modules/dictionaries/` | Lookup tables and enumerations |
 | `directory` | `src/modules/directory/` | Organizational directory |
 | `entities` | `src/modules/entities/` | Custom entities and fields (EAV) |
 | `feature_toggles` | `src/modules/feature_toggles/` | Feature flag management |
-| `perspectives` | `src/modules/perspectives/` | Data perspectives and views |
+| `integrations` | `src/modules/integrations/` | Integration marketplace |
+| `messages` | `src/modules/messages/` | Messaging |
+| `notifications` | `src/modules/notifications/` | In-app notifications |
+| `portal` | `src/modules/portal/` | Customer portal |
+| `progress` | `src/modules/progress/` | Operation progress tracking |
 | `query_index` | `src/modules/query_index/` | Query indexing for fast lookups |
-| `sales` | `src/modules/sales/` | Sales orders, quotes, invoices |
+| `translations` | `src/modules/translations/` | Content translations |
 | `widgets` | `src/modules/widgets/` | Widget infrastructure |
-| `workflows` | `src/modules/workflows/` | Workflow automation |
 
 ## Extensibility Contract
 
@@ -91,10 +93,10 @@ makeCrudRoute({
 
 ### Custom Entities CRUD
 
-Follow the customers module API patterns (CRUD factory + query engine):
+Follow the example module API patterns (CRUD factory + query engine):
 - Wire custom field helpers for create/update/response normalization
 - Set `indexer: { entityType }` in `makeCrudRoute`
-- Reference: `src/modules/customers/api/people/route.ts`
+- Reference: `apps/mercato/src/modules/example/api/` (or any kept module with CRUD routes)
 
 ## Module Setup Convention
 
@@ -141,7 +143,7 @@ export default setup
 
 1. Never hardcode module-specific logic in `setup-app.ts`
 2. Never directly import another module's seed functions
-3. Access entity IDs with optional chaining: `(E as any).catalog?.catalog_product`
+3. Access entity IDs with optional chaining: `(E as any).dictionaries?.dictionary`
 4. Use `getEntityIds()` at runtime (not import-time) for cross-module lookups
 5. Integration provider packages that need bootstrap credentials or mappings SHOULD preconfigure themselves from env inside the provider module via `setup.ts` and provider-local helpers/CLI. Do not add provider-specific env bootstrapping to core setup orchestration.
 
@@ -376,10 +378,9 @@ When adding features to `acl.ts`, also add them to `setup.ts` `defaultRoleFeatur
 
 ## Command Side Effects
 
-- Implement write operations via the Command pattern (don’t mutate domain state directly inside route handlers). Reference: `src/modules/customers/commands/*`.
+- Implement write operations via the Command pattern (don’t mutate domain state directly inside route handlers). Reference: `apps/mercato/src/modules/example/commands/*`.
 - Include `indexer: { entityType, cacheAliases }` in both `emitCrudSideEffects` and `emitCrudUndoSideEffects`
 - This ensures undo refreshes the query index and caches
-- Reference: customers commands at `src/modules/customers/commands/people.ts`
 
 ## Entity Update Safety — `withAtomicFlush`
 
@@ -426,7 +427,7 @@ await emitCrudSideEffects({ ... })
 
 ## Profiling
 
-- Enable with `OM_PROFILE` env (comma-separated filters: `*`, `all`, `customers.*`, etc.)
+- Enable with `OM_PROFILE` env (comma-separated filters: `*`, `all`, `auth.*`, etc.)
 - CRUD factories emit `[crud:profile]` payloads; query engine attaches nested `query_engine` node
 - Legacy flags (`OM_CRUD_PROFILE`, `OM_QE_PROFILE`) still work but avoid in new code
 
@@ -440,7 +441,7 @@ await emitCrudSideEffects({ ... })
 ## Database Entities
 
 - Live in `src/modules/<module>/data/entities.ts` (fallbacks: `db/entities.ts`, `schema.ts`)
-- Tables: plural snake_case; prefer `<module>_` prefixes for module-owned tables (e.g., `catalog_products`, `sales_orders`)
+- Tables: plural snake_case; prefer `<module>_` prefixes for module-owned tables (e.g., `auth_users`, `dictionaries_entries`)
 - UUID PKs, explicit FKs, junction tables for M2M
 - Include `deleted_at timestamptz null` for soft delete
 
@@ -454,7 +455,6 @@ Output to `apps/mercato/.mercato/generated/`. Never edit manually. Never import 
 | `entities.generated.ts` | MikroORM entities |
 | `di.generated.ts` | DI registrars |
 | `entities.ids.generated.ts` | Entity ID registry |
-| `search.generated.ts` | Search configurations |
 | `dashboard-widgets.generated.ts` | Dashboard widgets |
 | `injection-widgets.generated.ts` | Injection widgets |
 | `injection-tables.generated.ts` | Injection tables |
@@ -476,7 +476,7 @@ import type { ResponseEnricher } from '@open-mercato/shared/lib/crud/response-en
 
 const myEnricher: ResponseEnricher = {
   id: 'mymodule.customer-metrics',
-  targetEntity: 'customers.person',     // entity to enrich
+  targetEntity: 'customer_accounts.customer',  // entity to enrich
   features: ['mymodule.view'],           // required ACL features
   priority: 10,                          // higher runs first
   timeout: 2000,                         // ms, default 2000
@@ -501,7 +501,7 @@ Target entity routes must opt in via `enrichers` option:
 ```typescript
 const crud = makeCrudRoute({
   // ...
-  enrichers: { entityId: 'customers.person' },
+  enrichers: { entityId: 'customer_accounts.customer' },
 })
 ```
 

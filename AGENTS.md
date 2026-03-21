@@ -7,7 +7,7 @@ Leverage the module system and follow strict naming and coding conventions to ke
 1. Check the Task Router below — a single task may match multiple rows; read **all** relevant guides.
 2. Check `.ai/specs/` and `.ai/specs/enterprise/` for existing specs on the module you're modifying
 3. Enter plan mode for non-trivial tasks (3+ steps or architectural decisions)
-4. Identify the reference module (customers) if building CRUD features
+4. Identify the reference module (example) if building CRUD features
 
 ## Task Router — Where to Find Detailed Guidance
 
@@ -39,23 +39,15 @@ IMPORTANT: Before any research or coding, match the task to the root `AGENTS.md`
 | Building customer portal pages, portal auth, portal nav injection, portal event bridge | `packages/ui/AGENTS.md` → Portal Extension |
 | Adding new widget event handlers (`onFieldChange`, `onBeforeNavigate`, transformers) | `packages/ui/AGENTS.md` |
 | **Specific Modules** | |
-| Managing people/companies/deals/activities, **copying CRUD patterns for new modules** | `packages/core/src/modules/customers/AGENTS.md` |
-| Building orders/quotes/invoices, pricing calculations, document flow (Quote→Order→Invoice), shipments/payments, channel scoping | `packages/core/src/modules/sales/AGENTS.md` |
-| Managing products/categories/variants, pricing resolvers (`selectBestPrice`), offers, channel-scoped pricing, option schemas | `packages/core/src/modules/catalog/AGENTS.md` |
 | Users/roles/RBAC implementation, authentication flow, session management, feature-based access control | `packages/core/src/modules/auth/AGENTS.md` |
 | Customer identity, customer portal auth (login/signup/magic links), customer RBAC, sessions, CRM auto-linking, admin user management | `packages/core/src/modules/customer_accounts/AGENTS.md` |
-| Multi-currency support, exchange rates, dual currency recording, realized gains/losses | `packages/core/src/modules/currencies/AGENTS.md` |
-| Workflow automation, defining step-based workflows, executing instances, user tasks, async activities, event triggers, signals, compensation (saga pattern), visual editor | `packages/core/src/modules/workflows/AGENTS.md` |
 | Integration Marketplace foundation (registry/bundles, credentials, state, health checks, logs, admin UI, integration manifests) | `packages/core/src/modules/integrations/AGENTS.md` |
 | Data Sync hub (adapters, run lifecycle, workers, mapping APIs, scheduled sync, progress linkage, admin UI) | `packages/core/src/modules/data_sync/AGENTS.md` |
-| Building a new integration provider module (adapter, health check, credentials, bundle wiring) | `packages/core/src/modules/integrations/AGENTS.md` + `packages/core/src/modules/data_sync/AGENTS.md` + `.ai/skills/integration-builder/SKILL.md` + `.ai/specs/SPEC-041-2026-02-24-universal-module-extension-system.md` + `.ai/specs/SPEC-045-2026-02-24-integration-marketplace.md` + `.ai/specs/SPEC-045c-payment-shipping-hubs.md` (+ `.ai/specs/SPEC-044-2026-02-24-payment-gateway-integrations.md` for payment providers) |
 | Wiring progress UX for long-running sync operations (top bar polling, job lifecycle, future SSE bridge) | `packages/core/src/modules/data_sync/AGENTS.md` + `packages/events/AGENTS.md` |
 | **Packages** | |
 | Adding reusable utilities, encryption helpers, i18n translations (`useT`/`resolveTranslations`), boolean parsing, data engine types, request scoping | `packages/shared/AGENTS.md` |
 | Building forms (`CrudForm`), data tables (`DataTable`), loading/error states, flash messages, `FormHeader`/`FormFooter`, dialog UX (`Cmd+Enter`/`Escape`) | `packages/ui/AGENTS.md` |
 | Backend page components, `apiCall` usage, `RowActions` ids, `LoadingMessage`/`ErrorMessage` | `packages/ui/src/backend/AGENTS.md` |
-| Configuring fulltext/vector/token search, writing `search.ts`, reindexing entities, debugging search, search CLI commands | `packages/search/AGENTS.md` |
-| Adding MCP tools (`registerMcpTool`), modifying OpenCode config, debugging AI chat, session tokens, command palette, two-tier auth | `packages/ai-assistant/AGENTS.md` |
 | Running generators (`yarn generate`), creating database migrations (`yarn db:generate`), scaffolding modules, build order | `packages/cli/AGENTS.md` |
 | Event bus architecture, ephemeral vs persistent subscriptions, queue integration for events, event workers | `packages/events/AGENTS.md` |
 | Adding cache to a module, tag-based invalidation, tenant-scoped caching, choosing strategy (memory/SQLite/Redis) | `packages/cache/AGENTS.md` |
@@ -112,13 +104,11 @@ All packages use the `@open-mercato/<package>` naming convention:
 |---------|--------|-------------|
 | **shared** | `@open-mercato/shared` | When you need cross-cutting utilities, types, DSL helpers, i18n, data engine |
 | **ui** | `@open-mercato/ui` | When building UI components, forms, data tables, backend pages |
-| **core** | `@open-mercato/core` | When working on core business modules (auth, catalog, customers, sales) |
+| **core** | `@open-mercato/core` | When working on core platform modules (auth, directory, customer_accounts, integrations) |
 | **cli** | `@open-mercato/cli` | When adding CLI tooling or generator commands |
 | **cache** | `@open-mercato/cache` | When adding caching — resolve via DI, never use raw Redis/SQLite |
 | **queue** | `@open-mercato/queue` | When adding background jobs — use worker contract, never custom queues |
 | **events** | `@open-mercato/events` | When adding event-driven side effects between modules |
-| **search** | `@open-mercato/search` | When configuring search indexing (fulltext, vector, tokens) |
-| **ai-assistant** | `@open-mercato/ai-assistant` | When working on AI assistant or MCP server tools |
 | **content** | `@open-mercato/content` | When adding static content pages (privacy, terms, legal) |
 | **onboarding** | `@open-mercato/onboarding` | When modifying setup wizards or tenant provisioning flows |
 | **enterprise** | `@open-mercato/enterprise` | When working on commercial enterprise-only modules and overlays |
@@ -126,7 +116,7 @@ All packages use the `@open-mercato/<package>` naming convention:
 ### Where to Put Code
 
 - Put core platform features in `packages/<package>/src/modules/<module>/`
-- Put every external integration provider in a dedicated npm workspace package under `packages/<provider-package>/` (for example `packages/gateway-stripe`, `packages/carrier-inpost`) — do not add provider modules inside `packages/core/src/modules/`
+- Put every external integration provider in a dedicated npm workspace package under `packages/<provider-package>/` (for example `packages/provider-example`) — do not add provider modules inside `packages/core/src/modules/`
 - Put shared utilities and types in `packages/shared/src/lib/` or `packages/shared/src/modules/`
 - Put UI components in `packages/ui/src/`
 - Put user/app-specific modules in `apps/mercato/src/modules/<module>/`
@@ -223,7 +213,7 @@ All paths use `src/modules/<module>/` as shorthand. See `packages/core/AGENTS.md
 
 - API routes MUST export `openApi` for documentation generation
 - CRUD routes: use `makeCrudRoute` with `indexer: { entityType }` for query index coverage
-- Write operations: implement via the Command pattern (see `packages/core/src/modules/customers/commands/*`)
+- Write operations: implement via the Command pattern (see `apps/mercato/src/modules/example/commands/*`)
 - Feature naming convention: `<module>.<action>` (e.g., `example.view`, `example.create`).
 - setup.ts: always declare `defaultRoleFeatures` when adding features to `acl.ts`
 - Custom fields: use `collectCustomFieldValues()` from `@open-mercato/ui/backend/utils/customFieldValues`

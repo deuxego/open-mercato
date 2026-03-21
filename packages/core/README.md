@@ -2,7 +2,7 @@
 
 Build production-grade business modules on top of the Open Mercato platform.
 
-`@open-mercato/core` is the business engine: catalog, customers, sales, auth, workflows, settings, and module infrastructure.
+`@open-mercato/core` is the business engine: auth, directory, customer_accounts, integrations, data_sync, dashboards, notifications, and module infrastructure.
 
 ## Why this package ✨
 
