@@ -22,7 +22,7 @@ Pass an `extensions` context object to any query call:
 ```ts
 import type { QueryEngine } from '@open-mercato/shared/lib/query/types'
 
-const result = await queryEngine.query('customers:person', {
+const result = await queryEngine.query('example:todo', {
   tenantId: auth.tenantId,
   organizationId: auth.orgId,
   extensions: {
@@ -44,8 +44,8 @@ Response enrichers can opt in to run inside query-engine pipelines by adding a `
 import type { ResponseEnricher } from '@open-mercato/shared/lib/crud/response-enricher'
 
 const enricher: ResponseEnricher = {
-  id: 'mymodule.customer-tier',
-  targetEntity: 'customers.person',
+  id: 'mymodule.todo-priority',
+  targetEntity: 'example.todo',
   queryEngine: {
     enabled: true,
     engines: ['basic', 'hybrid'], // optional, defaults to both
@@ -76,16 +76,16 @@ The enricher registry supports a selector parameter to filter by execution surfa
 import { getEnrichersForEntity } from '@open-mercato/shared/lib/crud/enricher-registry'
 
 // All enrichers for the entity (backward compatible)
-const all = getEnrichersForEntity('customers.person')
+const all = getEnrichersForEntity('example.todo')
 
 // Only enrichers opted in to query-engine pipelines
-const queryEngine = getEnrichersForEntity('customers.person', {
+const queryEngine = getEnrichersForEntity('example.todo', {
   surface: 'query-engine',
   engine: 'basic',
 })
 
 // API-response surface (same as no selector)
-const apiOnly = getEnrichersForEntity('customers.person', {
+const apiOnly = getEnrichersForEntity('example.todo', {
   surface: 'api-response',
 })
 ```
@@ -103,7 +103,7 @@ Fired before the SQL query executes. Subscribers can block the query or modify q
 import type { SyncQueryEventPayload, SyncQueryEventResult } from '@open-mercato/shared/lib/query/sync-query-event-types'
 
 export const metadata = {
-  event: 'customers.person.querying',
+  event: 'example.todo.querying',
   sync: true,
   priority: 10,
   id: 'mymodule.filter-by-assigned-user',
@@ -138,7 +138,7 @@ Fired after the SQL query and enrichers have run. Subscribers can modify the res
 
 ```ts
 export const metadata = {
-  event: 'customers.person.queried',
+  event: 'example.todo.queried',
   sync: true,
   priority: 10,
   id: 'mymodule.transform-results',
@@ -168,10 +168,10 @@ Query events follow the pattern `<module>.<entity>.<action>`:
 
 | Event | When |
 |-------|------|
-| `customers.person.querying` | Before query execution |
-| `customers.person.queried` | After query execution |
+| `example.todo.querying` | Before query execution |
+| `example.todo.queried` | After query execution |
 
-Wildcard patterns work: `customers.*.querying` matches all customer entity queries.
+Wildcard patterns work: `example.*.querying` matches all example module entity queries.
 
 ## Scope guard re-application
 

@@ -262,7 +262,7 @@ function ActivityForm({
   defaultEntityId,
   manageHref = '/backend/config/dictionaries',
   customFieldEntityIds,
-  labelPrefix = 'customers.people.detail.activities',
+  labelPrefix = 'common.detail.activities',
   appearanceLabels,
 }: ActivityFormProps) {
   const tHook = useT()
@@ -611,7 +611,7 @@ function ActivityDialog({
   defaultEntityId,
   manageHref,
   customFieldEntityIds,
-  labelPrefix = 'customers.people.detail.activities',
+  labelPrefix = 'common.detail.activities',
   appearanceLabels,
 }: ActivityDialogProps) {
   const tHook = useT()
@@ -712,7 +712,7 @@ function ActivitiesSectionImpl<C = unknown>({
   resolveActivityPresentation,
   renderCustomFields,
   customFieldEntityIds,
-  labelPrefix = 'customers.people.detail.activities',
+  labelPrefix = 'common.detail.activities',
   renderIcon,
   renderColor,
   appearanceLabels,

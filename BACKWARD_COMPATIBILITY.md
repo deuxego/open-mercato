@@ -1,5 +1,7 @@
 # Backward Compatibility Contract
 
+<!-- NOTE: Some examples in this document reference modules that were removed in the commerce-stripping commit (e.g., catalog, sales, customers). These examples remain valid as contract surface specifications — they illustrate the rules that apply to any module, current or future. -->
+
 Open Mercato modules are developed by third-party developers who depend on stable platform APIs. Every surface listed below is a **public contract**. Changes to these surfaces MUST follow the deprecation protocol or they are **breaking changes** that block merge.
 
 ## Deprecation Protocol

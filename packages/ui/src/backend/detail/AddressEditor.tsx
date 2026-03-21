@@ -79,7 +79,7 @@ export function AddressEditor<C = unknown>({
   onChange,
   format,
   t,
-  labelPrefix = 'customers.people.detail.addresses',
+  labelPrefix = 'common.detail.addresses',
   disabled = false,
   errors = {},
   hidePrimaryToggle = false,
@@ -106,7 +106,7 @@ export function AddressEditor<C = unknown>({
   const countryOptions = React.useMemo(
     () =>
       buildCountryOptions({
-        transformLabel: (code, fallback) => t(`customers.countries.${code.toLowerCase()}`, fallback ?? code),
+        transformLabel: (code, fallback) => t(`common.countries.${code.toLowerCase()}`, fallback ?? code),
       }),
     [t],
   )

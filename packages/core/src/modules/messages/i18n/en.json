@@ -183,7 +183,7 @@
   "messages.placeholders.recipients": "Search recipients...",
   "messages.placeholders.replyBody": "Write your reply...",
   "messages.placeholders.sourceEntityId": "UUID of linked record",
-  "messages.placeholders.sourceEntityType": "e.g. sales.order",
+  "messages.placeholders.sourceEntityType": "e.g. example.todo",
   "messages.placeholders.subject": "Enter subject...",
   "messages.priority": "Priority",
   "messages.reply": "Reply",

@@ -193,7 +193,6 @@
   "settings.sections.featureToggles": "Feature Toggles",
   "settings.sections.moduleConfigs": "Module Configuration",
   "settings.sections.system": "System",
-  "settings.sections.workflows": "Workflows",
   "ui.profileMenu.changePassword": "Change Password",
   "ui.profileMenu.language": "Language",
   "ui.profileMenu.notifications": "Notification Preferences",

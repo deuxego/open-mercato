@@ -22,12 +22,12 @@ describe('createRecordLockCrudMutationGuardService', () => {
       tenantId: 'tenant-1',
       organizationId: 'org-1',
       userId: 'user-2',
-      resourceKind: 'catalog.product',
-      resourceId: 'product-1',
+      resourceKind: 'example.todo',
+      resourceId: 'todo-1',
       operation: 'update',
       requestMethod: 'PUT',
       requestHeaders: new Headers(),
-      mutationPayload: { id: 'product-1', title: 'Updated title' },
+      mutationPayload: { id: 'todo-1', title: 'Updated title' },
     })
 
     expect(validation.ok).toBe(true)
@@ -55,12 +55,12 @@ describe('createRecordLockCrudMutationGuardService', () => {
       tenantId: 'tenant-1',
       organizationId: 'org-1',
       userId: 'user-2',
-      resourceKind: 'catalog.product',
-      resourceId: 'product-1',
+      resourceKind: 'example.todo',
+      resourceId: 'todo-1',
       operation: 'update',
       requestMethod: 'PUT',
       requestHeaders: new Headers(),
-      mutationPayload: { id: 'product-1', title: 'Updated title' },
+      mutationPayload: { id: 'todo-1', title: 'Updated title' },
     })
 
     expect(validation.ok).toBe(true)
@@ -89,8 +89,8 @@ describe('createRecordLockCrudMutationGuardService', () => {
       tenantId: 'tenant-1',
       organizationId: 'org-1',
       userId: 'user-2',
-      resourceKind: 'catalog.product',
-      resourceId: 'product-1',
+      resourceKind: 'example.todo',
+      resourceId: 'todo-1',
       operation: 'delete',
       requestMethod: 'DELETE',
       requestHeaders: new Headers(),

@@ -57,7 +57,7 @@ describe('record_locks settings route', () => {
       strategy: 'pessimistic',
       timeoutSeconds: 600,
       heartbeatSeconds: 30,
-      enabledResources: ['sales.quote'],
+      enabledResources: ['example.todo'],
       allowForceUnlock: true,
       allowIncomingOverride: true,
       notifyOnConflict: true,
@@ -77,7 +77,7 @@ describe('record_locks settings route', () => {
       strategy: 'pessimistic',
       timeoutSeconds: 600,
       heartbeatSeconds: 30,
-      enabledResources: ['sales.quote'],
+      enabledResources: ['example.todo'],
       allowForceUnlock: true,
       notifyOnConflict: true,
     }))

@@ -98,4 +98,4 @@ CrudForm emits these extended handlers by default. Disable automatic emission wi
 - Use `CrudForm` for create/edit flows — see `packages/ui/AGENTS.md` → CrudForm Guidelines
 - Use `DataTable` for list views — see `packages/ui/AGENTS.md` → DataTable Guidelines
 - Use `FormHeader` with mode `edit` (compact) or `detail` (large title with status)
-- Follow the customers module as the reference implementation
+- Follow the example module as the reference implementation

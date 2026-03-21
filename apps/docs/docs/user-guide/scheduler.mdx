@@ -181,14 +181,6 @@ Remove old records weekly:
 - **Schedule Value:** `0 2 * * 0` (2 AM every Sunday)
 - **Target:** Command for cleanup
 
-### Currency Rate Updates
-
-Fetch exchange rates every 6 hours:
-
-- **Schedule Type:** Cron
-- **Schedule Value:** `0 */6 * * *`
-- **Target:** Queue job for rate fetching
-
 ## Access Control
 
 The scheduler module uses these features for access control:

@@ -116,7 +116,7 @@ If you don’t provide the generic, `filters` falls back to a permissive shape.
 Both engines support an optional `extensions` context that activates sync lifecycle events and query-level enrichers around the core SQL query. When provided, the pipeline runs before-query subscribers, re-applies scope guards, executes enrichers, and runs after-query subscribers.
 
 ```ts
-const result = await queryEngine.query('customers:person', {
+const result = await queryEngine.query('example:todo', {
   tenantId: auth.tenantId,
   organizationId: auth.orgId,
   extensions: {

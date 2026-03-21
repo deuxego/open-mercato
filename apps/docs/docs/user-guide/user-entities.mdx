@@ -38,7 +38,7 @@ User entities let you model line-of-business data structures without touching th
 
 - **Create and edit data** from the generated CRUD screens. The submitted payload is validated against the entity schema, including tenant and organization scope.
 - **Filter and search** using the fields you marked as filterable. The query engine automatically adds the correct `organization_id` and soft-delete filters.
-- **Integrate with workflows** by consuming the generated APIs (`/api/entities/<slug>`) in automations or external systems. Tokens and RBAC features still apply.
+- **Integrate with automations** by consuming the generated APIs (`/api/entities/<slug>`) in scripts or external systems. Tokens and RBAC features still apply.
 - **Iterate safely**—updates to fields keep historical records intact. New fields default to `null` and are rolled out in a single migration when you publish changes.
 
 ## Next steps

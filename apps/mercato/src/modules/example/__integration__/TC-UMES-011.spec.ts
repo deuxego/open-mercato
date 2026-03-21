@@ -103,8 +103,8 @@ test.describe('TC-UMES-011: Conflict detection logic', () => {
 
   test('warns on duplicate interceptor route+method+priority', () => {
     const conflicts = detectInterceptorConflicts([
-      { moduleId: 'mod-a', id: 'a.int', targetRoute: 'customers/people', methods: ['GET'], priority: 100 },
-      { moduleId: 'mod-b', id: 'b.int', targetRoute: 'customers/people', methods: ['GET'], priority: 100 },
+      { moduleId: 'mod-a', id: 'a.int', targetRoute: 'example/todos', methods: ['GET'], priority: 100 },
+      { moduleId: 'mod-b', id: 'b.int', targetRoute: 'example/todos', methods: ['GET'], priority: 100 },
     ])
 
     expect(conflicts).toHaveLength(1)

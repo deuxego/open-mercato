@@ -105,13 +105,13 @@ yarn mercato test:integration --no-reuse-env
 yarn test:integration:ephemeral:interactive --no-screenshots
 
 # 2) Run only the test you are changing against that running environment
-BASE_URL=http://127.0.0.1:<port> npx playwright test --config .ai/qa/tests/playwright.config.ts sales/TC-SALES-007.spec.ts --retries=0
+BASE_URL=http://127.0.0.1:<port> npx playwright test --config .ai/qa/tests/playwright.config.ts admin/TC-ADMIN-001.spec.ts --retries=0
 
 # 3) Run with more workers locally when tests are independent
 BASE_URL=http://127.0.0.1:<port> npx playwright test --config .ai/qa/tests/playwright.config.ts --workers=4 --retries=0
 
 # 4) Keep ephemeral mode but filter aggressively
-yarn test:integration:ephemeral -- --filter sales/TC-SALES-007.spec.ts --no-screenshots
+yarn test:integration:ephemeral -- --filter admin/TC-ADMIN-001.spec.ts --no-screenshots
 ```
 
 Notes:

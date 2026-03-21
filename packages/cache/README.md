@@ -112,12 +112,12 @@ Prefer the functional factory (`createCacheService`) for most cases. If you need
 ### Tag-based invalidation
 
 ```ts
-await cache.set(`product:${id}`, payload, {
-  tags: ['products', `catalog:${catalogId}`, `product:${id}`],
+await cache.set(`item:${id}`, payload, {
+  tags: ['items', `category:${categoryId}`, `item:${id}`],
 })
 
 // Later…
-await cache.deleteByTags([`catalog:${catalogId}`]) // bust only that catalog
+await cache.deleteByTags([`category:${categoryId}`]) // bust only that category
 ```
 
 Tags behave like sets. A single delete request can invalidate thousands of keys without scanning the entire store, which keeps admin actions and background jobs snappy.

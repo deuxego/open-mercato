@@ -7,7 +7,7 @@
 yarn test:integration
 
 # Run tests matching a module/category path fragment
-npx playwright test --config .ai/qa/tests/playwright.config.ts sales
+npx playwright test --config .ai/qa/tests/playwright.config.ts auth
 
 # Run all tests in ephemeral containers (no dev server needed, Docker required)
 yarn test:integration:ephemeral
@@ -40,7 +40,7 @@ Discovery troubleshooting:
 ├── AGENTS.md                    # This file
 ├── scenarios/                   # OPTIONAL — markdown test case descriptions
 │   ├── TC-AUTH-001-*.md         #   Human-readable, used as input for test generation
-│   ├── TC-CAT-001-*.md         #   NOT required — tests can be generated directly
+│   ├── TC-DICT-001-*.md        #   NOT required — tests can be generated directly
 │   └── ...
 ├── tests/                       # Playwright config/helpers + legacy test location
 │   ├── playwright.config.ts
@@ -68,10 +68,6 @@ Use shared helpers from `@open-mercato/core/helpers/integration/*`. These are pu
 | `@open-mercato/core/helpers/integration/auth` | `login`, `DEFAULT_CREDENTIALS` | UI authentication and role-based login (`admin`, `employee`, `superadmin`) |
 | `@open-mercato/core/helpers/integration/api` | `getAuthToken`, `apiRequest` | Authenticated API setup and raw API calls in integration tests |
 | `@open-mercato/core/helpers/integration/authUi` | `createUserViaUi` | Auth module UI flows for user creation/edit smoke coverage |
-| `@open-mercato/core/helpers/integration/catalogFixtures` | `createProductFixture`, `deleteCatalogProductIfExists` | Catalog fixture lifecycle for setup/cleanup |
-| `@open-mercato/core/helpers/integration/crmFixtures` | `createCompanyFixture`, `createPersonFixture`, `createDealFixture`, `deleteEntityIfExists`, `readJsonSafe` | Customers/CRM fixture creation and cleanup; `readJsonSafe` for parsing Playwright APIResponse body to JSON |
-| `@open-mercato/core/helpers/integration/salesFixtures` | `createSalesQuoteFixture`, `createSalesOrderFixture`, `createOrderLineFixture`, `deleteSalesEntityIfExists` | Sales API fixture lifecycle |
-| `@open-mercato/core/helpers/integration/salesUi` | `createSalesDocument`, `addCustomLine`, `updateLineQuantity`, `deleteLine`, `addAdjustment`, `addPayment`, `addShipment`, `readGrandTotalGross` | Sales document UI interactions and totals assertions |
 | `@open-mercato/core/helpers/integration/authFixtures` | `createRoleFixture`, `deleteRoleIfExists`, `createUserFixture`, `deleteUserIfExists` | Role and user fixture lifecycle |
 | `@open-mercato/core/helpers/integration/generalFixtures` | `readJsonSafe`, `getTokenContext`, `expectId`, `deleteEntityByPathIfExists` | General-purpose test utilities |
 | `@open-mercato/core/helpers/integration/dictionariesFixtures` | `createDictionaryFixture` | Dictionary fixture creation |
@@ -285,8 +281,8 @@ Example folder metadata:
 
 ```ts
 export const integrationMeta = {
-  description: 'Sales flows requiring currencies module',
-  dependsOnModules: ['sales', 'currencies'],
+  description: 'Auth flows requiring customer_accounts module',
+  dependsOnModules: ['auth', 'customer_accounts'],
 }
 ```
 
@@ -335,7 +331,7 @@ curl -X POST http://127.0.0.1:<ephemeral-port>/api/auth/login \
   -d '{"email": "admin@acme.com", "password": "secret"}'
 
 # Authenticated request
-curl -X GET http://127.0.0.1:<ephemeral-port>/api/customers/companies \
+curl -X GET http://127.0.0.1:<ephemeral-port>/api/dictionaries \
   -H "Authorization: Bearer <token>" \
   -H "Content-Type: application/json"
 ```
@@ -376,7 +372,7 @@ Present test results in a table format:
 | TC-AUTH-001 | User Login Success | PASS | |
 | TC-AUTH-002 | Invalid Credentials | PASS | |
 | TC-AUTH-003 | Remember Me | FAIL | Session not persisted |
-| TC-CAT-001 | Product Creation | PASS | |
+| TC-DICT-001 | Dictionary Creation | PASS | |
 
 #### Summary Statistics
 
@@ -419,24 +415,18 @@ TC-[CATEGORY]-[XXX]-[title].md
 | Code | Category |
 |------|----------|
 | AUTH | Authentication & User Management |
-| CAT | Catalog Management |
-| SALES | Sales Management |
-| CRM | Customer/CRM Management |
+| CUST | Customer Accounts |
 | ADMIN | System Administration |
 | INT | Integration Scenarios |
 | TRANS | Translations & Localisation |
 | AUD | Audit Logs |
-| CUR | Currencies & Exchange Rates |
-| STAFF | Staff & Team Management |
 | DICT | Dictionaries |
 | DIR | Directory (Organisations & Tenants) |
 | API-SYS | System & Maintenance APIs |
 | API-ENT | Custom Fields & Entities APIs |
 | API-BULK | Bulk Operations APIs |
 | API-AUD | Audit & Business Rules APIs |
-| API-SEARCH | Search & Lookup APIs |
 | API-FT | Feature Toggles APIs |
-| API-VIEW | Perspectives & Views APIs |
 | API-ONBOARD | Onboarding APIs |
 | API-AUTH | API Authentication & Security |
 | API-ERR | API Error Handling & Edge Cases |

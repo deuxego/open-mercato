@@ -32,12 +32,12 @@ The Open Mercato framework uses a module-based architecture where routes and pag
 Frontend pages are located in `src/modules/<module>/frontend/<path>.tsx` and are automatically mapped to `/<path>`.
 
 ```typescript
-// packages/my-module/src/modules/my_module/frontend/products/page.tsx
-export default function ProductsPage() {
+// packages/my-module/src/modules/my_module/frontend/about/page.tsx
+export default function AboutPage() {
   return (
     <div>
-      <h1>Products</h1>
-      <p>Browse our product catalog</p>
+      <h1>About</h1>
+      <p>Learn more about our platform</p>
     </div>
   )
 }

@@ -128,7 +128,6 @@ Windows users who develop through Docker can run any monorepo command using the 
 **CLI passthrough examples:**
 ```
 yarn docker:mercato init
-yarn docker:mercato eject currencies
 yarn docker:mercato test:integration
 ```
 

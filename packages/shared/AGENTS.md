@@ -87,7 +87,7 @@ Query engines support optional extension hooks via `QueryOptions.extensions`:
 ```typescript
 import type { QueryExtensionsConfig } from '@open-mercato/shared/lib/query/types'
 
-const result = await queryEngine.query('customers:person', {
+const result = await queryEngine.query('example:todo', {
   tenantId: auth.tenantId,
   organizationId: auth.orgId,
   extensions: {
@@ -115,7 +115,7 @@ To enable an enricher for query-engine pipelines, add `queryEngine` config:
 ```typescript
 const enricher: ResponseEnricher = {
   id: 'mymodule.enricher',
-  targetEntity: 'customers.person',
+  targetEntity: 'example.todo',
   queryEngine: { enabled: true, engines: ['basic', 'hybrid'], applyOn: ['list', 'detail'] },
   // ... enrichOne, enrichMany
 }

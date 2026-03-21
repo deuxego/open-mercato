@@ -3,7 +3,7 @@ import type { Config } from '@docusaurus/types';
 
 const config: Config = {
   title: 'Open Mercato Docs',
-  tagline: 'Extensible commerce platform with modular architecture',
+  tagline: 'Extensible ERP foundation framework with modular architecture',
   favicon: 'img/open-mercato.svg',
   url: 'https://docs.open-mercato.dev',
   baseUrl: '/',

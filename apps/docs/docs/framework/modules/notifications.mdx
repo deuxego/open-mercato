@@ -134,7 +134,7 @@ export default async function handle(
 ```typescript
 {
   recipientUserId: string      // UUID of the user to notify
-  type: string                 // Notification type (e.g., 'sales.order.pending')
+  type: string                 // Notification type (e.g., 'example.todo.pending')
   title: string                // Main notification text (max 500 chars)
 }
 ```
@@ -153,7 +153,7 @@ export default async function handle(
     label: string              // Button text
     variant?: 'default' | 'secondary' | 'destructive' | 'outline' | 'ghost'
     icon?: string              // Optional icon
-    commandId?: string         // Command to execute (e.g., 'sales.orders.approve')
+    commandId?: string         // Command to execute (e.g., 'example.todos.approve')
     href?: string              // Or URL to navigate to
     confirmRequired?: boolean  // Show confirmation dialog
     confirmMessage?: string    // Confirmation text
@@ -228,14 +228,14 @@ actions: [
     id: 'approve',
     label: 'Approve',
     variant: 'default',
-    commandId: 'sales.orders.approve', // Command to execute
+    commandId: 'example.todos.approve', // Command to execute
     icon: 'check',
   },
   {
     id: 'reject',
     label: 'Reject',
     variant: 'destructive',
-    commandId: 'sales.orders.reject',
+    commandId: 'example.todos.reject',
     confirmRequired: true,
     confirmMessage: 'Are you sure you want to reject this order?',
     icon: 'x',
@@ -253,7 +253,7 @@ actions: [
     id: 'view',
     label: 'View Details',
     variant: 'outline',
-    href: '/backend/sales/orders/{sourceEntityId}', // {sourceEntityId} is replaced
+    href: '/backend/example/todos/{sourceEntityId}', // {sourceEntityId} is replaced
     icon: 'external-link',
   },
 ]
@@ -300,9 +300,9 @@ Send notifications to all users within a specific role in your organization:
 ```typescript
 await notificationService.createForRole({
   roleId: 'manager-role-uuid', // The role ID
-  type: 'sales.quarterly_report.ready',
+  type: 'example.report.ready',
   title: 'Quarterly Sales Report Available',
-  body: 'The Q4 2025 sales report is now ready for review',
+  body: 'The Q4 2025 activity report is now ready for review',
   icon: 'file-text',
   severity: 'info',
   linkHref: '/backend/reports/quarterly/q4-2025',
@@ -361,8 +361,8 @@ Send notifications to all users who have a specific permission, regardless of th
 
 ```typescript
 await notificationService.createForFeature({
-  requiredFeature: 'staff.leave_requests.approve', // The required permission
-  type: 'staff.leave_request.pending_approval',
+  requiredFeature: 'example.tasks.approve', // The required permission
+  type: 'example.task.pending_approval',
   title: 'Leave request pending approval',
   body: 'John Doe requested leave from Jan 15 to Jan 20',
   icon: 'calendar-clock',
@@ -372,20 +372,20 @@ await notificationService.createForFeature({
       id: 'approve',
       label: 'Approve',
       variant: 'default',
-      commandId: 'staff.leave_requests.approve',
+      commandId: 'example.tasks.approve',
       icon: 'check',
     },
     {
       id: 'reject',
       label: 'Reject',
       variant: 'destructive',
-      commandId: 'staff.leave_requests.reject',
+      commandId: 'example.tasks.reject',
       confirmRequired: true,
       icon: 'x',
     },
   ],
   primaryActionId: 'approve',
-  linkHref: '/backend/staff/leave-requests/123',
+  linkHref: '/backend/example/tasks/123',
 }, {
   tenantId: ctx.auth.tenantId,
   organizationId: ctx.selectedOrganizationId,
@@ -398,8 +398,8 @@ Or via API:
 await apiCall('/api/notifications/feature', {
   method: 'POST',
   body: JSON.stringify({
-    requiredFeature: 'sales.orders.approve',
-    type: 'sales.order.pending_approval',
+    requiredFeature: 'example.todos.approve',
+    type: 'example.todo.pending_approval',
     title: 'Order needs approval',
     body: 'Order #12345 worth $5,000 requires approval',
     icon: 'shopping-cart',
@@ -413,13 +413,13 @@ await apiCall('/api/notifications/feature', {
 Here's a complete example of notifying approvers when a leave request is created:
 
 ```typescript
-// packages/core/src/modules/staff/subscribers/leave-request-approval-notification.ts
+// packages/core/src/modules/example/subscribers/leave-request-approval-notification.ts
 import { createQueue } from '@open-mercato/queue'
 import type { CreateFeatureNotificationJob } from '@open-mercato/core/modules/notifications/workers/create-notification.worker'
 
 export const metadata = {
-  event: 'staff.leave_request.created',
-  id: 'staff:leave-request-approval-notification',
+  event: 'example.task.created',
+  id: 'example:task-approval-notification',
   persistent: true,
 }
 
@@ -438,14 +438,14 @@ export default async function handle(
 
   // Notify all users who can approve leave requests
   // This includes:
-  // - Users with direct "staff.leave_requests.approve" permission
-  // - Users with "staff.*" wildcard permission
+  // - Users with direct "example.tasks.approve" permission
+  // - Users with "example.*" wildcard permission
   // - Super admins
   await queue.enqueue({
     type: 'create-feature',
     input: {
-      requiredFeature: 'staff.leave_requests.approve',
-      type: 'staff.leave_request.pending_approval',
+      requiredFeature: 'example.tasks.approve',
+      type: 'example.task.pending_approval',
       title: 'Leave request pending approval',
       body: `${payload.employeeName} requested leave from ${payload.startDate} to ${payload.endDate}`,
       icon: 'calendar-clock',
@@ -455,14 +455,14 @@ export default async function handle(
           id: 'approve',
           label: 'Approve',
           variant: 'default',
-          commandId: 'staff.leave_requests.approve',
+          commandId: 'example.tasks.approve',
           icon: 'check',
         },
         {
           id: 'reject',
           label: 'Reject',
           variant: 'destructive',
-          commandId: 'staff.leave_requests.reject',
+          commandId: 'example.tasks.reject',
           confirmRequired: true,
           confirmMessage: 'Are you sure you want to reject this leave request?',
           icon: 'x',
@@ -471,15 +471,15 @@ export default async function handle(
           id: 'view',
           label: 'View Details',
           variant: 'outline',
-          href: `/backend/staff/leave-requests/${payload.leaveRequestId}`,
+          href: `/backend/example/tasks/${payload.leaveRequestId}`,
           icon: 'external-link',
         },
       ],
       primaryActionId: 'approve',
-      sourceModule: 'staff',
+      sourceModule: 'example',
       sourceEntityType: 'leave_request',
       sourceEntityId: payload.leaveRequestId,
-      linkHref: `/backend/staff/leave-requests/${payload.leaveRequestId}`,
+      linkHref: `/backend/example/tasks/${payload.leaveRequestId}`,
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     },
     tenantId: payload.tenantId,
@@ -495,15 +495,15 @@ The system finds users based on their ACL permissions:
 1. **Direct User ACL**: Individual permissions assigned to specific users
 2. **Role ACL**: Permissions granted through role membership
 3. **Super Admin**: Users with `isSuperAdmin` flag always match
-4. **Wildcard Support**: `staff.*` matches any `staff.` permission like `staff.leave_requests.approve`
+4. **Wildcard Support**: `example.*` matches any `example.` permission like `example.tasks.approve`
 
 **Example Scenarios:**
 
-- User has role "HR Manager" with permission `staff.leave_requests.approve` → ✅ Gets notification
-- User has direct permission `staff.*` → ✅ Gets notification (wildcard match)
+- User has role "HR Manager" with permission `example.tasks.approve` → ✅ Gets notification
+- User has direct permission `example.*` → ✅ Gets notification (wildcard match)
 - User has role "Admin" with `isSuperAdmin: true` → ✅ Gets notification
 - User has role "Employee" with no relevant permissions → ❌ No notification
-- User has permission `sales.orders.approve` → ❌ No notification (different module)
+- User has permission `example.todos.approve` → ❌ No notification (different module)
 
 ### Use Cases for Feature-Based Notifications
 
@@ -594,7 +594,7 @@ Here's a complete example of using notifications in an order approval workflow:
 
 ```typescript
 // When order is created
-await eventBus.emit('sales.order.created', {
+await eventBus.emit('example.todo.created', {
   orderId: order.id,
   customerId: order.customerId,
   totalAmount: order.totalAmount,
@@ -606,10 +606,10 @@ await eventBus.emit('sales.order.created', {
 ### 2. Subscriber Creates Notification
 
 ```typescript
-// packages/core/src/modules/sales/subscribers/order-approval-notification.ts
+// packages/core/src/modules/example/subscribers/order-approval-notification.ts
 export const metadata = {
-  event: 'sales.order.created',
-  id: 'sales:order-approval-notification',
+  event: 'example.todo.created',
+  id: 'example:todo-approval-notification',
   persistent: true,
 }
 
@@ -625,7 +625,7 @@ export default async function handle(payload, ctx) {
       type: 'create',
       input: {
         recipientUserId: manager.userId,
-        type: 'sales.order.pending_approval',
+        type: 'example.todo.pending_approval',
         title: 'New order needs approval',
         body: `Order ${payload.orderId} worth $${payload.totalAmount} requires your approval`,
         icon: 'shopping-cart',
@@ -635,14 +635,14 @@ export default async function handle(payload, ctx) {
             id: 'approve',
             label: 'Approve',
             variant: 'default',
-            commandId: 'sales.orders.approve',
+            commandId: 'example.todos.approve',
             icon: 'check',
           },
           {
             id: 'reject',
             label: 'Reject',
             variant: 'destructive',
-            commandId: 'sales.orders.reject',
+            commandId: 'example.todos.reject',
             confirmRequired: true,
             confirmMessage: 'Are you sure you want to reject this order?',
             icon: 'x',
@@ -651,15 +651,15 @@ export default async function handle(payload, ctx) {
             id: 'view',
             label: 'View Details',
             variant: 'outline',
-            href: `/backend/sales/orders/${payload.orderId}`,
+            href: `/backend/example/todos/${payload.orderId}`,
             icon: 'external-link',
           },
         ],
         primaryActionId: 'approve',
-        sourceModule: 'sales',
+        sourceModule: 'example',
         sourceEntityType: 'order',
         sourceEntityId: payload.orderId,
-        linkHref: `/backend/sales/orders/${payload.orderId}`,
+        linkHref: `/backend/example/todos/${payload.orderId}`,
         expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
       },
       tenantId: payload.tenantId,
@@ -672,7 +672,7 @@ export default async function handle(payload, ctx) {
 ### 3. User Takes Action
 
 When the user clicks "Approve" in the notification:
-1. The command `sales.orders.approve` is executed
+1. The command `example.todos.approve` is executed
 2. The notification status changes to `actioned`
 3. The notification shows "Action taken: approve"
 
@@ -818,18 +818,18 @@ Modules can provide custom React components to render their notifications with s
 Create a client-side file that exports notification types with custom renderers:
 
 ```typescript
-// packages/core/src/modules/sales/notifications.client.ts
+// packages/core/src/modules/example/notifications.client.ts
 'use client'
 
 import type { NotificationTypeDefinition } from '@open-mercato/shared/modules/notifications/types'
-import { SalesOrderCreatedRenderer } from './widgets/notifications/SalesOrderCreatedRenderer'
-import { SalesQuoteCreatedRenderer } from './widgets/notifications/SalesQuoteCreatedRenderer'
+import { ExampleTodoCreatedRenderer } from './widgets/notifications/ExampleTodoCreatedRenderer'
+import { ExampleTaskCreatedRenderer } from './widgets/notifications/ExampleTaskCreatedRenderer'
 
-export const salesNotificationTypes: NotificationTypeDefinition[] = [
+export const exampleNotificationTypes: NotificationTypeDefinition[] = [
   {
-    type: 'sales.order.created',
-    module: 'sales',
-    titleKey: 'sales.notifications.order.created.title',
+    type: 'example.todo.created',
+    module: 'example',
+    titleKey: 'example.notifications.order.created.title',
     icon: 'shopping-cart',
     severity: 'info',
     actions: [
@@ -837,22 +837,22 @@ export const salesNotificationTypes: NotificationTypeDefinition[] = [
         id: 'view',
         labelKey: 'common.view',
         variant: 'outline',
-        href: '/backend/sales/orders/{sourceEntityId}',
+        href: '/backend/example/todos/{sourceEntityId}',
       },
     ],
-    linkHref: '/backend/sales/orders/{sourceEntityId}',
-    Renderer: SalesOrderCreatedRenderer, // Custom renderer component
+    linkHref: '/backend/example/todos/{sourceEntityId}',
+    Renderer: ExampleTodoCreatedRenderer, // Custom renderer component
     expiresAfterHours: 168,
   },
   {
-    type: 'sales.quote.created',
-    module: 'sales',
-    Renderer: SalesQuoteCreatedRenderer,
+    type: 'example.task.created',
+    module: 'example',
+    Renderer: ExampleTaskCreatedRenderer,
     // ...other fields
   },
 ]
 
-export default salesNotificationTypes
+export default exampleNotificationTypes
 ```
 
 ### Creating a Custom Renderer Component
@@ -860,7 +860,7 @@ export default salesNotificationTypes
 Custom renderers receive notification data and action handlers:
 
 ```tsx
-// packages/core/src/modules/sales/widgets/notifications/SalesOrderCreatedRenderer.tsx
+// packages/core/src/modules/example/widgets/notifications/ExampleTodoCreatedRenderer.tsx
 'use client'
 
 import * as React from 'react'
@@ -869,7 +869,7 @@ import { Button } from '@open-mercato/ui/primitives/button'
 import { cn } from '@open-mercato/shared/lib/utils'
 import type { NotificationRendererProps } from '@open-mercato/shared/modules/notifications/types'
 
-export function SalesOrderCreatedRenderer({
+export function ExampleTodoCreatedRenderer({
   notification,
   onAction,
   onDismiss,
@@ -995,12 +995,12 @@ type NotificationRendererProps = {
 Pass a renderers map to NotificationPanel to enable custom rendering:
 
 ```tsx
-import { salesNotificationTypes } from '@open-mercato/core/modules/sales/notifications.client'
+import { exampleNotificationTypes } from '@open-mercato/core/modules/example/notifications.client'
 import { NotificationPanel } from '@open-mercato/ui/backend/notifications'
 
 // Build renderers map from notification types
 const customRenderers = Object.fromEntries(
-  salesNotificationTypes
+  exampleNotificationTypes
     .filter(t => t.Renderer)
     .map(t => [t.type, t.Renderer!])
 )
@@ -1015,10 +1015,10 @@ const customRenderers = Object.fromEntries(
 
 ### Example: Sales Module Notifications
 
-The sales module demonstrates custom renderers for order and quote creation notifications:
+The example module demonstrates custom renderers for todo and task creation notifications:
 
 **Order Created Notification:**
-- Blue left border to indicate sales context
+- Blue left border to indicate module context
 - Order number displayed as a badge
 - Total amount prominently shown
 - Custom icon with colored background
@@ -1031,10 +1031,10 @@ The sales module demonstrates custom renderers for order and quote creation noti
 - "View Quote" primary action
 
 Files:
-- `packages/core/src/modules/sales/notifications.ts` - Server-side type definitions
-- `packages/core/src/modules/sales/notifications.client.ts` - Client-side with renderers
-- `packages/core/src/modules/sales/widgets/notifications/SalesOrderCreatedRenderer.tsx`
-- `packages/core/src/modules/sales/widgets/notifications/SalesQuoteCreatedRenderer.tsx`
+- `packages/core/src/modules/example/notifications.ts` - Server-side type definitions
+- `packages/core/src/modules/example/notifications.client.ts` - Client-side with renderers
+- `packages/core/src/modules/example/widgets/notifications/ExampleTodoCreatedRenderer.tsx`
+- `packages/core/src/modules/example/widgets/notifications/ExampleTaskCreatedRenderer.tsx`
 
 ### Best Practices for Custom Renderers
 
@@ -1102,9 +1102,9 @@ Users receive notifications **automatically without any action required**:
 
 ```typescript
 // Good: Clear hierarchy
-type: 'sales.order.pending_approval'
-type: 'sales.order.approved'
-type: 'sales.order.rejected'
+type: 'example.todo.pending_approval'
+type: 'example.todo.approved'
+type: 'example.todo.rejected'
 
 // Bad: Vague
 type: 'order_notification'

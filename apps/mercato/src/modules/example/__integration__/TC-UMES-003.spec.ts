@@ -207,7 +207,7 @@ test.describe('TC-UMES-003: Events & DOM Bridge', () => {
         // Partial wildcard
         partialWildcard: matchesPattern('example.*', 'example.todo.created'),
         partialWildcardItem: matchesPattern('example.*', 'example.item.deleted'),
-        partialWildcardMismatch: matchesPattern('example.*', 'customers.person.created'),
+        partialWildcardMismatch: matchesPattern('example.*', 'auth.user.created'),
       }
     })
 

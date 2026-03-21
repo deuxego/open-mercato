@@ -113,28 +113,28 @@ The main service for modules to interact with the scheduler:
 import { inject } from 'awilix'
 import type { SchedulerService } from '@open-mercato/scheduler'
 
-class MyCurrencyService {
+class MyReportService {
   constructor(@inject('schedulerService') private schedulerService: SchedulerService) {}
 
-  async enableAutoFetch(config: CurrencyFetchConfig) {
+  async enableAutoReport(config: ReportConfig) {
     await this.schedulerService.register({
-      id: `currencies:fetch-rates:${config.organizationId}`,
-      name: 'Fetch Currency Rates',
+      id: `reports:generate:${config.organizationId}`,
+      name: 'Generate Reports',
       scopeType: 'organization',
       organizationId: config.organizationId,
       tenantId: config.tenantId,
       scheduleType: 'cron',
       scheduleValue: '0 */6 * * *', // Every 6 hours
       targetType: 'queue',
-      targetQueue: 'currency-rates',
-      targetPayload: { providers: config.providers },
-      sourceModule: 'currencies',
+      targetQueue: 'report-generation',
+      targetPayload: { format: config.format },
+      sourceModule: 'reports',
     })
   }
 
-  async disableAutoFetch(organizationId: string) {
+  async disableAutoReport(organizationId: string) {
     await this.schedulerService.unregister(
-      `currencies:fetch-rates:${organizationId}`
+      `reports:generate:${organizationId}`
     )
   }
 }
@@ -628,7 +628,7 @@ Content-Type: application/json
 
 {
   "name": "Daily Report",
-  "description": "Generate daily sales report",
+  "description": "Generate daily activity report",
   "scopeType": "tenant",
   "scheduleType": "cron",
   "scheduleValue": "0 6 * * *",
@@ -805,7 +805,7 @@ describe('SchedulerService', () => {
 ```typescript
 // Good
 id: `${moduleId}:${purpose}:${scope}`
-id: 'currencies:fetch-rates:org-123'
+id: 'reports:generate:org-123'
 
 // Bad
 id: '1'

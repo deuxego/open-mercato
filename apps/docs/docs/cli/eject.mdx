@@ -27,23 +27,11 @@ Aliases: `-l` for `--list`.
 | Option | Description |
 | --- | --- |
 | `--list`, `-l` | List all modules that can be ejected. Modules already marked `from: '@app'` are excluded. |
-| `<moduleId>` | The module identifier to eject (e.g., `currencies`, `catalog`, `customers`). |
+| `<moduleId>` | The module identifier to eject (e.g., `example`). |
 
 ## Ejectable Modules
 
-Only modules with `ejectable: true` in their metadata can be ejected. The following core modules currently support ejection:
-
-| Module | Description |
-| --- | --- |
-| `catalog` | Products, categories, variants, pricing |
-| `currencies` | Multi-currency support, exchange rates |
-| `customers` | People, companies, deals, activities |
-| `perspectives` | Sidebar perspectives and view management |
-| `planner` | Planning and scheduling tools |
-| `resources` | Resources and resource types |
-| `sales` | Orders, quotes, invoices, shipments, payments |
-| `staff` | Staff management |
-| `workflows` | Workflow automation engine |
+Only modules with `ejectable: true` in their metadata can be ejected. Run `yarn mercato eject --list` to see the current set of ejectable modules in your project.
 
 ## What the Command Does
 
@@ -80,30 +68,28 @@ Output:
 ```
 Ejectable modules:
 
-  currencies (from: @open-mercato/core) — Multi-currency management
-  catalog (from: @open-mercato/core)
-  customers (from: @open-mercato/core)
+  example (from: @open-mercato/core) — Example module
   ...
 
 Usage: yarn mercato eject <moduleId>
 ```
 
-Eject the currencies module:
+Eject a module:
 
 ```bash
-yarn mercato eject currencies
+yarn mercato eject example
 ```
 
 Output:
 
 ```
-Ejecting module "currencies"...
+Ejecting module "example"...
 
-✅ Module "currencies" ejected successfully!
+Module "example" ejected successfully!
 
 Next steps:
   1. Run generators:  yarn mercato generate all
-  2. Customize:       edit src/modules/currencies/
+  2. Customize:       edit src/modules/example/
   3. Start dev:       yarn dev
 ```
 

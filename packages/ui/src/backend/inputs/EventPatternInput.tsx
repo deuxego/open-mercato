@@ -16,7 +16,7 @@ export interface EventPatternInputProps {
 export function EventPatternInput({
   value,
   onChange,
-  placeholder = 'sales.orders.created',
+  placeholder = 'example.todos.created',
   disabled,
   categories,
   modules,

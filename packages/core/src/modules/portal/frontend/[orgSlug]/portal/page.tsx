@@ -13,10 +13,10 @@ import { PortalInjectionSpots } from '@open-mercato/ui/backend/injection/spotIds
 
 type Props = { params: { orgSlug: string } }
 
-function ShoppingBagIcon({ className }: { className?: string }) {
+function BellIcon({ className }: { className?: string }) {
   return (
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className={className}>
-      <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" /><line x1="3" x2="21" y1="6" y2="6" /><path d="M16 10a4 4 0 0 1-8 0" />
+      <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" /><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0" />
     </svg>
   )
 }
@@ -82,7 +82,7 @@ export default function PortalLandingPage({ params }: Props) {
           {t('portal.landing.hero.title', 'Welcome to your portal')}
         </h1>
         <p className="max-w-lg text-base leading-relaxed text-muted-foreground sm:text-lg">
-          {t('portal.landing.hero.description', 'Access your account, manage orders, and stay up to date.')}
+          {t('portal.landing.hero.description', 'Access your account, manage your preferences, and stay up to date.')}
         </p>
         <div className="mt-2 flex items-center gap-3">
           <Button asChild size="lg" className="rounded-lg px-6 text-[14px]">
@@ -96,9 +96,9 @@ export default function PortalLandingPage({ params }: Props) {
 
       <section className="grid gap-4 sm:grid-cols-3">
         <PortalFeatureCard
-          icon={<ShoppingBagIcon className="size-5" />}
-          title={t('portal.landing.feature.orders', 'Orders & Invoices')}
-          description={t('portal.landing.feature.orders.description', 'Track your orders, download invoices, and view delivery status in real time.')}
+          icon={<BellIcon className="size-5" />}
+          title={t('portal.landing.feature.notifications', 'Notifications')}
+          description={t('portal.landing.feature.notifications.description', 'Stay informed with real-time alerts, updates, and important messages.')}
         />
         <PortalFeatureCard
           icon={<UserIcon className="size-5" />}

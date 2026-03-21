@@ -10,7 +10,7 @@ function buildArgs(overrides?: Partial<ResolveArgs>): ResolveArgs {
       orgId: 'org-1',
       roles: ['employee'],
     },
-    pathname: '/backend/customers/people',
+    pathname: '/backend/example/todos',
     container: {
       resolve: () => ({
         checkUserCompliance: async () => ({
@@ -31,7 +31,7 @@ describe('resolveMfaEnrollmentRedirect', () => {
   test('returns redirect immediately when deadline is not set', async () => {
     const redirect = await resolveMfaEnrollmentRedirect(buildArgs())
     expect(redirect).toBe(
-      '/backend/profile/security/mfa?redirect=%2Fbackend%2Fcustomers%2Fpeople&reason=mfa_enrollment_required',
+      '/backend/profile/security/mfa?redirect=%2Fbackend%2Fexample%2Ftodos&reason=mfa_enrollment_required',
     )
   })
 

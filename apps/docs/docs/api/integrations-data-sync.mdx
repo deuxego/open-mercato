@@ -147,7 +147,7 @@ curl -X POST "$BASE_URL/data_sync/validate" \
   -H "Content-Type: application/json" \
   -d '{
     "integrationId": "my_integration_products",
-    "entityType": "catalog.product",
+    "entityType": "example.entity",
     "direction": "import"
   }'
 ```
@@ -173,7 +173,7 @@ curl -X POST "$BASE_URL/data_sync/run" \
   -H "Content-Type: application/json" \
   -d '{
     "integrationId": "my_integration_products",
-    "entityType": "catalog.product",
+    "entityType": "example.entity",
     "direction": "import",
     "batchSize": 100
   }'

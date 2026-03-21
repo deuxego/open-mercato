@@ -8,28 +8,23 @@ import cli from '@open-mercato/core/modules/auth/cli'
 const testModules: Module[] = [
   { id: 'auth', setup: { defaultRoleFeatures: { admin: ['auth.*'] } } },
   { id: 'entities', setup: { defaultRoleFeatures: { admin: ['entities.*'] } } },
-  { id: 'attachments', setup: { defaultRoleFeatures: { admin: ['attachments.*', 'attachments.view', 'attachments.manage'] } } },
+  { id: 'attachments', setup: { defaultRoleFeatures: { admin: ['attachments.*', 'attachments.view', 'attachments.manage'], employee: ['attachments.view'] } } },
   { id: 'query_index', setup: { defaultRoleFeatures: { admin: ['query_index.*'] } } },
   { id: 'configs', setup: { defaultRoleFeatures: { admin: ['configs.system_status.view', 'configs.cache.view', 'configs.cache.manage', 'configs.manage'] } } },
   { id: 'directory', setup: { defaultRoleFeatures: { superadmin: ['directory.tenants.*'], admin: ['directory.organizations.view', 'directory.organizations.manage'] } } },
-  { id: 'customers', setup: { defaultRoleFeatures: { admin: ['customers.*', 'customers.people.view', 'customers.people.manage', 'customers.companies.view', 'customers.companies.manage', 'customers.deals.view', 'customers.deals.manage'], employee: ['customers.*', 'customers.people.view', 'customers.people.manage', 'customers.companies.view', 'customers.companies.manage'] } } },
-  { id: 'catalog', setup: { defaultRoleFeatures: { admin: ['catalog.*', 'catalog.variants.manage', 'catalog.pricing.manage'], employee: ['catalog.*', 'catalog.variants.manage', 'catalog.pricing.manage'] } } },
-  { id: 'sales', setup: { defaultRoleFeatures: { admin: ['sales.*'], employee: ['sales.*'] } } },
   { id: 'dictionaries', setup: { defaultRoleFeatures: { admin: ['dictionaries.view', 'dictionaries.manage'], employee: ['dictionaries.view'] } } },
-  { id: 'audit_logs', setup: { defaultRoleFeatures: { admin: ['audit_logs.*'], employee: ['audit_logs.undo_self'] } } },
-  { id: 'dashboards', setup: { defaultRoleFeatures: { admin: ['dashboards.*', 'dashboards.admin.assign-widgets'], employee: ['dashboards.view', 'dashboards.configure'] } } },
+  { id: 'audit_logs', setup: { defaultRoleFeatures: { admin: ['audit_logs.*'], employee: ['audit_logs.view_self', 'audit_logs.undo_self'] } } },
+  { id: 'dashboards', setup: { defaultRoleFeatures: { admin: ['dashboards.*', 'dashboards.admin.assign-widgets', 'analytics.view'], employee: ['dashboards.view', 'dashboards.configure', 'analytics.view'] } } },
   { id: 'api_keys', setup: { defaultRoleFeatures: { admin: ['api_keys.*'] } } },
-  { id: 'perspectives', setup: { defaultRoleFeatures: { admin: ['perspectives.use', 'perspectives.role_defaults'], employee: ['perspectives.use'] } } },
   { id: 'feature_toggles', setup: { defaultRoleFeatures: { admin: ['feature_toggles.*'] } } },
   { id: 'business_rules', setup: { defaultRoleFeatures: { admin: ['business_rules.*'] } } },
-  { id: 'workflows', setup: { defaultRoleFeatures: { admin: ['workflows.*'] } } },
-  { id: 'search', setup: { defaultRoleFeatures: { admin: ['search.*', 'vector.*'], employee: ['vector.*'] } } },
-  { id: 'currencies', setup: { defaultRoleFeatures: { admin: ['currencies.*'] } } },
-  { id: 'planner', setup: { defaultRoleFeatures: { admin: ['planner.*'], employee: ['planner.view'] } } },
-  { id: 'resources', setup: { defaultRoleFeatures: { admin: ['resources.*'] } } },
-  { id: 'staff', setup: { defaultRoleFeatures: { admin: ['staff.*', 'staff.leave_requests.manage'], employee: ['staff.leave_requests.send', 'staff.my_availability.view', 'staff.my_availability.manage', 'staff.my_leave_requests.view', 'staff.my_leave_requests.send'] } } },
   { id: 'translations', setup: { defaultRoleFeatures: { admin: ['translations.*'], employee: ['translations.view', 'translations.manage'] } } },
-  { id: 'example', setup: { defaultRoleFeatures: { admin: ['example.*'], employee: ['example.*', 'example.widgets.*'] } } },
+  { id: 'customer_accounts', setup: { defaultRoleFeatures: { superadmin: ['customer_accounts.*'], admin: ['customer_accounts.*'] } } },
+  { id: 'integrations', setup: { defaultRoleFeatures: { superadmin: ['integrations.*', 'integrations.view', 'integrations.manage', 'integrations.credentials.manage'], admin: ['integrations.*', 'integrations.view', 'integrations.manage', 'integrations.credentials.manage'], employee: ['integrations.view'] } } },
+  { id: 'data_sync', setup: { defaultRoleFeatures: { superadmin: ['data_sync.view', 'data_sync.run', 'data_sync.configure'], admin: ['data_sync.view', 'data_sync.run', 'data_sync.configure'], employee: ['data_sync.view'] } } },
+  { id: 'messages', setup: { defaultRoleFeatures: { superadmin: ['messages.*'], admin: ['messages.*'], employee: ['messages.*'] } } },
+  { id: 'progress', setup: { defaultRoleFeatures: { admin: ['progress.*'], employee: ['progress.view'] } } },
+  { id: 'example', setup: { defaultRoleFeatures: { superadmin: ['example.*', 'payment_gateways.*', 'shipping_carriers.*'], admin: ['example.*', 'payment_gateways.*', 'shipping_carriers.*'], employee: ['example.*', 'example.widgets.*', 'payment_gateways.view', 'shipping_carriers.view'] } } },
 ]
 registerModules(testModules)
 registerCliModules(testModules)
@@ -87,7 +82,17 @@ describe('auth CLI setup seeds ACLs', () => {
     const superadminAcl = roleAclCreates.find((row) => row.isSuperAdmin === true)
     expect(superadminAcl).toBeDefined()
     expect(Array.isArray(superadminAcl?.featuresJson)).toBe(true)
-    expect(superadminAcl?.featuresJson).toEqual(expect.arrayContaining(['directory.tenants.*']))
+    // superadmin gets features from modules declaring superadmin role
+    expect(superadminAcl?.featuresJson).toEqual(expect.arrayContaining([
+      'directory.tenants.*',
+      'customer_accounts.*',
+      'integrations.*',
+      'data_sync.view',
+      'data_sync.run',
+      'data_sync.configure',
+      'messages.*',
+      'example.*',
+    ]))
 
     const adminAcl = roleAclCreates.find((row) => Array.isArray(row.featuresJson) && row.featuresJson.includes('directory.organizations.manage'))
     expect(adminAcl).toBeDefined()
@@ -96,53 +101,56 @@ describe('auth CLI setup seeds ACLs', () => {
       'entities.*',
       'attachments.*',
       'query_index.*',
-      'vector.*',
-      'catalog.*',
-      'sales.*',
       'configs.system_status.view',
       'configs.cache.view',
       'configs.cache.manage',
       'configs.manage',
       'directory.organizations.manage',
       'directory.organizations.view',
-      'customers.*',
-      'customers.people.view',
-      'customers.people.manage',
-      'customers.companies.view',
-      'customers.companies.manage',
       'dictionaries.view',
       'dictionaries.manage',
       'example.*',
       'audit_logs.*',
       'dashboards.*',
       'dashboards.admin.assign-widgets',
+      'analytics.view',
       'api_keys.*',
-      'perspectives.use',
-      'perspectives.role_defaults',
       'translations.*',
+      'customer_accounts.*',
+      'integrations.*',
+      'data_sync.view',
+      'data_sync.run',
+      'data_sync.configure',
+      'messages.*',
+      'progress.*',
+      'feature_toggles.*',
+      'business_rules.*',
+      'payment_gateways.*',
+      'shipping_carriers.*',
     ]))
-    expect(adminAcl?.featuresJson).not.toContain('directory.organizations.*')
+    // admin should NOT get superadmin-only wildcard features
+    expect(adminAcl?.featuresJson).not.toContain('directory.tenants.*')
 
     const employeeAcl = roleAclCreates.find((row) => Array.isArray(row.featuresJson) && row.featuresJson.includes('example.widgets.*'))
     expect(employeeAcl).toBeDefined()
     expect(employeeAcl?.featuresJson).toEqual(expect.arrayContaining([
-      'customers.*',
-      'customers.people.view',
-      'customers.people.manage',
-      'customers.companies.view',
-      'customers.companies.manage',
-      'vector.*',
-      'catalog.*',
-      'sales.*',
+      'attachments.view',
       'dictionaries.view',
       'example.*',
       'example.widgets.*',
+      'audit_logs.view_self',
+      'audit_logs.undo_self',
       'dashboards.view',
       'dashboards.configure',
-      'audit_logs.undo_self',
-      'perspectives.use',
+      'analytics.view',
       'translations.view',
       'translations.manage',
+      'integrations.view',
+      'data_sync.view',
+      'messages.*',
+      'progress.view',
+      'payment_gateways.view',
+      'shipping_carriers.view',
     ]))
   }, 20000)
 })

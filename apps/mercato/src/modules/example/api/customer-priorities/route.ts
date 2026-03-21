@@ -88,44 +88,44 @@ export const { metadata, GET, POST, PUT, DELETE } = makeCrudRoute({
       if (!ctx.auth) return
       await invalidateCrudCache(
         ctx.container,
-        'customers.person',
+        'example.example_customer_priority',
         {
-          id: entity.customerId,
+          id: String(entity.id),
           organizationId: ctx.selectedOrganizationId ?? ctx.auth.orgId ?? null,
           tenantId: ctx.auth.tenantId ?? null,
         },
         ctx.auth.tenantId ?? null,
         'example.customer-priority.create',
-        ['customers.customer_entity', 'customers.people'],
+        ['example.example_customer_priority'],
       )
     },
     afterUpdate: async (entity, ctx) => {
       if (!ctx.auth) return
       await invalidateCrudCache(
         ctx.container,
-        'customers.person',
+        'example.example_customer_priority',
         {
-          id: entity.customerId,
+          id: String(entity.id),
           organizationId: ctx.selectedOrganizationId ?? ctx.auth.orgId ?? null,
           tenantId: ctx.auth.tenantId ?? null,
         },
         ctx.auth.tenantId ?? null,
         'example.customer-priority.update',
-        ['customers.customer_entity', 'customers.people'],
+        ['example.example_customer_priority'],
       )
     },
     afterDelete: async (_id, ctx) => {
       if (!ctx.auth) return
       await invalidateCrudCache(
         ctx.container,
-        'customers.person',
+        'example.example_customer_priority',
         {
           organizationId: ctx.selectedOrganizationId ?? ctx.auth.orgId ?? null,
           tenantId: ctx.auth.tenantId ?? null,
         },
         ctx.auth.tenantId ?? null,
         'example.customer-priority.delete',
-        ['customers.customer_entity', 'customers.people'],
+        ['example.example_customer_priority'],
       )
     },
   },

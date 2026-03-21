@@ -1,14 +1,14 @@
 import type { CommandInterceptor } from '@open-mercato/shared/lib/commands/command-interceptor'
 
 /**
- * Example command interceptor: audit logging for customer commands.
+ * Example command interceptor: audit logging for example module commands.
  *
  * Demonstrates the command interceptor contract (m4): beforeExecute stores
  * a timestamp in metadata, afterExecute logs the duration.
  */
 const auditLoggingInterceptor: CommandInterceptor = {
   id: 'example.audit-logging',
-  targetCommand: 'customers.*',
+  targetCommand: 'example.*',
   priority: 50,
 
   async beforeExecute(_input, _context) {

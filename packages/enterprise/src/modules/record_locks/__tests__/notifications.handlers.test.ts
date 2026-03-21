@@ -12,7 +12,7 @@ function createContext(): jest.Mocked<NotificationHandlerContext> {
   return {
     userId: 'user-1',
     features: ['record_locks.view'],
-    currentPath: '/backend/customers/companies/edit?id=company-1',
+    currentPath: '/backend/example/todos/edit?id=todo-1',
     toast: jest.fn(),
     popup: jest.fn(),
     emitEvent: jest.fn(),
@@ -46,13 +46,13 @@ describe('record_locks notification handlers', () => {
     await handler.handle(createNotification({
       type: 'record_locks.lock.contended',
       sourceEntityId: 'lock-1',
-      bodyVariables: { resourceKind: 'customers.company' },
+      bodyVariables: { resourceKind: 'example.todo' },
     }), context)
 
     expect(context.emitEvent).toHaveBeenCalledWith(RECORD_LOCKS_LOCK_CONTENDED_EVENT, {
       notificationId: 'notif-1',
       sourceEntityId: 'lock-1',
-      resourceKind: 'customers.company',
+      resourceKind: 'example.todo',
     })
   })
 
@@ -63,14 +63,14 @@ describe('record_locks notification handlers', () => {
 
     await handler.handle(createNotification({
       type: 'record_locks.record.deleted',
-      sourceEntityId: 'company-1',
-      bodyVariables: { resourceKind: 'customers.company' },
+      sourceEntityId: 'todo-1',
+      bodyVariables: { resourceKind: 'example.todo' },
     }), context)
 
     expect(context.emitEvent).toHaveBeenCalledWith(RECORD_LOCKS_RECORD_DELETED_EVENT, {
       notificationId: 'notif-1',
-      resourceId: 'company-1',
-      resourceKind: 'customers.company',
+      resourceId: 'todo-1',
+      resourceKind: 'example.todo',
     })
   })
 
@@ -82,14 +82,14 @@ describe('record_locks notification handlers', () => {
     await handler.handle(createNotification({
       type: 'record_locks.incoming_changes.available',
       sourceEntityId: 'log-1',
-      bodyVariables: { resourceKind: 'customers.company' },
+      bodyVariables: { resourceKind: 'example.todo' },
     }), context)
 
     expect(context.emitEvent).toHaveBeenCalledWith(RECORD_LOCKS_INCOMING_CHANGES_EVENT, {
       notificationId: 'notif-1',
       sourceEntityId: 'log-1',
       resourceId: null,
-      resourceKind: 'customers.company',
+      resourceKind: 'example.todo',
     })
   })
 

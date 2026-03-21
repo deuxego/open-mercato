@@ -273,7 +273,7 @@ When enabled (`true`, default), `CrudForm` emits:
 
 ### Example Injection Widgets Toggle
 
-The `example` module ships demo injection widgets (CRUD validation panel, sales todos tab, catalog SEO report, sample menu items).
+The `example` module ships demo injection widgets (CRUD validation panel, sample menu items).
 
 These widgets are disabled by default. Enable them with:
 
@@ -295,7 +295,7 @@ Track long-running server operations in widgets:
 import { useOperationProgress } from '@open-mercato/ui/backend/injection/useOperationProgress'
 
 function ImportProgressWidget() {
-  const progress = useOperationProgress('catalog.import.*')
+  const progress = useOperationProgress('data_sync.import.*')
   if (progress.status === 'idle') return null
   return <ProgressBar value={progress.progress} label={progress.currentStep} />
 }
@@ -322,7 +322,7 @@ import type { ResponseEnricher } from '@open-mercato/shared/lib/crud/response-en
 
 const customerTodoCount: ResponseEnricher = {
   id: 'example.customer-todo-count',
-  targetEntity: 'customers.person',      // which entity to enrich
+  targetEntity: 'example.todo',           // which entity to enrich
   features: ['example.view'],            // ACL gating
   priority: 10,                          // higher = runs first
   timeout: 2000,                         // max ms per enricher
@@ -352,7 +352,7 @@ Add `enrichers` to your `makeCrudRoute` call:
 ```ts
 export const { metadata, GET, POST, PUT, DELETE } = makeCrudRoute({
   // ... other config
-  enrichers: { entityId: 'customers.person' },
+  enrichers: { entityId: 'example.todo' },
 })
 ```
 
@@ -407,7 +407,7 @@ src/modules/<module>/
 ### Replacement Handles
 
 Component replacement uses stable handle IDs:
-- `page:<path>` for backend page-level replacement (for example `page:/backend/customers/people`)
+- `page:<path>` for backend page-level replacement (for example `page:/backend/example/todos`)
 - `data-table:<tableId>` for each `DataTable` instance
 - `crud-form:<entityId>` for each `CrudForm` instance
 - `section:<scope>.<sectionName>` for detail sections (for example `section:ui.detail.NotesSection`)
@@ -620,10 +620,10 @@ import type { ModuleInjectionTable } from '@open-mercato/shared/modules/widgets/
 
 export const injectionTable: ModuleInjectionTable = {
   // Map injection spot IDs to widget IDs
-  'crud-form:catalog.product': 'module.injection.widget-name',
+  'crud-form:example.todo': 'module.injection.widget-name',
   
   // Can also inject multiple widgets
-  'crud-form:catalog.variant': [
+  'crud-form:example.todo_comment': [
     'module.injection.widget-name',
     'module.injection.another-widget',
   ],
@@ -640,7 +640,7 @@ The `CrudForm` component automatically supports widget injection:
 <CrudForm
   fields={fields}
   onSubmit={handleSubmit}
-  injectionSpotId="crud-form:catalog.product"
+  injectionSpotId="crud-form:example.todo"
   // ... other props
 />
 ```
@@ -653,15 +653,15 @@ Use the helper functions to generate consistent spot IDs:
 import { generateCrudFormInjectionSpotId, CrudFormInjectionSpots } from '@open-mercato/ui/backend/injection/helpers'
 
 // Basic form spot
-const spotId = generateCrudFormInjectionSpotId('catalog.product')
-// Result: 'crud-form:catalog.product'
+const spotId = generateCrudFormInjectionSpotId('example.todo')
+// Result: 'crud-form:example.todo'
 
 // Specific locations
-const beforeFieldsSpot = CrudFormInjectionSpots.beforeFields('catalog.product')
-// Result: 'crud-form:catalog.product:before-fields'
+const beforeFieldsSpot = CrudFormInjectionSpots.beforeFields('example.todo')
+// Result: 'crud-form:example.todo:before-fields'
 
-const afterFieldsSpot = CrudFormInjectionSpots.afterFields('catalog.product')
-// Result: 'crud-form:catalog.product:after-fields'
+const afterFieldsSpot = CrudFormInjectionSpots.afterFields('example.todo')
+// Result: 'crud-form:example.todo:after-fields'
 ```
 
 ## Event Handler Reference
@@ -840,7 +840,7 @@ Here’s how injected widgets look in the admin UI:
 See these modules for reference implementations:
 
 - `packages/example/src/modules/example/widgets/injection/crud-validation` - Basic validation widget
-- `packages/core/src/modules/catalog/widgets/injection/product-seo` - SEO helper widget for products
+- `packages/core/src/modules/example/widgets/injection/` - Example injection widgets
 
 ## Code Generation
 

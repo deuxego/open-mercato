@@ -239,11 +239,11 @@ This ensures that:
 
 ## Enabling Modules
 - Edit `apps/mercato/src/modules.ts` and list modules to load, e.g.:
-  - `{ id: 'auth', from: '@open-mercato/core' }`, `{ id: 'directory', from: '@open-mercato/core' }`, `{ id: 'customers', from: '@open-mercato/core' }`.
+  - `{ id: 'auth', from: '@open-mercato/core' }`, `{ id: 'directory', from: '@open-mercato/core' }`, `{ id: 'example', from: '@open-mercato/core' }`.
 - Generators and migrations only include these modules.
 
 ## Monorepo, Overrides, and Module Config
-- Core modules live in `@open-mercato/core`, search in `@open-mercato/search`, events in `@open-mercato/events`, etc.
+- Core modules live in `@open-mercato/core`, events in `@open-mercato/events`, etc.
 - App-level overrides live under `apps/mercato/src/modules/<module>/...` and take precedence over package files with the same relative path.
 - Enable modules explicitly in `apps/mercato/src/modules.ts`.
 - Generators (`yarn generate`) and migrations (`yarn db:*`) only include enabled modules.

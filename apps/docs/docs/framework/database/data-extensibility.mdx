@@ -129,7 +129,7 @@ The integrations module provides a built-in entity and enricher for tracking ext
 |--------|------|-------------|
 | `id` | UUID PK | Auto-generated |
 | `integration_id` | text | Identifies the integration (e.g. `sync_shopify`) |
-| `internal_entity_type` | text | Target entity type (e.g. `catalog.product`) |
+| `internal_entity_type` | text | Target entity type (e.g. `example.todo`) |
 | `internal_entity_id` | UUID | Internal record ID |
 | `external_id` | text | ID in the external system |
 | `sync_status` | text | `synced`, `pending`, `error`, or `not_synced` |
@@ -156,8 +156,8 @@ Enriched response shape:
       "lastSyncedAt": "2026-02-28T10:00:00.000Z",
       "syncStatus": "synced"
     },
-    "gateway_stripe": {
-      "externalId": "cus_abc456",
+    "sync_example": {
+      "externalId": "ext_abc456",
       "syncStatus": "pending"
     }
   }

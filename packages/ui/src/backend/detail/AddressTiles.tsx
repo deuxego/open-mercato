@@ -169,7 +169,7 @@ export function AddressTiles<C = unknown>({
   onAddActionChange,
   emptyStateTitle,
   emptyStateActionLabel,
-  labelPrefix = 'customers.people.detail.addresses',
+  labelPrefix = 'common.detail.addresses',
   addressTypesAdapter,
   addressTypesContext,
   loadFormat,

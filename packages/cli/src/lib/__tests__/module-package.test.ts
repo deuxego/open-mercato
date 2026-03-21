@@ -98,7 +98,7 @@ describe('module-package', () => {
 
   it('selects a specific module from a multi-module package via targetModuleId', () => {
     const packageRoot = path.join(tmpDir, 'multi-module-pkg')
-    for (const moduleId of ['customers', 'sales']) {
+    for (const moduleId of ['auth', 'dictionaries']) {
       fs.mkdirSync(path.join(packageRoot, 'src', 'modules', moduleId), { recursive: true })
       fs.mkdirSync(path.join(packageRoot, 'dist', 'modules', moduleId), { recursive: true })
       fs.writeFileSync(
@@ -115,21 +115,21 @@ describe('module-package', () => {
       JSON.stringify({ name: '@open-mercato/core' }),
     )
 
-    const result = readOfficialModulePackageFromRoot(packageRoot, undefined, 'sales')
-    expect(result.metadata.moduleId).toBe('sales')
-    expect(result.sourceModuleDir).toContain(path.join('modules', 'sales'))
+    const result = readOfficialModulePackageFromRoot(packageRoot, undefined, 'dictionaries')
+    expect(result.metadata.moduleId).toBe('dictionaries')
+    expect(result.sourceModuleDir).toContain(path.join('modules', 'dictionaries'))
   })
 
   it('throws when targetModuleId is not found in package', () => {
     const packageRoot = path.join(tmpDir, 'single-module-pkg')
-    fs.mkdirSync(path.join(packageRoot, 'src', 'modules', 'customers'), { recursive: true })
-    fs.mkdirSync(path.join(packageRoot, 'dist', 'modules', 'customers'), { recursive: true })
+    fs.mkdirSync(path.join(packageRoot, 'src', 'modules', 'auth'), { recursive: true })
+    fs.mkdirSync(path.join(packageRoot, 'dist', 'modules', 'auth'), { recursive: true })
     fs.writeFileSync(
-      path.join(packageRoot, 'src', 'modules', 'customers', 'index.ts'),
+      path.join(packageRoot, 'src', 'modules', 'auth', 'index.ts'),
       `export const metadata = { ejectable: false }\n`,
     )
     fs.writeFileSync(
-      path.join(packageRoot, 'dist', 'modules', 'customers', 'index.js'),
+      path.join(packageRoot, 'dist', 'modules', 'auth', 'index.js'),
       `exports.metadata = {};\n`,
     )
     fs.writeFileSync(

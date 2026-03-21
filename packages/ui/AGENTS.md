@@ -1,12 +1,12 @@
 # UI Package - Agent Guidelines
 
-This document captures UI usage patterns based on current implementations in the customers, sales, and staff (auth users/roles) modules. Use these as the default conventions when building new UI in `packages/ui` or when consuming UI components from other modules.
+This document captures UI usage patterns based on current implementations in the auth (users/roles), example, and customer_accounts modules. Use these as the default conventions when building new UI in `packages/ui` or when consuming UI components from other modules.
 
 ## Reference Modules
 
-- Customers: `packages/core/src/modules/customers/backend/customers/people/create/page.tsx`, `packages/core/src/modules/customers/backend/customers/people/page.tsx`, `packages/core/src/modules/customers/components/detail/TaskForm.tsx`
-- Sales: `packages/core/src/modules/sales/components/documents/SalesDocumentsTable.tsx`, `packages/core/src/modules/sales/components/documents/PaymentsSection.tsx`, `packages/core/src/modules/sales/components/documents/SalesDocumentForm.tsx`
-- Staff (auth users/roles): `packages/core/src/modules/auth/backend/users/page.tsx`, `packages/core/src/modules/auth/backend/users/create/page.tsx`, `packages/core/src/modules/auth/backend/roles/create/page.tsx`
+- Auth (users/roles): `packages/core/src/modules/auth/backend/users/page.tsx`, `packages/core/src/modules/auth/backend/users/create/page.tsx`, `packages/core/src/modules/auth/backend/roles/create/page.tsx`
+- Example: `apps/mercato/src/modules/example/backend/`
+- Customer Accounts: `packages/core/src/modules/customer_accounts/backend/`
 
 ## Button and IconButton Usage
 
@@ -105,7 +105,7 @@ import { IconButton } from '@open-mercato/ui/primitives/icon-button'
 - Drive validation with a Zod schema and surface field errors via `createCrudFormError`.
 - When using `CrudForm` with Zod, validation messages may be i18n keys because `CrudForm` translates them before display.
 - If you validate outside `CrudForm` or manually map `safeParse(...).error.issues`, you MUST translate `issue.message` before passing it to `createCrudFormError` or rendering it in the UI.
-- Keep `fields` and `groups` in memoized helpers (see customers person form config).
+- Keep `fields` and `groups` in memoized helpers (see example module form config).
 - Pass `entityIds` when custom fields are involved so form helpers load correct custom-field sets.
 - Use `createCrud`/`updateCrud`/`deleteCrud` for submit actions and call `flash()` for success or failure messaging.
 - For multi-step submit flows, keep the form submit handler focused and move secondary operations (like extra address writes) into isolated helpers with per-item error handling.
@@ -150,7 +150,7 @@ import { IconButton } from '@open-mercato/ui/primitives/icon-button'
 ## Loading, Empty, and Error States
 
 - For list/detail data loading, use `LoadingMessage` and `ErrorMessage` from `@open-mercato/ui/backend/detail`.
-- Use `TabEmptyState` when a section is empty but otherwise healthy (see sales document sub-sections).
+- Use `TabEmptyState` when a section is empty but otherwise healthy.
 - Keep loading flags local to the section and reset errors before each load.
 
 ## Flash Messages
@@ -277,10 +277,10 @@ Events with `portalBroadcast: true` are streamed to authenticated portal users v
 ```typescript
 // events.ts
 const events = [
-  { id: 'sales.order.status_changed', label: 'Order Status Changed', portalBroadcast: true },
+  { id: 'example.todo.status_changed', label: 'Todo Status Changed', portalBroadcast: true },
 ] as const
 
 // In portal component
 import { usePortalAppEvent } from '@open-mercato/ui/portal/hooks/usePortalAppEvent'
-usePortalAppEvent('sales.order.status_changed', (event) => { refetch() })
+usePortalAppEvent('example.todo.status_changed', (event) => { refetch() })
 ```

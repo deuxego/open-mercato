@@ -85,7 +85,7 @@ function AddressesSectionImpl<C = unknown>({
   addressTypesContext,
   loadFormat,
   formatContext,
-  labelPrefix = 'customers.people.detail.addresses',
+  labelPrefix = 'common.detail.addresses',
 }: AddressesSectionProps<C>) {
   const tHook = useT()
   const fallbackTranslator = React.useMemo<Translator>(() => createTranslatorWithFallback(tHook), [tHook])

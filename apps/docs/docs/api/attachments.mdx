@@ -99,7 +99,7 @@ How it works:
 Returns files assigned to a specific entity record, ordered newest first.
 
 ```bash
-curl -X GET "$BASE_URL/attachments?entityId=catalog:catalog_product&recordId=$RECORD_ID" \
+curl -X GET "$BASE_URL/attachments?entityId=example:todo&recordId=$RECORD_ID" \
   -H "X-Api-Key: $API_KEY" \
   -H "Accept: application/json"
 ```
@@ -119,7 +119,7 @@ Fields:
 ```bash
 curl -X POST "$BASE_URL/attachments" \
   -H "X-Api-Key: $API_KEY" \
-  -F "entityId=catalog:catalog_product" \
+  -F "entityId=example:todo" \
   -F "recordId=$RECORD_ID" \
   -F "file=@./hero.jpg" \
   -F "tags=[\"hero\",\"web\"]"
@@ -185,7 +185,7 @@ curl -X POST "$BASE_URL/attachments/transfer" \
   -H "X-Api-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d '{
-    "entityId": "catalog:catalog_product",
+    "entityId": "example:todo",
     "attachmentIds": ["'$ATTACHMENT_ID'"],
     "fromRecordId": "old-record-id",
     "toRecordId": "new-record-id"

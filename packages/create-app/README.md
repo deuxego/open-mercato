@@ -34,13 +34,13 @@ npx create-mercato-app <app-name> [options]
 
 ```bash
 # Create a new app using the public npm registry
-npx create-mercato-app my-store
+npx create-mercato-app my-app
 
 # Create a new app using a local Verdaccio registry
-npx create-mercato-app my-store --verdaccio
+npx create-mercato-app my-app --verdaccio
 
 # Create a new app using a custom registry
-npx create-mercato-app my-store --registry http://localhost:4873
+npx create-mercato-app my-app --registry http://localhost:4873
 ```
 
 ## After Creating Your App

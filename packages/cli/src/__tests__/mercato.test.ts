@@ -81,15 +81,15 @@ describe('mercato CLI module registration', () => {
 
     it('registers modules correctly', () => {
       const testModules = [
-        { id: 'customers', cli: [{ command: 'seed', run: jest.fn() }] },
-        { id: 'catalog', cli: [{ command: 'import', run: jest.fn() }] },
+        { id: 'auth', cli: [{ command: 'seed', run: jest.fn() }] },
+        { id: 'example', cli: [{ command: 'import', run: jest.fn() }] },
       ] as any
 
       registerCliModules(testModules)
 
       const result = getCliModules()
       expect(result).toHaveLength(2)
-      expect(result.map((m: any) => m.id)).toEqual(['customers', 'catalog'])
+      expect(result.map((m: any) => m.id)).toEqual(['auth', 'example'])
     })
   })
 })

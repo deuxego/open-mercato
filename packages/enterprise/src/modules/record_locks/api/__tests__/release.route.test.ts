@@ -30,7 +30,7 @@ describe('record_locks release route', () => {
 
     const response = await POST(
       makeRequest({
-        resourceKind: 'sales.quote',
+        resourceKind: 'example.todo',
         resourceId: '40000000-0000-4000-8000-000000000001',
         token: '50000000-0000-4000-8000-000000000001',
         reason: 'conflict_resolved',
@@ -58,7 +58,7 @@ describe('record_locks release route', () => {
 
     const response = await POST(
       makeRequest({
-        resourceKind: 'sales.quote',
+        resourceKind: 'example.todo',
         resourceId: '40000000-0000-4000-8000-000000000001',
         token: '50000000-0000-4000-8000-000000000001',
         reason: 'conflict_resolved',
@@ -76,7 +76,7 @@ describe('record_locks release route', () => {
     })
     expect(release).toHaveBeenCalledWith({
       token: '50000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '40000000-0000-4000-8000-000000000001',
       reason: 'conflict_resolved',
       conflictId: '60000000-0000-4000-8000-000000000001',
@@ -105,7 +105,7 @@ describe('record_locks release route', () => {
 
     const response = await POST(
       makeRequest({
-        resourceKind: 'sales.quote',
+        resourceKind: 'example.todo',
         resourceId: '40000000-0000-4000-8000-000000000001',
         reason: 'conflict_resolved',
         conflictId: '60000000-0000-4000-8000-000000000001',
@@ -122,7 +122,7 @@ describe('record_locks release route', () => {
     })
     expect(release).toHaveBeenCalledWith({
       token: undefined,
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '40000000-0000-4000-8000-000000000001',
       reason: 'conflict_resolved',
       conflictId: '60000000-0000-4000-8000-000000000001',

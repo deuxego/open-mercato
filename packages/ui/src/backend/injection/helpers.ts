@@ -2,7 +2,7 @@ import type { InjectionSpotId } from '@open-mercato/shared/modules/widgets/injec
 
 /**
  * Generate a standard injection spot ID for CRUD forms
- * @param formName The name/identifier of the form (e.g., 'catalog.product', 'catalog.variant')
+ * @param formName The name/identifier of the form (e.g., 'example.todo', 'auth.user')
  * @returns A standardized injection spot ID
  */
 export function generateCrudFormInjectionSpotId(formName: string): InjectionSpotId {

@@ -296,7 +296,7 @@ export default function UmesExtensionsPage() {
           </div>
           <div className={`grid gap-1 ${hintClassName}`}>
             <div className="font-medium text-amber-900 dark:text-amber-50">{t('example.umes.extensions.hintHeading', 'What should be visible and how it should work')}</div>
-            <div>{t('example.umes.extensions.phaseF.hint1', '1. On `/backend/customers/people` table: column `Example priority` should be visible.')}</div>
+            <div>{t('example.umes.extensions.phaseF.hint1', '1. On the target DataTable: column `Example priority` should be visible.')}</div>
             <div>{t('example.umes.extensions.phaseF.hint2', '2. In filters drawer: select filter `Priority` should be visible.')}</div>
             <div>{t('example.umes.extensions.phaseF.hint3', '3. In row actions menu: action `Open customer` should be visible.')}</div>
             <div>{t('example.umes.extensions.phaseF.hint4', '4. After selecting rows: bulk action `Set normal priority` should update priorities via API.')}</div>
@@ -310,7 +310,7 @@ export default function UmesExtensionsPage() {
           />
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Button asChild type="button" variant="outline">
-              <Link href="/backend/customers/people">{t('example.umes.extensions.phaseF.openCustomers', 'Open customers table')}</Link>
+              <Link href="/backend/example/todos">{t('example.umes.extensions.phaseF.openCustomers', 'Open example todos table')}</Link>
             </Button>
             <span>{t('example.umes.extensions.phaseF.expect', 'Expect: injected column, row action, filters, and bulk action.')}</span>
           </div>
@@ -327,7 +327,7 @@ export default function UmesExtensionsPage() {
             <div className="font-medium text-amber-900 dark:text-amber-50">{t('example.umes.extensions.hintHeading', 'What should be visible and how it should work')}</div>
             <div>{t('example.umes.extensions.phaseG.hint1', '1. Injected widget card `Example Injection Widget` should be visible above form fields.')}</div>
             <div>{t('example.umes.extensions.phaseG.hint2', '2. Saving valid form should update `submitResult` below the form.')}</div>
-            <div>{t('example.umes.extensions.phaseG.hint3', '3. In customer detail form (`/backend/customers/people/:id`), injected `_example.priority` field should persist via onSave handler.')}</div>
+            <div>{t('example.umes.extensions.phaseG.hint3', '3. In todo detail form (`/backend/example/todos/:id/edit`), injected fields should persist via onSave handler.')}</div>
           </div>
           <CrudForm<{ title: string; note?: string }>
             schema={z.object({ title: z.string().min(1), note: z.string().optional() })}

@@ -173,7 +173,7 @@ function AssignmentInputRow({
         <Input
           value={value.type}
           onChange={(event) => onChange({ ...value, type: event.target.value })}
-          placeholder="catalog.product"
+          placeholder="example.todo"
           disabled={disabled}
         />
       </div>

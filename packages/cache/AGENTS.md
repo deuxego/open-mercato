@@ -24,10 +24,10 @@ Use tags when cached data relates to a specific entity or scope. Invalidating a 
 
 ```typescript
 // When caching, attach tags
-await cacheService.set('key', value, { tags: ['tenant:123', 'customers'] })
+await cacheService.set('key', value, { tags: ['tenant:123', 'example'] })
 
 // When data changes, invalidate by tag
-await cacheService.invalidateTag('customers')  // Clears all customer-related cache
+await cacheService.invalidateTag('example')  // Clears all example-related cache
 ```
 
 ## Adding Caching to a Module

@@ -16,8 +16,8 @@ import type { ComponentType } from 'react'
  * @example
  * ```tsx
  * const customRenderers = {
- *   'sales.order.created': SalesOrderCreatedRenderer,
- *   'sales.quote.created': SalesQuoteCreatedRenderer,
+ *   'example.todo.created': TodoCreatedRenderer,
+ *   'example.todo.completed': TodoCompletedRenderer,
  * }
  * ```
  */
@@ -42,11 +42,11 @@ export type NotificationPanelProps = {
    *
    * @example
    * ```tsx
-   * import { salesNotificationTypes } from '@open-mercato/core/modules/sales/notifications.client'
+   * import { notificationTypes } from '@open-mercato/core/modules/<your_module>/notifications.client'
    *
    * // Build renderers map from notification types
    * const renderers = Object.fromEntries(
-   *   salesNotificationTypes
+   *   notificationTypes
    *     .filter(t => t.Renderer)
    *     .map(t => [t.type, t.Renderer!])
    * )

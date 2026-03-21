@@ -58,17 +58,17 @@ import { apiCallOrThrow } from '@open-mercato/ui/backend/utils/apiCall'
 await apiCallOrThrow('/api/messages', {
   method: 'POST',
   body: JSON.stringify({
-    type: 'staff.leave_request_approval',
+    type: 'example.task_review',
     recipients: [{ userId: 'recipient-user-uuid', type: 'to' }],
-    subject: 'Leave request needs review',
-    body: 'Please review and approve or reject this leave request.',
+    subject: 'Task needs review',
+    body: 'Please review and approve or reject this task.',
     bodyFormat: 'text',
     priority: 'high',
     objects: [
       {
-        entityModule: 'staff',
-        entityType: 'leave_request',
-        entityId: 'leave-request-uuid',
+        entityModule: 'example',
+        entityType: 'todo',
+        entityId: 'todo-uuid',
       },
     ],
     sendViaEmail: false,
@@ -237,16 +237,16 @@ All exported from `@open-mercato/ui/backend/messages`.
 Message type definitions are declared in each module's `message-types.ts` and auto-registered from generated bootstrap imports (`@/.mercato/generated/message-types.generated` in `apps/mercato/src/bootstrap.ts`).
 
 ```typescript
-// packages/core/src/modules/staff/message-types.ts
+// packages/core/src/modules/example/message-types.ts
 import type { MessageTypeDefinition } from '@open-mercato/shared/modules/messages/types'
 
 export const messageTypes: MessageTypeDefinition[] = [
   {
-    type: 'staff.leave_request_approval',
-    module: 'staff',
-    labelKey: 'staff.messages.leaveRequestApproval',
-    icon: 'calendar-clock',
-    color: 'amber',
+    type: 'example.task_review',
+    module: 'example',
+    labelKey: 'example.messages.taskReview',
+    icon: 'check-square',
+    color: 'blue',
     ui: {
       listItemComponent: 'messages.default.listItem',
       contentComponent: 'messages.default.content',
@@ -288,73 +288,53 @@ packages/core/src/modules/{module}/
 ### Defining Object Types
 
 ```typescript
-// packages/core/src/modules/staff/message-objects.ts
+// packages/core/src/modules/example/message-objects.ts
 import type { MessageObjectTypeDefinition } from '@open-mercato/shared/modules/messages/types'
-import { StaffMessageObjectDetail } from './widgets/messages/StaffMessageObjectDetail'
-import { StaffMessageObjectPreview } from './widgets/messages/StaffMessageObjectPreview'
+import { ExampleMessageObjectDetail } from './widgets/messages/ExampleMessageObjectDetail'
+import { ExampleMessageObjectPreview } from './widgets/messages/ExampleMessageObjectPreview'
 
 export const messageObjectTypes: MessageObjectTypeDefinition[] = [
   {
-    module: 'staff',
-    entityType: 'team',
-    messageTypes: ['default', 'messages.defaultWithObjects'],
-    entityId: 'staff:staff_team',
-    optionLabelField: 'name',
-    optionSubtitleField: 'description',
-    labelKey: 'staff.teams.page.title',
-    icon: 'users',
-    PreviewComponent: StaffMessageObjectPreview,
-    DetailComponent: StaffMessageObjectDetail,
-    actions: [],
-    loadPreview: async (entityId, ctx) => {
-      if (typeof window !== 'undefined') {
-        return { title: 'Team', subtitle: entityId }
-      }
-      const { loadTeamPreview } = await import('./lib/messageObjectPreviews')
-      return loadTeamPreview(entityId, ctx)
-    },
-  },
-  {
-    module: 'staff',
-    entityType: 'leave_request',
-    messageTypes: ['default', 'messages.defaultWithObjects', 'staff.leave_request_approval', 'staff.leave_request_status'],
-    entityId: 'staff:staff_leave_request',
-    optionLabelField: 'id',
+    module: 'example',
+    entityType: 'todo',
+    messageTypes: ['default', 'messages.defaultWithObjects', 'example.task_review'],
+    entityId: 'example:todo',
+    optionLabelField: 'title',
     optionSubtitleField: 'status',
-    labelKey: 'staff.leaveRequests.page.title',
-    icon: 'calendar-clock',
-    PreviewComponent: LeaveRequestPreview,
-    DetailComponent: LeaveRequestDetail,
+    labelKey: 'example.todos.page.title',
+    icon: 'check-square',
+    PreviewComponent: ExampleMessageObjectPreview,
+    DetailComponent: ExampleMessageObjectDetail,
     actions: [
       {
         id: 'approve',
-        labelKey: 'staff.notifications.leaveRequest.actions.approve',
+        labelKey: 'example.actions.approve',
         variant: 'default',
-        commandId: 'staff.leave-requests.accept',
+        commandId: 'example.todos.approve',
         icon: 'check',
       },
       {
         id: 'reject',
-        labelKey: 'staff.notifications.leaveRequest.actions.reject',
+        labelKey: 'example.actions.reject',
         variant: 'destructive',
-        commandId: 'staff.leave-requests.reject',
+        commandId: 'example.todos.reject',
         icon: 'x',
       },
       {
         id: 'view',
         labelKey: 'common.view',
         variant: 'outline',
-        href: '/backend/staff/leave-requests/{entityId}',
+        href: '/backend/example/todos/{entityId}',
         icon: 'external-link',
         isTerminal: false,
       },
     ],
     loadPreview: async (entityId, ctx) => {
       if (typeof window !== 'undefined') {
-        return { title: 'Leave request', subtitle: entityId }
+        return { title: 'Todo', subtitle: entityId }
       }
-      const { loadLeaveRequestPreview } = await import('./lib/messageObjectPreviews')
-      return loadLeaveRequestPreview(entityId, ctx)
+      const { loadTodoPreview } = await import('./lib/messageObjectPreviews')
+      return loadTodoPreview(entityId, ctx)
     },
   },
 ]

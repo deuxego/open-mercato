@@ -27,11 +27,11 @@ describe('record lock widget resolution headers', () => {
   test('blocks save when resolution intent is not armed', async () => {
     setRecordLockFormState(formId, {
       formId,
-      resourceKind: 'customers.deal',
+      resourceKind: 'example.todo',
       resourceId: 'b0000000-0000-4000-8000-000000000001',
       conflict: {
         id: conflictId,
-        resourceKind: 'customers.deal',
+        resourceKind: 'example.todo',
         resourceId: 'b0000000-0000-4000-8000-000000000001',
         baseActionLogId: null,
         incomingActionLogId: null,
@@ -53,11 +53,11 @@ describe('record lock widget resolution headers', () => {
   test('does not call validate before save while conflict is unresolved', async () => {
     setRecordLockFormState(formId, {
       formId,
-      resourceKind: 'customers.deal',
+      resourceKind: 'example.todo',
       resourceId: 'b0000000-0000-4000-8000-000000000001',
       conflict: {
         id: conflictId,
-        resourceKind: 'customers.deal',
+        resourceKind: 'example.todo',
         resourceId: 'b0000000-0000-4000-8000-000000000001',
         baseActionLogId: null,
         incomingActionLogId: null,
@@ -79,11 +79,11 @@ describe('record lock widget resolution headers', () => {
   test('sends resolution header once and disarms it immediately', async () => {
     setRecordLockFormState(formId, {
       formId,
-      resourceKind: 'customers.deal',
+      resourceKind: 'example.todo',
       resourceId: 'b0000000-0000-4000-8000-000000000001',
       conflict: {
         id: conflictId,
-        resourceKind: 'customers.deal',
+        resourceKind: 'example.todo',
         resourceId: 'b0000000-0000-4000-8000-000000000001',
         baseActionLogId: null,
         incomingActionLogId: null,
@@ -113,7 +113,7 @@ describe('record lock widget resolution headers', () => {
   test('blocks save when record was deleted by another user', async () => {
     setRecordLockFormState(formId, {
       formId,
-      resourceKind: 'customers.deal',
+      resourceKind: 'example.todo',
       resourceId: 'b0000000-0000-4000-8000-000000000001',
       recordDeleted: true,
     })

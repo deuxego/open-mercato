@@ -71,7 +71,7 @@ describe('record_locks acquire route', () => {
 
     const response = await POST(
       makeRequest({
-        resourceKind: 'sales.quote',
+        resourceKind: 'example.todo',
         resourceId: '40000000-0000-4000-8000-000000000001',
       }),
     )
@@ -105,7 +105,7 @@ describe('record_locks acquire route', () => {
 
     const response = await POST(
       makeRequest({
-        resourceKind: 'sales.quote',
+        resourceKind: 'example.todo',
         resourceId: '40000000-0000-4000-8000-000000000001',
       }),
     )
@@ -155,7 +155,7 @@ describe('record_locks acquire route', () => {
 
     const response = await POST(
       makeRequest({
-        resourceKind: 'sales.quote',
+        resourceKind: 'example.todo',
         resourceId: '40000000-0000-4000-8000-000000000001',
       }),
     )

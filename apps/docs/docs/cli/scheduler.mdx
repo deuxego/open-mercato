@@ -23,7 +23,7 @@ yarn mercato scheduler list [options]
 | `--tenant <id>` | Filter by tenant ID | `--tenant tenant-123` |
 | `--scope <type>` | Filter by scope type | `--scope system` |
 | `--enabled <bool>` | Filter by enabled status | `--enabled true` |
-| `--module <id>` | Filter by source module | `--module currencies` |
+| `--module <id>` | Filter by source module | `--module example` |
 
 **Examples:**
 
@@ -38,7 +38,7 @@ yarn mercato scheduler list --scope system
 yarn mercato scheduler list --tenant tenant-123 --enabled true
 
 # List schedules created by a module
-yarn mercato scheduler list --module currencies
+yarn mercato scheduler list --module example
 ```
 
 **Output:**
@@ -47,7 +47,7 @@ yarn mercato scheduler list --module currencies
 ┌────────────────────────────────────┬─────────────────────┬──────────┬──────────┬────────────┬────────────┬─────────┬────────┐
 │ ID                                 │ Name                │ Type     │ Schedule │ Target     │ Next Run   │ Enabled │ Source │
 ├────────────────────────────────────┼─────────────────────┼──────────┼──────────┼────────────┼────────────┼─────────┼────────┤
-│ currencies:fetch-rates:org-123     │ Fetch Currency Rates│ Cron     │ 0 */6 ** │ Queue      │ 2024-01-27 │ true    │ module │
+│ example:daily-task:org-123     │ Daily Task Run│ Cron     │ 0 */6 ** │ Queue      │ 2024-01-27 │ true    │ module │
 │                                    │                     │          │ * *      │ currency...│ 12:00:00   │         │        │
 ├────────────────────────────────────┼─────────────────────┼──────────┼──────────┼────────────┼────────────┼─────────┼────────┤
 │ reports:daily:tenant-456           │ Daily Sales Report  │ Cron     │ 0 6 * * *│ Command    │ 2024-01-28 │ true    │ user   │
@@ -84,7 +84,7 @@ Active Schedules: 5
 
 Next Upcoming Runs:
 - reports:daily:tenant-456 at 2024-01-28 06:00:00 (America/New_York)
-- currencies:fetch-rates:org-123 at 2024-01-27 12:00:00 (UTC)
+- example:daily-task:org-123 at 2024-01-27 12:00:00 (UTC)
 - cleanup:weekly:system at 2024-01-28 02:00:00 (UTC)
 
 Queue Strategy: local
@@ -115,7 +115,7 @@ BullMQ Status:
 
 Next Upcoming Runs:
 - reports:daily:tenant-456 at 2024-01-28 06:00:00 (America/New_York)
-- currencies:fetch-rates:org-123 at 2024-01-27 12:00:00 (UTC)
+- example:daily-task:org-123 at 2024-01-27 12:00:00 (UTC)
 - cleanup:weekly:system at 2024-01-28 02:00:00 (UTC)
 
 Worker Status:
@@ -150,16 +150,16 @@ yarn mercato scheduler run <schedule-id>
 yarn mercato scheduler run 123e4567-e89b-12d3-a456-426614174000
 
 # Run by custom ID
-yarn mercato scheduler run currencies:fetch-rates:org-123
+yarn mercato scheduler run example:daily-task:org-123
 ```
 
 **Output (Success):**
 
 ```
-Running schedule: currencies:fetch-rates:org-123
-Schedule: Fetch Currency Rates
+Running schedule: example:daily-task:org-123
+Schedule: Daily Task Run
 Type: Cron (0 */6 * * *)
-Target: Queue (currency-rates)
+Target: Queue (example-tasks)
 
 Execution started...
 Job enqueued: bullmq-job-12345
@@ -264,7 +264,7 @@ Redis connected
 Syncing schedules with BullMQ...
 
 Processing schedules:
-✓ currencies:fetch-rates:org-123 (synced)
+✓ example:daily-task:org-123 (synced)
 ✓ reports:daily:tenant-456 (synced)
 ✓ cleanup:weekly:system (synced)
 ✓ backup:nightly:tenant-789 (synced)

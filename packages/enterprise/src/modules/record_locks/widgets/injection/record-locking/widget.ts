@@ -18,9 +18,6 @@ type CrudInjectionContext = {
   path?: string
   query?: string
   kind?: string
-  personId?: string
-  companyId?: string
-  dealId?: string
   retryLastMutation?: () => Promise<boolean | void> | boolean | void
 }
 

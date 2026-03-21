@@ -22,7 +22,7 @@ Customer-facing identity and portal authentication with a two-tier RBAC model. T
 
 | Entity | Table | Purpose |
 |--------|-------|---------|
-| `CustomerUser` | `customer_users` | Customer user accounts with credentials and CRM links |
+| `CustomerUser` | `customer_users` | Customer user accounts with credentials |
 | `CustomerRole` | `customer_roles` | Named role definitions (portal_admin, buyer, viewer) |
 | `CustomerRoleAcl` | `customer_role_acls` | Feature permissions assigned to roles |
 | `CustomerUserAcl` | `customer_user_acls` | Per-user feature overrides |
@@ -34,8 +34,6 @@ Customer-facing identity and portal authentication with a two-tier RBAC model. T
 
 ### Key Relationships
 
-- `CustomerUser.personEntityId` -> CRM person (optional FK to customers module)
-- `CustomerUser.customerEntityId` -> CRM company (optional FK to customers module)
 - `CustomerUserRole` links users to roles (M2M junction)
 - `CustomerRoleAcl` is 1:1 with `CustomerRole` per tenant
 - `CustomerUserAcl` is 1:1 with `CustomerUser` per tenant (overrides role-based features)
@@ -61,7 +59,7 @@ Both have `showInSidebar: false` and `defaultEditor: false`.
 7. On success: reset failed attempts, update `lastLoginAt`
 8. Resolve RBAC features via `CustomerRbacService.loadAcl`
 9. Create session (raw token + hashed token persisted)
-10. Sign JWT with customer claims (`type: 'customer'`, features, CRM links)
+10. Sign JWT with customer claims (`type: 'customer'`, features)
 11. Set `customer_auth_token` (JWT, httpOnly) and `customer_session_token` (raw, httpOnly) cookies
 
 ### Signup (`POST /api/signup`)
@@ -72,7 +70,7 @@ Both have `showInSidebar: false` and `defaultEditor: false`.
 4. Create user with hashed password
 5. Assign default role (`isDefault: true`)
 6. Create email verification token
-7. Emit `customer_accounts.user.created` event (triggers CRM auto-link + staff notification)
+7. Emit `customer_accounts.user.created` event (triggers staff notification)
 
 ### Magic Link (`POST /api/magic-link/request` + `POST /api/magic-link/verify`)
 
@@ -123,12 +121,12 @@ Effective permissions = User ACL (if exists) OR aggregated Role ACLs.
 | Role | Slug | Features | Portal Admin |
 |------|------|----------|-------------|
 | Portal Admin | `portal_admin` | `portal.*` | Yes |
-| Buyer | `buyer` | `portal.account.manage`, `portal.orders.*`, `portal.quotes.*`, `portal.invoices.view`, `portal.catalog.view` | No |
-| Viewer | `viewer` | `portal.account.manage`, `portal.orders.view`, `portal.invoices.view`, `portal.catalog.view` | No |
+| Member | `member` | `portal.account.manage` | No |
+| Viewer | `viewer` | `portal.account.manage` | No |
 
 ### Feature Convention
 
-Customer portal features use the `portal.<area>.<action>` naming convention (e.g., `portal.orders.view`, `portal.catalog.view`).
+Customer portal features use the `portal.<area>.<action>` naming convention (e.g., `portal.account.manage`, `portal.users.view`). Commerce modules can extend roles with additional features via `defaultCustomerRoleFeatures` in their `setup.ts`.
 
 ### Cross-Module Feature Merging
 
@@ -147,7 +145,7 @@ Other modules can declare `defaultCustomerRoleFeatures` in their `setup.ts`. Dur
 
 ```typescript
 const customerRbacService = container.resolve('customerRbacService')
-const hasAccess = await customerRbacService.userHasAllFeatures(userId, ['portal.orders.view'], { tenantId, organizationId })
+const hasAccess = await customerRbacService.userHasAllFeatures(userId, ['portal.account.manage'], { tenantId, organizationId })
 ```
 
 ## Services and DI
@@ -244,16 +242,9 @@ Declared in `events.ts` via `createModuleEvents`. Emit with `emitCustomerAccount
 
 | Subscriber | Listens To | Purpose |
 |------------|-----------|---------|
-| `autoLinkCrm` | `customer_accounts.user.created` | Links new customer user to existing CRM person/company by email match |
-| `autoLinkCrmReverse` | `customers.person.created` | Links new CRM person to existing customer user by email match |
 | `notifyStaffOnSignup` | `customer_accounts.user.created` | Emits in-app notification to staff about new signups |
 
-All three are **persistent** subscribers (retried on failure).
-
-### CRM Auto-Linking Logic
-
-- **Forward** (`autoLinkCrm`): When a customer user signs up, searches CRM `CustomerEntity` (kind=person) for matching email. If found, sets `personEntityId` on the user. Also looks up the person's company via `customer_people.company_entity_id` and sets `customerEntityId`.
-- **Reverse** (`autoLinkCrmReverse`): When a CRM person is created, looks for an unlinked customer user with matching email hash and links them.
+The subscriber is **persistent** (retried on failure).
 
 ## Workers
 
@@ -274,17 +265,6 @@ Declared in `notifications.ts` and `notifications.client.ts`.
 | `customer_accounts.user.locked` | warning | Account locked after failed attempts |
 
 Both link to `/backend/customer_accounts/{sourceEntityId}` for staff review.
-
-## Widget Injection
-
-### Injection Table
-
-| Spot ID | Widget | Purpose |
-|---------|--------|---------|
-| `crud-form:customers:customer_person_profile:fields` | `account-status` | Shows portal account status on CRM person detail page |
-| `crud-form:customers:customer_company_profile:fields` | `company-users` | Shows portal users linked to a CRM company |
-
-Both inject as column 2 groups with priority 200, gated by `customer_accounts.view` feature.
 
 ## Backend Pages
 
@@ -372,6 +352,6 @@ Default role assignments (from `setup.ts`):
 | `data/` | When changing ORM entities or zod validators |
 | `lib/` | When modifying auth helpers, rate limiting, or token generation |
 | `services/` | When modifying user, session, token, RBAC, or invitation logic |
-| `subscribers/` | When adding event-driven side effects (CRM linking, notifications) |
+| `subscribers/` | When adding event-driven side effects (notifications) |
 | `workers/` | When modifying cleanup jobs for sessions/tokens |
-| `widgets/injection/` | When adding/modifying widgets injected into CRM forms |
+| `widgets/injection/` | When adding/modifying injected widgets |

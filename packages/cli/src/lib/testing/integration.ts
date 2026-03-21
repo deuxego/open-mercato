@@ -235,13 +235,11 @@ const APP_BUILD_INPUT_PATHS = collectExistingPaths([
   path.join(projectRootDirectory, 'tsconfig.base.json'),
   path.join(projectRootDirectory, 'yarn.lock'),
 ])
-const EXPECTED_TEST_FOLDERS = ['auth', 'catalog', 'crm', 'sales', 'admin', 'api', 'integration'] as const
+const EXPECTED_TEST_FOLDERS = ['auth', 'crm', 'admin', 'api', 'integration'] as const
 const FOLDER_TO_CATEGORY_CODE: Record<string, string> = {
   admin: 'ADMIN',
   auth: 'AUTH',
-  catalog: 'CAT',
   crm: 'CRM',
-  sales: 'SALES',
   api: 'API',
   integration: 'INT',
 }

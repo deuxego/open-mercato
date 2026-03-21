@@ -35,7 +35,7 @@ describe('data sync engine import item failures', () => {
 
   it('counts and logs failed import items without failing the run', async () => {
     const adapter: DataSyncAdapter = {
-      providerKey: 'akeneo',
+      providerKey: 'test_provider',
       direction: 'import',
       supportedEntities: ['products'],
       getMapping: jest.fn(async () => ({
@@ -51,7 +51,7 @@ describe('data sync engine import item failures', () => {
               action: 'failed',
               data: {
                 errorMessage: 'Media file missing-image.jpg was not found',
-                sourceProductUuid: 'product-1',
+                sourceItemId: 'product-1',
                 sourceIdentifier: 'sku-1',
               },
             },
@@ -63,13 +63,13 @@ describe('data sync engine import item failures', () => {
       },
     }
 
-    mockGetIntegration.mockReturnValue({ providerKey: 'akeneo' })
+    mockGetIntegration.mockReturnValue({ providerKey: 'test_provider' })
     mockGetDataSyncAdapter.mockReturnValue(adapter)
 
     const syncRunService = {
       getRun: jest.fn(async () => ({
         id: 'run-1',
-        integrationId: 'sync_akeneo',
+        integrationId: 'sync_provider',
         entityType: 'products',
         direction: 'import',
         status: 'pending',
@@ -80,7 +80,7 @@ describe('data sync engine import item failures', () => {
         .fn()
         .mockResolvedValueOnce({
           id: 'run-1',
-          integrationId: 'sync_akeneo',
+          integrationId: 'sync_provider',
           entityType: 'products',
           direction: 'import',
           status: 'running',
@@ -88,7 +88,7 @@ describe('data sync engine import item failures', () => {
         })
         .mockResolvedValueOnce({
           id: 'run-1',
-          integrationId: 'sync_akeneo',
+          integrationId: 'sync_provider',
           entityType: 'products',
           direction: 'import',
           status: 'completed',
@@ -144,13 +144,13 @@ describe('data sync engine import item failures', () => {
       userId: 'user-1',
     })
     expect((integrationLogService as any).write).toHaveBeenCalledWith(expect.objectContaining({
-      integrationId: 'sync_akeneo',
+      integrationId: 'sync_provider',
       runId: 'run-1',
       level: 'error',
       message: expect.stringContaining('Failed to import item product-1'),
       payload: expect.objectContaining({
         errorMessage: 'Media file missing-image.jpg was not found',
-        sourceProductUuid: 'product-1',
+        sourceItemId: 'product-1',
       }),
     }), {
       organizationId: 'org-1',
@@ -166,7 +166,7 @@ describe('data sync engine import item failures', () => {
 
   it('tracks processed source records separately from emitted import items', async () => {
     const adapter: DataSyncAdapter = {
-      providerKey: 'akeneo',
+      providerKey: 'test_provider',
       direction: 'import',
       supportedEntities: ['products'],
       getMapping: jest.fn(async () => ({
@@ -178,19 +178,19 @@ describe('data sync engine import item failures', () => {
         yield {
           items: [
             {
-              externalId: 'product-1',
+              externalId: 'item-1',
               action: 'create',
-              data: { localProductId: 'prod-1' },
+              data: { localItemId: 'item-1' },
             },
             {
-              externalId: 'product-1:default',
+              externalId: 'item-1:default',
               action: 'create',
               data: { localVariantId: 'variant-1' },
             },
           ],
           processedCount: 1,
           totalEstimate: 1320,
-          refreshCoverageEntityTypes: ['catalog:catalog_product', 'catalog:catalog_product_variant'],
+          refreshCoverageEntityTypes: ['test:entity', 'test:entity_variant'],
           cursor: 'cursor-1',
           hasMore: false,
           batchIndex: 0,
@@ -198,13 +198,13 @@ describe('data sync engine import item failures', () => {
       },
     }
 
-    mockGetIntegration.mockReturnValue({ providerKey: 'akeneo' })
+    mockGetIntegration.mockReturnValue({ providerKey: 'test_provider' })
     mockGetDataSyncAdapter.mockReturnValue(adapter)
 
     const syncRunService = {
       getRun: jest.fn(async () => ({
         id: 'run-2',
-        integrationId: 'sync_akeneo',
+        integrationId: 'sync_provider',
         entityType: 'products',
         direction: 'import',
         status: 'pending',
@@ -215,7 +215,7 @@ describe('data sync engine import item failures', () => {
         .fn()
         .mockResolvedValueOnce({
           id: 'run-2',
-          integrationId: 'sync_akeneo',
+          integrationId: 'sync_provider',
           entityType: 'products',
           direction: 'import',
           status: 'running',
@@ -223,7 +223,7 @@ describe('data sync engine import item failures', () => {
         })
         .mockResolvedValueOnce({
           id: 'run-2',
-          integrationId: 'sync_akeneo',
+          integrationId: 'sync_provider',
           entityType: 'products',
           direction: 'import',
           status: 'completed',
@@ -277,12 +277,12 @@ describe('data sync engine import item failures', () => {
     })
     expect(mockRefreshCoverageSnapshot).toHaveBeenCalledTimes(2)
     expect(mockRefreshCoverageSnapshot).toHaveBeenNthCalledWith(1, {}, {
-      entityType: 'catalog:catalog_product',
+      entityType: 'test:entity',
       tenantId: 'tenant-1',
       organizationId: 'org-1',
     })
     expect(mockRefreshCoverageSnapshot).toHaveBeenNthCalledWith(2, {}, {
-      entityType: 'catalog:catalog_product_variant',
+      entityType: 'test:entity_variant',
       tenantId: 'tenant-1',
       organizationId: 'org-1',
     })

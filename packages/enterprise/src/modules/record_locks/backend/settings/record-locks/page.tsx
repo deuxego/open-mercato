@@ -30,13 +30,7 @@ const DEFAULT_SETTINGS: RecordLockSettings = {
   ...DEFAULT_RECORD_LOCK_SETTINGS,
 }
 
-const RECORD_LOCK_RESOURCE_ALIASES = [
-  'customers.person',
-  'customers.company',
-  'customers.deal',
-  'sales.quote',
-  'sales.order',
-]
+const RECORD_LOCK_RESOURCE_ALIASES: string[] = []
 
 const RECORD_LOCK_RESOURCE_SUGGESTIONS = Array.from(
   new Set([

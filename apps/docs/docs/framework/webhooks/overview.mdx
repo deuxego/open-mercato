@@ -14,10 +14,10 @@ Open Mercato provides a built-in webhook system compliant with the [Standard Web
 
 ### Outbound Flow
 
-When any module emits a domain event (e.g., `customers.person.created`, `sales.order.fulfilled`), the webhooks module:
+When any module emits a domain event (e.g., `example.todo.created`, `auth.user.updated`), the webhooks module:
 
 1. A persistent wildcard subscriber (`*`) catches all platform events
-2. Matches each event against registered webhook subscriptions (supports wildcards like `customers.*`)
+2. Matches each event against registered webhook subscriptions (supports wildcards like `example.*`)
 3. Enqueues delivery jobs to a dedicated `webhook-deliveries` queue
 4. A delivery worker signs the payload per Standard Webhooks spec and delivers it
 5. On failure, retries with exponential backoff (up to 10 attempts over ~24 hours)
@@ -43,12 +43,12 @@ content-type: application/json
 
 ```json
 {
-  "type": "customers.person.created",
+  "type": "example.todo.created",
   "timestamp": "2026-03-04T10:30:00.000Z",
   "data": {
     "id": "uuid-here",
-    "firstName": "John",
-    "lastName": "Doe",
+    "title": "Review proposal",
+    "status": "pending",
     "tenantId": "tenant-uuid",
     "organizationId": "org-uuid"
   }
@@ -66,7 +66,7 @@ POST /api/webhooks
 {
   "name": "My Integration",
   "url": "https://example.com/webhook",
-  "subscribedEvents": ["customers.*", "sales.order.created"],
+  "subscribedEvents": ["example.*", "auth.user.created"],
   "httpMethod": "POST"
 }
 ```
@@ -79,8 +79,8 @@ Webhooks support pattern-based event subscriptions:
 
 | Pattern | Matches |
 |---------|---------|
-| `customers.person.created` | Exact match only |
-| `customers.*` | All events in the `customers` namespace |
+| `example.todo.created` | Exact match only |
+| `example.*` | All events in the `example` namespace |
 | `*` | All platform events |
 
 ### API Endpoints

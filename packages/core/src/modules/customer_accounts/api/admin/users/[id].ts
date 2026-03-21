@@ -238,7 +238,7 @@ const errorSchema = z.object({ ok: z.literal(false), error: z.string() })
 
 const getMethodDoc: OpenApiMethodDoc = {
   summary: 'Get customer user detail (admin)',
-  description: 'Returns full customer user details including CRM links, roles, and active session count.',
+  description: 'Returns full customer user details including roles and active session count.',
   tags: ['Customer Accounts Admin'],
   responses: [{
     status: 200,
@@ -254,7 +254,7 @@ const getMethodDoc: OpenApiMethodDoc = {
 
 const putMethodDoc: OpenApiMethodDoc = {
   summary: 'Update customer user (admin)',
-  description: 'Updates a customer user. Staff can update status, lock, CRM links, and roles. Role assignment bypasses customer_assignable check.',
+  description: 'Updates a customer user. Staff can update status, lock, and roles. Role assignment bypasses customer_assignable check.',
   tags: ['Customer Accounts Admin'],
   requestBody: { schema: adminUpdateUserSchema },
   responses: [{ status: 200, description: 'User updated', schema: successSchema }],

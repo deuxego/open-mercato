@@ -35,7 +35,7 @@ Aliases: `--tenantId` for `--tenant`, `--organization`/`--organizationId` for `-
 | `--tenant <uuid>` | **Required.** The tenant whose data will be decrypted. |
 | `--confirm <uuid>` | **Required safety gate.** Must exactly match `--tenant`. Prevents accidental multi-tenant runs. Not required with `--check`. |
 | `--org <uuid>` | Limit decryption to one organization within the tenant. |
-| `--entity <id>` | Limit decryption to one entity type (e.g. `customers:person`). |
+| `--entity <id>` | Limit decryption to one entity type (e.g. `auth:user`). |
 | `--dry-run` | Log what would be changed without writing to the database. Implies no transaction commits. |
 | `--check` | Report encryption environment status, active map count, and a sampled estimate of encrypted vs. malformed payloads. Does not write. |
 | `--deactivate-maps` | After decryption, mark all matched `EncryptionMap` rows as inactive (`is_active = false`, `deleted_at = now()`). Requires a replica restart to flush in-process caches. |
@@ -97,7 +97,7 @@ Limit to one entity with smaller batches and inter-batch pauses:
 yarn mercato entities decrypt-database \
   --tenant <tenantId> \
   --confirm <tenantId> \
-  --entity customers:person \
+  --entity auth:user \
   --batch-size 100 \
   --sleep-ms 200
 ```

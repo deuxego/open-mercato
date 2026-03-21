@@ -13,10 +13,10 @@ describe('createExternalIdMappingService', () => {
   it('rebinds an existing external id mapping to a recreated local record', async () => {
     const existingByExternalId = {
       id: 'mapping-1',
-      integrationId: 'sync_akeneo',
-      internalEntityType: 'catalog_product',
+      integrationId: 'sync_provider',
+      internalEntityType: 'test_entity',
       internalEntityId: 'product-old',
-      externalId: 'akeneo-1',
+      externalId: 'ext-1',
       syncStatus: 'error',
       lastSyncedAt: null,
       deletedAt: null,
@@ -33,10 +33,10 @@ describe('createExternalIdMappingService', () => {
 
     const service = createExternalIdMappingService(em as never)
     const result = await service.storeExternalIdMapping(
-      'sync_akeneo',
-      'catalog_product',
+      'sync_provider',
+      'test_entity',
       'product-new',
-      'akeneo-1',
+      'ext-1',
       {
         organizationId: 'org-1',
         tenantId: 'tenant-1',
@@ -45,7 +45,7 @@ describe('createExternalIdMappingService', () => {
 
     expect(result).toBe(existingByExternalId)
     expect(existingByExternalId.internalEntityId).toBe('product-new')
-    expect(existingByExternalId.externalId).toBe('akeneo-1')
+    expect(existingByExternalId.externalId).toBe('ext-1')
     expect(existingByExternalId.syncStatus).toBe('synced')
     expect(existingByExternalId.lastSyncedAt).toBeInstanceOf(Date)
     expect(em.flush).toHaveBeenCalledTimes(1)
@@ -55,20 +55,20 @@ describe('createExternalIdMappingService', () => {
   it('retires duplicate active rows when both local and external lookups resolve different mappings', async () => {
     const existingByLocalId = {
       id: 'mapping-local',
-      integrationId: 'sync_akeneo',
-      internalEntityType: 'catalog_product',
+      integrationId: 'sync_provider',
+      internalEntityType: 'test_entity',
       internalEntityId: 'product-new',
-      externalId: 'akeneo-old',
+      externalId: 'ext-old',
       syncStatus: 'synced',
       lastSyncedAt: null,
       deletedAt: null,
     }
     const existingByExternalId = {
       id: 'mapping-external',
-      integrationId: 'sync_akeneo',
-      internalEntityType: 'catalog_product',
+      integrationId: 'sync_provider',
+      internalEntityType: 'test_entity',
       internalEntityId: 'product-old',
-      externalId: 'akeneo-1',
+      externalId: 'ext-1',
       syncStatus: 'error',
       lastSyncedAt: null,
       deletedAt: null,
@@ -85,10 +85,10 @@ describe('createExternalIdMappingService', () => {
 
     const service = createExternalIdMappingService(em as never)
     await service.storeExternalIdMapping(
-      'sync_akeneo',
-      'catalog_product',
+      'sync_provider',
+      'test_entity',
       'product-new',
-      'akeneo-1',
+      'ext-1',
       {
         organizationId: 'org-1',
         tenantId: 'tenant-1',

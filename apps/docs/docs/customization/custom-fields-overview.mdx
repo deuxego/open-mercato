@@ -37,7 +37,7 @@ Run `yarn mercato entities install --module inventory --org <organizationId>` to
 
 ## Managing fieldsets via API
 
-When entities need different attribute “palettes” (e.g., catalog products with Fashion vs. Services fieldsets) you can configure the selector programmatically. Call the Entities API endpoint `POST /api/entities/definitions.batch` with two keys:
+When entities need different attribute “palettes” (e.g., records with different fieldsets per category) you can configure the selector programmatically. Call the Entities API endpoint `POST /api/entities/definitions.batch` with two keys:
 
 - `definitions`: the field payloads just like in the CLI/UI.
 - `fieldsets`: an array of `{ code, label, icon?, description?, groups? }` objects that matches `customFieldEntityConfigSchema`.
@@ -48,7 +48,7 @@ curl -X POST "$BASE_URL/entities/definitions.batch" \
   -H "X-Api-Key: $API_KEY" \
   -H "Content-Type: application/json" \
   -d "{
-    \"entityId\": \"customers:person\",
+    \"entityId\": \"example:todo\",
     \"definitions\": [
       { \"key\": \"preferred_contact_method\", \"kind\": \"enum\", \"configJson\": { \"options\": [\"email\", \"phone\", \"sms\"], \"fieldset\": \"customer_profile\", \"group\": { \"code\": \"preferences\" } } }
     ],

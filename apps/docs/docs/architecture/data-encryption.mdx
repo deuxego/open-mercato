@@ -89,8 +89,8 @@ flowchart TD
 ## Encryption maps
 
 - Stored in Entities module tables alongside custom entity metadata; schema: `entity_id`, `fields[]`, `tenant_id`, `organization_id`, `is_active`, `created_at`.
-- UI: extend Custom Entities editor to allow selecting system entities (e.g., `users`, `sales.order`, `sales.quote`, `customer_addresses`) and ticking which fields should be encrypted.
-- Defaults (seeded): `users.email`, customer addresses (address fields), sales orders/quotes snapshot + personal data, customer notes, order/quote notes.
+- UI: extend Custom Entities editor to allow selecting system entities (e.g., `users`) and ticking which fields should be encrypted.
+- Defaults (seeded): `users.email`.
 - Each map entry also marks optional hash columns for deterministic lookup (e.g., `users.email_hash`).
 
 ## Key management

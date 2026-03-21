@@ -4,7 +4,7 @@ description: Browse, configure, and monitor external service integrations from o
 sidebar_label: Integrations
 ---
 
-The Integration Marketplace is your central hub for connecting Open Mercato with external services — payment gateways, shipping carriers, data sync providers, and more. Navigate to **External Systems → Integrations** in the sidebar.
+The Integration Marketplace is your central hub for connecting Open Mercato with external services — data sync providers and more. Navigate to **External Systems → Integrations** in the sidebar.
 
 ![Integration Marketplace](/screenshots/open-mercato-integrations-list.png)
 
@@ -12,8 +12,6 @@ The Integration Marketplace is your central hub for connecting Open Mercato with
 
 The marketplace lists every registered integration provider. Use the category filter tabs at the top to narrow by type:
 
-- **Payment** — payment gateway providers (e.g., Stripe)
-- **Shipping** — carrier and fulfillment services
 - **Data Sync** — import/export adapters
 - **Communication** — email, SMS, and messaging
 - **Notification** — alert and push notification services
@@ -26,7 +24,7 @@ Use the search box to find a provider by name. Each card shows the provider name
 
 Click **Configure** on any integration card to open its detail page. Toggle the **State** switch to enable or disable the provider for your tenant.
 
-Some integrations can add provider-specific tabs or tools to this page. For example, a payment gateway can expose extra diagnostics, mapping tools, or setup helpers alongside the standard Credentials, Version, Health, and Logs tabs.
+Some integrations can add provider-specific tabs or tools to this page alongside the standard Credentials, Version, Health, and Logs tabs.
 
 ## Credentials
 
@@ -76,11 +74,8 @@ The **Logs** tab provides a chronological audit trail of all operations performe
 - Expand any log entry to see a detailed summary including timestamp, level, entity type, entity ID, and structured fields.
 - The **Payload** panel shows the raw JSON data associated with each event — click **Copy** to grab it.
 
-Logs are invaluable for debugging webhook deliveries, tracking payment lifecycle transitions, and auditing credential changes.
+Logs are invaluable for debugging webhook deliveries and auditing credential changes.
 
 ## Next steps
 
-- [Configure Stripe for payments](./stripe-payments) — step-by-step Stripe setup, testing with the demo page, and webhook configuration.
-- [Payment Transactions](./payment-transactions) — track and inspect all payment gateway transactions.
-- [Payment Gateways REST API](/api/payment-gateways) — programmatic access to sessions, captures, refunds, and webhooks.
 - [Integrations & Data Sync REST API](/api/integrations-data-sync) — manage integration state, credentials, and data sync runs via API.

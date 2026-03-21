@@ -1,5 +1,7 @@
 # Integration Feasibility Analyses
 
+> **Note:** These analyses were written against the full commerce edition. Some referenced modules (catalog, sales, customers, currencies, etc.) have been removed from the starter. The analyses remain as historical reference for building similar integrations as extensions.
+
 Per-integration feasibility analyses evaluating how well external services map to Open Mercato's spec-defined adapter contracts. Each analysis identifies what works, what's missing, what's difficult, and provides effort estimates.
 
 ## Data Sync Integrations

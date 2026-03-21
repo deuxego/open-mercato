@@ -188,7 +188,7 @@ export default function UmesQueryExtensionsPage() {
 
       const queryingMatches = collectQuerySubscribers('example.todo.querying')
       const queriedMatches = collectQuerySubscribers('example.todo.queried')
-      const unrelatedMatches = collectQuerySubscribers('customers.person.querying')
+      const unrelatedMatches = collectQuerySubscribers('unrelated.entity.querying')
 
       const results = {
         querying: {
@@ -269,10 +269,10 @@ export default function UmesQueryExtensionsPage() {
     setEntityIdStatus('pending')
     try {
       const conversions = [
-        { input: 'customers:person', expected: 'customers.person' },
-        { input: 'sales:order', expected: 'sales.order' },
         { input: 'example:todo', expected: 'example.todo' },
-        { input: 'catalog:product:variant', expected: 'catalog.product.variant' },
+        { input: 'auth:user', expected: 'auth.user' },
+        { input: 'example:customer_priority', expected: 'example.customer_priority' },
+        { input: 'example:nested:entity', expected: 'example.nested.entity' },
       ]
 
       const results = conversions.map(({ input, expected }) => {
@@ -345,7 +345,7 @@ export default function UmesQueryExtensionsPage() {
             <div className="font-medium text-amber-900 dark:text-amber-50">{t('example.umes.queryExtensions.hintHeading', 'What should be visible and how it should work')}</div>
             <div>{t('example.umes.queryExtensions.subscribers.hint1', '1. `example.todo.querying` should match 2 subscribers (exact + wildcard `example.*.querying`).')}</div>
             <div>{t('example.umes.queryExtensions.subscribers.hint2', '2. `example.todo.queried` should match 1 subscriber (exact match only).')}</div>
-            <div>{t('example.umes.queryExtensions.subscribers.hint3', '3. `customers.person.querying` should match 0 subscribers (no cross-entity leakage).')}</div>
+            <div>{t('example.umes.queryExtensions.subscribers.hint3', '3. `unrelated.entity.querying` should match 0 subscribers (no cross-entity leakage).')}</div>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <Button data-testid="phase-n-run-subscribers" type="button" onClick={runSubscriberProbe}>
@@ -393,8 +393,8 @@ export default function UmesQueryExtensionsPage() {
           </div>
           <div className={`grid gap-1 ${hintClassName}`}>
             <div className="font-medium text-amber-900 dark:text-amber-50">{t('example.umes.queryExtensions.hintHeading', 'What should be visible and how it should work')}</div>
-            <div>{t('example.umes.queryExtensions.entityIds.hint1', '1. `customers:person` should convert to `customers.person`.')}</div>
-            <div>{t('example.umes.queryExtensions.entityIds.hint2', '2. `catalog:product:variant` should convert to `catalog.product.variant` (multiple colons).')}</div>
+            <div>{t('example.umes.queryExtensions.entityIds.hint1', '1. `example:todo` should convert to `example.todo`.')}</div>
+            <div>{t('example.umes.queryExtensions.entityIds.hint2', '2. `example:nested:entity` should convert to `example.nested.entity` (multiple colons).')}</div>
             <div>{t('example.umes.queryExtensions.entityIds.hint3', '3. All conversions should show `ok: true`.')}</div>
           </div>
           <div className="flex flex-wrap items-center gap-2">

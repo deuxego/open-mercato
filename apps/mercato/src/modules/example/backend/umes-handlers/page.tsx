@@ -17,20 +17,20 @@ function print(value: unknown) {
 
 const hintClassName = 'inline-flex items-center rounded-md border border-amber-500/40 bg-amber-50 dark:bg-amber-400/10 px-2 py-1 text-xs text-amber-800 dark:text-amber-100/90'
 
-type CustomerRecord = {
+type TodoRecord = {
   id?: string
-  firstName?: string
-  lastName?: string
-  displayName?: string
+  title?: string
+  isDone?: boolean
   _example?: {
-    todoCount?: number
+    totalTodos?: number
     openTodoCount?: number
+    priorityRecordCount?: number
   }
 }
 
-type CustomersResponse = {
-  items?: CustomerRecord[]
-  data?: CustomerRecord[]
+type TodosResponse = {
+  items?: TodoRecord[]
+  data?: TodoRecord[]
   _meta?: {
     enrichedBy?: string[]
     enricherErrors?: string[]
@@ -38,8 +38,8 @@ type CustomersResponse = {
 }
 
 type EnricherProbeResult = {
-  selectedRecord: CustomerRecord | null
-  meta: CustomersResponse['_meta'] | null
+  selectedRecord: TodoRecord | null
+  meta: TodosResponse['_meta'] | null
   inspectedCount: number
 }
 
@@ -49,7 +49,7 @@ function readEventId(event: unknown): string | null {
   return typeof id === 'string' ? id : null
 }
 
-function readCustomerItems(payload: CustomersResponse | null): CustomerRecord[] {
+function readTodoItems(payload: TodosResponse | null): TodoRecord[] {
   if (!payload) return []
   if (Array.isArray(payload.items)) return payload.items
   if (Array.isArray(payload.data)) return payload.data
@@ -151,16 +151,16 @@ export default function UmesHandlersPage() {
         })
       }
 
-      const currentPersonId = personIdRef.current.trim()
+      const currentTodoId = personIdRef.current.trim()
       const params = new URLSearchParams()
       params.set('pageSize', '5')
-      if (currentPersonId.length > 0) {
-        params.set('ids', currentPersonId)
+      if (currentTodoId.length > 0) {
+        params.set('ids', currentTodoId)
       }
-      const payload = await readApiResultOrThrow<CustomersResponse>(`/api/customers/people?${params.toString()}`)
-      const items = readCustomerItems(payload)
-      const selected = currentPersonId.length > 0
-        ? items.find((item) => item.id === currentPersonId) ?? null
+      const payload = await readApiResultOrThrow<TodosResponse>(`/api/example/todos?${params.toString()}`)
+      const items = readTodoItems(payload)
+      const selected = currentTodoId.length > 0
+        ? items.find((item) => item.id === currentTodoId) ?? null
         : items[0] ?? null
 
       setEnricherProbeResult({
@@ -520,7 +520,7 @@ export default function UmesHandlersPage() {
             </div>
             <div className="flex flex-wrap items-center gap-2">
               <Button asChild data-testid="phase-d-open-people" type="button" variant="outline">
-                <Link href="/backend/customers/people">{t('example.umes.handlers.phaseD.actions.openPeople')}</Link>
+                <Link href="/backend/example/todos">{t('example.umes.handlers.phaseD.actions.openPeople')}</Link>
               </Button>
               <span className={hintClassName}>{t('example.umes.handlers.guide.expect.openPeople')}</span>
             </div>

@@ -25,16 +25,16 @@ export type NotificationItemProps = {
    * @example
    * ```tsx
    * // In your module's notifications.client.ts
-   * export const salesNotificationTypes = [
+   * export const myNotificationTypes = [
    *   {
-   *     type: 'sales.order.created',
-   *     Renderer: SalesOrderCreatedRenderer,
+   *     type: 'example.todo.created',
+   *     Renderer: TodoCreatedRenderer,
    *     // ...other fields
    *   }
    * ]
    *
    * // Usage in NotificationPanel
-   * const renderer = salesNotificationTypes.find(t => t.type === notification.type)?.Renderer
+   * const renderer = myNotificationTypes.find(t => t.type === notification.type)?.Renderer
    * <NotificationItem
    *   notification={notification}
    *   customRenderer={renderer}

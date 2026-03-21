@@ -11,7 +11,7 @@ const DEFAULT_SETTINGS: RecordLockSettings = {
   strategy: 'optimistic',
   timeoutSeconds: 300,
   heartbeatSeconds: 30,
-  enabledResources: ['sales.quote'],
+  enabledResources: ['example.todo'],
   allowForceUnlock: true,
   allowIncomingOverride: true,
   notifyOnConflict: true,
@@ -59,7 +59,7 @@ function buildLock(overrides: Partial<Record<string, unknown>> = {}) {
   const now = new Date('2026-02-17T10:00:00.000Z')
   return {
     id: '10000000-0000-4000-8000-000000000001',
-    resourceKind: 'sales.quote',
+    resourceKind: 'example.todo',
     resourceId: '20000000-0000-4000-8000-000000000001',
     token: '30000000-0000-4000-8000-000000000001',
     strategy: 'optimistic',
@@ -91,7 +91,7 @@ describe('RecordLockService.validateMutation', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
       headers: {},
@@ -111,7 +111,7 @@ describe('RecordLockService.validateMutation', () => {
             id,
             tenantId: '60000000-0000-4000-8000-000000000001',
             organizationId: '70000000-0000-4000-8000-000000000001',
-            resourceKind: 'sales.quote',
+            resourceKind: 'example.todo',
             resourceId: '20000000-0000-4000-8000-000000000001',
             snapshotAfter: { entity: { displayName: 'Acme Before' } },
             snapshotBefore: null,
@@ -125,7 +125,7 @@ describe('RecordLockService.validateMutation', () => {
             id,
             tenantId: '60000000-0000-4000-8000-000000000001',
             organizationId: '70000000-0000-4000-8000-000000000001',
-            resourceKind: 'sales.quote',
+            resourceKind: 'example.todo',
             resourceId: '20000000-0000-4000-8000-000000000001',
             snapshotAfter: { entity: { displayName: 'Acme Incoming' } },
             snapshotBefore: { entity: { displayName: 'Acme Before' } },
@@ -152,7 +152,7 @@ describe('RecordLockService.validateMutation', () => {
     })
     serviceAny.createConflict = jest.fn().mockResolvedValue({
       id: 'a0000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       baseActionLogId: '50000000-0000-4000-8000-000000000001',
       incomingActionLogId: '80000000-0000-4000-8000-000000000001',
@@ -166,7 +166,7 @@ describe('RecordLockService.validateMutation', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
       headers: {
@@ -205,7 +205,7 @@ describe('RecordLockService.validateMutation', () => {
             id,
             tenantId: '60000000-0000-4000-8000-000000000001',
             organizationId: '70000000-0000-4000-8000-000000000001',
-            resourceKind: 'sales.quote',
+            resourceKind: 'example.todo',
             resourceId: '20000000-0000-4000-8000-000000000001',
             snapshotAfter: { entity: { displayName: 'Acme Before' } },
             snapshotBefore: null,
@@ -219,7 +219,7 @@ describe('RecordLockService.validateMutation', () => {
             id,
             tenantId: '60000000-0000-4000-8000-000000000001',
             organizationId: '70000000-0000-4000-8000-000000000001',
-            resourceKind: 'sales.quote',
+            resourceKind: 'example.todo',
             resourceId: '20000000-0000-4000-8000-000000000001',
             snapshotAfter: { entity: { displayName: 'Acme Incoming' } },
             snapshotBefore: { entity: { displayName: 'Acme Before' } },
@@ -246,7 +246,7 @@ describe('RecordLockService.validateMutation', () => {
     })
     serviceAny.createConflict = jest.fn().mockResolvedValue({
       id: 'a0000000-0000-4000-8000-000000000111',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       baseActionLogId: '50000000-0000-4000-8000-000000000001',
       incomingActionLogId: '80000000-0000-4000-8000-000000000001',
@@ -260,7 +260,7 @@ describe('RecordLockService.validateMutation', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
       headers: {
@@ -299,7 +299,7 @@ describe('RecordLockService.validateMutation', () => {
     })
     serviceAny.createConflict = jest.fn().mockResolvedValue({
       id: 'a0000000-0000-4000-8000-000000000010',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       baseActionLogId: null,
       incomingActionLogId: '81000000-0000-4000-8000-000000000001',
@@ -313,7 +313,7 @@ describe('RecordLockService.validateMutation', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
       headers: {
@@ -344,7 +344,7 @@ describe('RecordLockService.validateMutation', () => {
     })
     serviceAny.findConflictById = jest.fn().mockResolvedValue({
       id: 'a0000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       status: 'pending',
       resolution: null,
@@ -361,7 +361,7 @@ describe('RecordLockService.validateMutation', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
       headers: {
@@ -393,7 +393,7 @@ describe('RecordLockService.validateMutation', () => {
     serviceAny.findConflictById = jest.fn().mockResolvedValue(null)
     serviceAny.createConflict = jest.fn().mockResolvedValue({
       id: 'a0000000-0000-4000-8000-000000000011',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       status: 'pending',
       resolution: null,
@@ -410,7 +410,7 @@ describe('RecordLockService.validateMutation', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
       headers: {
@@ -444,7 +444,7 @@ describe('RecordLockService.validateMutation', () => {
     })
     serviceAny.findConflictById = jest.fn().mockResolvedValue({
       id: 'a0000000-0000-4000-8000-000000000002',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       status: 'pending',
       resolution: null,
@@ -457,7 +457,7 @@ describe('RecordLockService.validateMutation', () => {
     })
     serviceAny.toConflictPayload = jest.fn().mockResolvedValue({
       id: 'a0000000-0000-4000-8000-000000000002',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       baseActionLogId: '50000000-0000-4000-8000-000000000001',
       incomingActionLogId: '80000000-0000-4000-8000-000000000001',
@@ -470,7 +470,7 @@ describe('RecordLockService.validateMutation', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
       headers: {
@@ -526,7 +526,7 @@ describe('RecordLockService.acquire', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
     })
 
@@ -574,7 +574,7 @@ describe('RecordLockService.acquire', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
     })
 
@@ -611,7 +611,7 @@ describe('RecordLockService.release', () => {
 
     const conflict = {
       id: 'a0000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       status: 'pending',
       resolution: null,
@@ -632,7 +632,7 @@ describe('RecordLockService.release', () => {
       reason: 'conflict_resolved',
       conflictId: 'a0000000-0000-4000-8000-000000000001',
       resolution: 'accept_incoming',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
@@ -657,7 +657,7 @@ describe('RecordLockService.release', () => {
 
     const conflict = {
       id: 'a0000000-0000-4000-8000-000000000002',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       status: 'pending',
       resolution: null,
@@ -677,7 +677,7 @@ describe('RecordLockService.release', () => {
       reason: 'conflict_resolved',
       conflictId: 'a0000000-0000-4000-8000-000000000002',
       resolution: 'accept_incoming',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
@@ -733,7 +733,7 @@ describe('RecordLockService.emitIncomingChangesNotificationAfterMutation', () =>
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '90000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
     })
@@ -774,7 +774,7 @@ describe('RecordLockService.emitIncomingChangesNotificationAfterMutation', () =>
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '90000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
     })
@@ -806,7 +806,7 @@ describe('RecordLockService.emitIncomingChangesNotificationAfterMutation', () =>
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '90000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
     })
@@ -863,7 +863,7 @@ describe('RecordLockService.emitIncomingChangesNotificationAfterMutation', () =>
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: null,
       userId: '90000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
     })
@@ -918,7 +918,7 @@ describe('RecordLockService.emitIncomingChangesNotificationAfterMutation', () =>
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000777',
       userId: '90000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
     })
@@ -969,7 +969,7 @@ describe('RecordLockService.emitIncomingChangesNotificationAfterMutation', () =>
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '90000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
     })
@@ -1025,7 +1025,7 @@ describe('RecordLockService.emitIncomingChangesNotificationAfterMutation', () =>
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '90000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       method: 'PUT',
     })
@@ -1059,7 +1059,7 @@ describe('RecordLockService.heartbeat', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       token: '30000000-0000-4000-8000-000000000001',
     })
@@ -1085,7 +1085,7 @@ describe('RecordLockService.heartbeat', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       token: '30000000-0000-4000-8000-000000000001',
     })
@@ -1113,7 +1113,7 @@ describe('RecordLockService.forceRelease', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       reason: 'manual',
     })
@@ -1151,7 +1151,7 @@ describe('RecordLockService.forceRelease', () => {
       tenantId: '60000000-0000-4000-8000-000000000001',
       organizationId: '70000000-0000-4000-8000-000000000001',
       userId: '40000000-0000-4000-8000-000000000001',
-      resourceKind: 'sales.quote',
+      resourceKind: 'example.todo',
       resourceId: '20000000-0000-4000-8000-000000000001',
       reason: 'manual',
     })

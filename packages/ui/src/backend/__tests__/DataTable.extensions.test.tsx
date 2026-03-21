@@ -64,7 +64,7 @@ describe('DataTable extensions', () => {
 
   it('renders injected columns from data-table extension surface', () => {
     useInjectionDataWidgetsMock.mockImplementation((spotId: string) => {
-      if (spotId === 'data-table:customers.people:columns') {
+      if (spotId === 'data-table:example.todos:columns') {
         return {
           widgets: [
             {
@@ -98,7 +98,7 @@ describe('DataTable extensions', () => {
           React.createElement(DataTable as any, {
             columns,
             data: [{ id: 'r1', name: 'Alice' }],
-            injectionSpotId: 'data-table:customers.people',
+            injectionSpotId: 'data-table:example.todos',
           }),
         ),
       ),
@@ -110,7 +110,7 @@ describe('DataTable extensions', () => {
 
   it('renders injected bulk action button when bulk extension exists', () => {
     useInjectionDataWidgetsMock.mockImplementation((spotId: string) => {
-      if (spotId === 'data-table:customers.people:bulk-actions') {
+      if (spotId === 'data-table:example.todos:bulk-actions') {
         return {
           widgets: [
             {
@@ -143,7 +143,7 @@ describe('DataTable extensions', () => {
           React.createElement(DataTable as any, {
             columns,
             data: [{ id: 'r1', name: 'Alice' }],
-            injectionSpotId: 'data-table:customers.people',
+            injectionSpotId: 'data-table:example.todos',
           }),
         ),
       ),
@@ -157,7 +157,7 @@ describe('DataTable extensions', () => {
   it('allows filter-scope bulk actions without selected rows and forwards injection context', async () => {
     const onExecute = jest.fn(async () => ({ ok: true }))
     useInjectionDataWidgetsMock.mockImplementation((spotId: string) => {
-      if (spotId === 'data-table:customers.people:bulk-actions') {
+      if (spotId === 'data-table:example.todos:bulk-actions') {
         return {
           widgets: [
             {
@@ -183,7 +183,7 @@ describe('DataTable extensions', () => {
     const rendered = renderTable({
       columns,
       data: [{ id: 'r1', name: 'Alice' }],
-      injectionSpotId: 'data-table:customers.people',
+      injectionSpotId: 'data-table:example.todos',
       injectionContext: { search: 'alice', filters: { isActive: true } },
     })
 
@@ -197,7 +197,7 @@ describe('DataTable extensions', () => {
       expect(onExecute).toHaveBeenCalledWith(
         [],
         expect.objectContaining({
-          tableId: 'customers.people',
+          tableId: 'example.todos',
           injectionContext: { search: 'alice', filters: { isActive: true } },
           confirm: expect.any(Function),
           translate: expect.any(Function),
@@ -213,7 +213,7 @@ describe('DataTable extensions', () => {
     const onExecute = jest.fn(async () => ({ ok: true, progressJobId: 'job-1' }))
 
     useInjectionDataWidgetsMock.mockImplementation((spotId: string) => {
-      if (spotId === 'data-table:customers.people:bulk-actions') {
+      if (spotId === 'data-table:example.todos:bulk-actions') {
         return {
           widgets: [
             {
@@ -238,7 +238,7 @@ describe('DataTable extensions', () => {
     const rendered = renderTable({
       columns: [{ accessorKey: 'name', header: 'Name' }],
       data: [{ id: 'r1', name: 'Alice' }],
-      injectionSpotId: 'data-table:customers.people',
+      injectionSpotId: 'data-table:example.todos',
     })
 
     try {

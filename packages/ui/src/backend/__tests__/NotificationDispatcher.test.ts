@@ -136,14 +136,14 @@ describe('NotificationDispatcher', () => {
         moduleId: 'example',
         handlers: [
           { id: 'a', notificationType: '*', features: ['example.todos.manage'], handle: () => {} },
-          { id: 'b', notificationType: '*', features: ['example.todos.manage', 'customers.people.view'], handle: () => {} },
+          { id: 'b', notificationType: '*', features: ['example.todos.manage', 'example.todos.view'], handle: () => {} },
         ],
       },
     ])
 
     expect(getRequiredNotificationHandlerFeatures().sort()).toEqual([
-      'customers.people.view',
       'example.todos.manage',
+      'example.todos.view',
     ])
   })
 })

@@ -45,6 +45,8 @@ Files like `AGENTS.md` and `CLAUDE.md` use UPPERCASE names and are not numberedâ
 
 ### Specifications
 
+> **Note:** Some specifications below reference modules that have been removed from the starter (catalog, sales, customers, currencies, workflows, etc.). These specs are retained as historical architecture decision records. They document design patterns and contracts that remain relevant for building similar modules as extensions.
+
 | SPEC | Date | Title | Description |
 | --- | --- | --- | --- |
 | [SPEC-001](SPEC-001-2026-01-21-ui-reusable-components.md) | 2026-01-21 | UI Reusable Components | Library of reusable UI components and patterns |

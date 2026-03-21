@@ -106,7 +106,7 @@ const gettingStartedLinks = [
   },
   {
     title: 'Explore Core Use Cases',
-    description: 'See how teams ship CRMs, ERPs, and commerce backends on Open Mercato.',
+    description: 'See how teams ship CRMs, ERPs, and custom business platforms on Open Mercato.',
     to: '/introduction/use-cases',
   },
   {

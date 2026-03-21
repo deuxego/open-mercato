@@ -85,7 +85,7 @@ await dataEngine.setCustomFields({
 
 ## 5. Combine profile tables
 
-Some teams split user data between the base `auth:user` record and auxiliary tables—think HR profiles or staff availability. When those related tables expose their own custom fields, instruct the Query Engine to pull them in by extending the list config (or direct `queryEngine.query`) with `customFieldSources`:
+Some teams split user data between the base `auth:user` record and auxiliary tables—think extended profiles or department records. When those related tables expose their own custom fields, instruct the Query Engine to pull them in by extending the list config (or direct `queryEngine.query`) with `customFieldSources`:
 
 ```ts
 const userList = await queryEngine.query(E.auth.user, {

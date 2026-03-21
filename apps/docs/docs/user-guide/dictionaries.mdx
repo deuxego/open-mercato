@@ -13,7 +13,7 @@ Dictionaries centralize the enums you reuse across teams—think lifecycle stage
 - Enter the internal key (snake_case), display name, and optional description. Keys stay stable; users see the display name.
 - Save the dictionary. It becomes immediately available to scoped tenants and the automation APIs.
 
-Need to seed dictionaries in code? Export them from a module command—for example `packages/core/src/modules/customers/commands/people.ts` shows how to batch-create entries—or wire them into your deployment scripts.
+Need to seed dictionaries in code? Export them from a module command or wire them into your deployment scripts.
 
 ## 2. Add tenant-specific entries
 
@@ -47,8 +47,8 @@ export const entities = [
   defineFields(
     entityId('auth', 'user'),
     [
-      cf.dictionary('lifecycle_stage', 'customers:lifecycle-stages', {
-        label: 'Lifecycle stage',
+      cf.dictionary('compliance_status', 'compliance:statuses', {
+        label: 'Compliance status',
         formEditable: true,
         filterable: true,
       }),
@@ -58,14 +58,12 @@ export const entities = [
 ];
 ```
 
-Replace `'customers:lifecycle-stages'` with the `<module>:<dictionary>` identifier you maintain. Inline creation is enabled by default in code; pass `{ dictionaryInlineCreate: false }` to lock the list down.
+Replace `'compliance:statuses'` with the `<module>:<dictionary>` identifier you maintain. Inline creation is enabled by default in code; pass `{ dictionaryInlineCreate: false }` to lock the list down.
 
 ## 4. Surface values in the admin UI and APIs
 
 - CRUD forms automatically render dictionary-backed selectors in the **Custom data** group once the installer runs.
 - List filters expose dictionary values without extra wiring, and detail pages resolve the display labels.
 - API payloads work the same as other custom fields: send `cf_<key>` with the entry ID, and the data engine persists it.
-
-![Customer profile showing dictionary-driven fields](/screenshots/open-mercato-customer-dictionaries.png)
 
 With dictionaries plus custom fields, each tenant curates its own controlled vocabularies while sharing a single module codebase.

@@ -183,7 +183,7 @@
   "messages.placeholders.recipients": "Empfänger suchen...",
   "messages.placeholders.replyBody": "Antwort schreiben...",
   "messages.placeholders.sourceEntityId": "UUID des verknüpften Datensatzes",
-  "messages.placeholders.sourceEntityType": "z. B. sales.order",
+  "messages.placeholders.sourceEntityType": "z. B. example.todo",
   "messages.placeholders.subject": "Betreff eingeben...",
   "messages.priority": "Priorität",
   "messages.reply": "Antworten",

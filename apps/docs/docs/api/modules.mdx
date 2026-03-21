@@ -53,7 +53,7 @@ const apiIndex = modules.flatMap((module) => {
 console.table(apiIndex)
 ```
 
-- The array includes entries for every enabled module; modules without HTTP handlers (for example, `catalog` at the time of writing) contribute an empty list.
+- The array includes entries for every enabled module; modules without HTTP handlers contribute an empty list.
 - Route-level `metadata` matches the per-method guards exported alongside the handler (`packages/shared/src/modules/registry.ts:188`), so you can surface RBAC hints in client SDKs.
 - The dispatcher in `src/app/api/[...slug]/route.ts` calls `findApi(modules, method, pathname)` to resolve the handler; your tooling can do the same for dry runs or static analysis.
 

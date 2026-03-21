@@ -41,9 +41,6 @@ type CrudInjectionContext = {
   path?: string
   query?: string
   kind?: string
-  personId?: string
-  companyId?: string
-  dealId?: string
   retryLastMutation?: () => Promise<boolean | void> | boolean | void
 }
 
@@ -336,11 +333,6 @@ function submitCrudForm(formId: string): boolean {
 
 function resolveResourceKind(context: CrudInjectionContext): string | null {
   if (context.resourceKind && context.resourceKind.trim()) return context.resourceKind
-  if (context.kind === 'order') return 'sales.order'
-  if (context.kind === 'quote') return 'sales.quote'
-  if (context.personId) return 'customers.person'
-  if (context.companyId) return 'customers.company'
-  if (context.dealId) return 'customers.deal'
   const entityId = context.entityId
   if (entityId && entityId.includes(':')) {
     const [moduleId, rawEntity] = entityId.split(':')
@@ -369,63 +361,15 @@ function resolveResourceKind(context: CrudInjectionContext): string | null {
     }
   }
 
-  const path = context.path ?? ''
-  if (path.startsWith('/backend/customers/people/')) return 'customers.person'
-  if (path.startsWith('/backend/customers/companies/')) return 'customers.company'
-  if (path.startsWith('/backend/customers/deals/')) return 'customers.deal'
-  if (path.startsWith('/backend/sales/orders/')) return 'sales.order'
-  if (path.startsWith('/backend/sales/quotes/')) return 'sales.quote'
-  if (path.startsWith('/backend/sales/documents/')) {
-    const query = context.query ?? ''
-    const params = new URLSearchParams(query)
-    const kind = params.get('kind')
-    if (kind === 'order') return 'sales.order'
-    if (kind === 'quote') return 'sales.quote'
-  }
-
   return null
 }
 
 function resolveResourceId(context: CrudInjectionContext, data: unknown): string | null {
   if (context.resourceId && context.resourceId.trim()) return context.resourceId
   if (context.recordId && context.recordId.trim()) return context.recordId
-  if (context.personId && context.personId.trim()) return context.personId
-  if (context.companyId && context.companyId.trim()) return context.companyId
-  if (context.dealId && context.dealId.trim()) return context.dealId
   if (data && typeof data === 'object' && 'id' in data) {
     const id = (data as { id?: unknown }).id
     if (typeof id === 'string' && id.trim()) return id
-  }
-  if (data && typeof data === 'object') {
-    const nestedPersonId = (data as { person?: { id?: unknown } }).person?.id
-    if (typeof nestedPersonId === 'string' && nestedPersonId.trim()) return nestedPersonId
-    const nestedCompanyId = (data as { company?: { id?: unknown } }).company?.id
-    if (typeof nestedCompanyId === 'string' && nestedCompanyId.trim()) return nestedCompanyId
-    const nestedDealId = (data as { deal?: { id?: unknown } }).deal?.id
-    if (typeof nestedDealId === 'string' && nestedDealId.trim()) return nestedDealId
-  }
-  const path = context.path ?? ''
-  const parts = path.split('/').filter((part) => part.length > 0)
-  const candidates = [
-    ['backend', 'customers', 'people'],
-    ['backend', 'customers', 'companies'],
-    ['backend', 'customers', 'deals'],
-    ['backend', 'sales', 'orders'],
-    ['backend', 'sales', 'quotes'],
-    ['backend', 'sales', 'documents'],
-  ] as const
-  for (const prefix of candidates) {
-    const matchesPrefix = prefix.every((segment, index) => parts[index] === segment)
-    if (!matchesPrefix || parts.length <= prefix.length) continue
-    const rawId = parts[prefix.length] ?? ''
-    if (!rawId) continue
-    try {
-      const decoded = decodeURIComponent(rawId).trim()
-      if (decoded.length > 0) return decoded
-    } catch {
-      const trimmed = rawId.trim()
-      if (trimmed.length > 0) return trimmed
-    }
   }
   return null
 }

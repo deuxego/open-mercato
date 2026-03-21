@@ -8,18 +8,19 @@ import { readApiResultOrThrow } from '@open-mercato/ui/backend/utils/apiCall'
 import { useNotificationEffect } from '@open-mercato/ui/backend/notifications'
 import { useAppEvent } from '@open-mercato/ui/backend/injection/useAppEvent'
 
-type CustomerRecord = {
+type TodoRecord = {
   id?: string
-  display_name?: string
+  title?: string
+  isDone?: boolean
   _example?: {
-    todoCount?: number
+    totalTodos?: number
     openTodoCount?: number
-    priority?: string
+    priorityRecordCount?: number
   }
 }
 
-type CustomersResponse = {
-  items?: CustomerRecord[]
+type TodosResponse = {
+  items?: TodoRecord[]
   _meta?: {
     enrichedBy?: string[]
     enricherErrors?: string[]
@@ -42,7 +43,7 @@ export default function UmesNextPhasesPage() {
   const [idsInput, setIdsInput] = React.useState('')
   const [probeStatus, setProbeStatus] = React.useState<'idle' | 'pending' | 'ok' | 'error'>('idle')
   const [probeError, setProbeError] = React.useState<string | null>(null)
-  const [probePayload, setProbePayload] = React.useState<CustomersResponse | null>(null)
+  const [probePayload, setProbePayload] = React.useState<TodosResponse | null>(null)
   const [progressStatus, setProgressStatus] = React.useState<'idle' | 'running' | 'ok' | 'error'>('idle')
   const [progressError, setProgressError] = React.useState<string | null>(null)
   const [progressJobId, setProgressJobId] = React.useState<string | null>(null)
@@ -114,7 +115,7 @@ export default function UmesNextPhasesPage() {
     setProbeStatus('pending')
     setProbeError(null)
     try {
-      const payload = await readApiResultOrThrow<CustomersResponse>('/api/customers/people?page=1&pageSize=5')
+      const payload = await readApiResultOrThrow<TodosResponse>('/api/example/todos?page=1&pageSize=5')
       const ids = (payload.items ?? [])
         .map((item) => item.id)
         .filter((id): id is string => typeof id === 'string' && id.length > 0)
@@ -142,7 +143,7 @@ export default function UmesNextPhasesPage() {
       const params = new URLSearchParams()
       params.set('ids', ids.join(','))
       params.set('pageSize', '50')
-      const payload = await readApiResultOrThrow<CustomersResponse>(`/api/customers/people?${params.toString()}`)
+      const payload = await readApiResultOrThrow<TodosResponse>(`/api/example/todos?${params.toString()}`)
       setProbePayload(payload)
       setProbeStatus('ok')
     } catch (error) {

@@ -61,7 +61,7 @@ graph TB
 ```ts
 const crud = makeCrudRoute({
   orm: {
-    entity: CustomerEntity, // MikroORM entity class
+    entity: TodoEntity, // MikroORM entity class
     idField: "id", // Primary key field (default: 'id')
     orgField: "organizationId", // Organization scope field (default: 'organizationId')
     tenantField: "tenantId", // Tenant scope field (default: 'tenantId')
@@ -171,11 +171,11 @@ list: {
     sortField: z.string().optional(),
     sortDir: z.enum(['asc', 'desc']).optional(),
   }),
-  entityId: E.customers.customer_entity,
+  entityId: E.example.todo,
   fields: [
     'id',
-    'display_name',
-    'primary_email',
+    'title',
+    'description',
     'status',
     'created_at',
     'cf:priority',    // Custom field
@@ -199,7 +199,7 @@ buildFilters: async (query, ctx) => {
 
   // Text search with ILIKE
   if (query.search) {
-    filters.display_name = { $ilike: `%${query.search}%` };
+    filters.title = { $ilike: `%${query.search}%` };
   }
 
   // Date range filters
@@ -213,7 +213,7 @@ buildFilters: async (query, ctx) => {
   // Custom field filters (requires EM access)
   if (ctx) {
     const cfFilters = await buildCustomFieldFiltersFromQuery({
-      entityIds: [E.customers.customer_entity],
+      entityIds: [E.example.todo],
       query,
       em: ctx.container.resolve("em"),
       tenantId: ctx.auth?.tenantId ?? null,
@@ -243,9 +243,9 @@ For entities with custom fields in related tables:
 ```ts
 customFieldSources: [
   {
-    entityId: E.customers.customer_person_profile,
-    table: "customer_people", // Table name
-    alias: "person_profile", // Join alias
+    entityId: E.example.todo,
+    table: "todos", // Table name
+    alias: "todo", // Join alias
     recordIdColumn: "id", // Column in main table
     join: {
       fromField: "id", // Field in main table
@@ -263,14 +263,14 @@ Define multi-table relationships:
 joins: [
   {
     alias: "tag_assignments",
-    table: "customer_tag_assignments",
+    table: "todo_tag_assignments",
     from: { field: "id" },
     to: { field: "entity_id" },
     type: "left", // 'left', 'inner', 'right'
   },
   {
     alias: "tags",
-    table: "customer_tags",
+    table: "todo_tags",
     from: { field: "tag_assignments.tag_id" },
     to: { field: "id" },
     type: "left",
@@ -304,10 +304,10 @@ Enable CSV/JSON/XML export:
 export: {
   enabled: true,
   formats: ['csv', 'json', 'xml'],
-  filename: 'customers_export',
+  filename: 'records_export',
   columns: [
     { field: 'id', header: 'ID' },
-    { field: 'display_name', header: 'Name' },
+    { field: 'title', header: 'Title' },
     { field: 'cf:priority', header: 'Priority' },
   ],
   batchSize: 1000,  // Process in batches for large exports
@@ -321,7 +321,7 @@ The `actions` configuration integrates with the Command Bus for business logic e
 ```ts
 actions: {
   create: {
-    commandId: 'customers.people.create',
+    commandId: 'example.todos.create',
     schema: z.object({}).passthrough(), // Validation before command
     mapInput: async ({ parsed, raw, ctx }) => {
       // Transform input before command execution
@@ -337,7 +337,7 @@ actions: {
     status: 201,
   },
   update: {
-    commandId: 'customers.people.update',
+    commandId: 'example.todos.update',
     schema: z.object({ id: z.string().uuid() }).passthrough(),
     mapInput: async ({ parsed, raw, ctx }) => {
       const { translate } = await resolveTranslations()
@@ -348,7 +348,7 @@ actions: {
     response: () => ({ ok: true }),
   },
   delete: {
-    commandId: 'customers.people.delete',
+    commandId: 'example.todos.delete',
     mapInput: ({ parsed }) => ({ id: parsed.id }),
     response: () => ({ ok: true }),
   },
@@ -400,7 +400,7 @@ OM_CRUD_CACHE_DEBUG = true; // Debug cache hits/misses
 
 Cache keys include:
 
-- Resource path (`/api/customers/people`)
+- Resource path (`/api/example/todos`)
 - Query parameters (sorted and serialized)
 - Tenant ID
 - Selected organization ID
@@ -408,7 +408,7 @@ Cache keys include:
 
 ```ts
 // Example cache key structure
-crud|customers.customer_entity|GET|/api/customers/people|tenant:123|selectedOrg:456|scope:456,789|query:page=1&pageSize=50&search=test
+crud|example.todo|GET|/api/example/todos|tenant:123|selectedOrg:456|scope:456,789|query:page=1&pageSize=50&search=test
 ```
 
 ### Automatic Invalidation
@@ -437,7 +437,7 @@ Enable profiling for performance analysis:
 OM_PROFILE=*
 
 # Profile specific modules
-OM_PROFILE=customers.*
+OM_PROFILE=example.*
 
 # Profile CRUD operations only
 OM_CRUD_PROFILE=true
@@ -468,9 +468,9 @@ For large datasets, exports use:
 
 When using commands, events are emitted automatically:
 
-- `customers.person.created`
-- `customers.person.updated`
-- `customers.person.deleted`
+- `example.todo.created`
+- `example.todo.updated`
+- `example.todo.deleted`
 
 ### Indexer Integration
 
@@ -488,12 +488,12 @@ Search index updates are handled automatically:
 metadata: {
   GET: {
     requireAuth: true,
-    requireFeatures: ['customers.people.view'],
+    requireFeatures: ['example.todos.view'],
     requireRoles: ['admin'],  // Optional role requirements
   },
   POST: {
     requireAuth: true,
-    requireFeatures: ['customers.people.create'],
+    requireFeatures: ['example.todos.create'],
   },
   // ...
 }
@@ -574,9 +574,9 @@ hooks: {
 ### Unit Testing Commands
 
 ```ts
-describe("customers.people.create", () => {
+describe("example.todos.create", () => {
   it("creates person with custom fields", async () => {
-    const { result } = await executeCommand("customers.people.create", {
+    const { result } = await executeCommand("example.todos.create", {
       displayName: "John Doe",
       primaryEmail: "john@example.com",
       "cf:department": "Engineering",
@@ -590,10 +590,10 @@ describe("customers.people.create", () => {
 ### API Integration Testing
 
 ```ts
-describe("GET /api/customers/people", () => {
+describe("GET /api/example/todos", () => {
   it("returns paginated results", async () => {
     const response = await app.request(
-      "/api/customers/people?page=1&pageSize=10"
+      "/api/example/todos?page=1&pageSize=10"
     );
     expect(response.status).toBe(200);
 

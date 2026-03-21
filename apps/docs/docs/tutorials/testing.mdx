@@ -194,11 +194,11 @@ test.describe('TC-ADMIN-999: Example flow', () => {
   - `yarn test:integration:ephemeral:interactive --no-screenshots`
 - Reuse the active URL from `.ai/qa/ephemeral-env.md` (`base_url`)
 - Then run only the target test against the printed base URL:
-  - `BASE_URL=http://127.0.0.1:<port> npx playwright test --config .ai/qa/tests/playwright.config.ts sales/TC-SALES-007.spec.ts --retries=0`
+  - `BASE_URL=http://127.0.0.1:<port> npx playwright test --config .ai/qa/tests/playwright.config.ts admin/TC-ADMIN-001.spec.ts --retries=0`
 - Run in parallel locally when tests are independent:
   - `BASE_URL=http://127.0.0.1:<port> npx playwright test --config .ai/qa/tests/playwright.config.ts --workers=4 --retries=0`
 - If you still use full ephemeral command, filter aggressively:
-  - `yarn test:integration:ephemeral -- --filter sales/TC-SALES-007.spec.ts --no-screenshots`
+  - `yarn test:integration:ephemeral -- --filter admin/TC-ADMIN-001.spec.ts --no-screenshots`
 
 Use full `yarn test:integration:ephemeral` for pre-merge validation and CI-like isolation.
 

@@ -51,10 +51,7 @@ Define entries in your module’s `widgets/injection-table.ts`:
 import type { ModuleInjectionTable } from '@open-mercato/shared/modules/widgets/injection'
 
 export const injectionTable: ModuleInjectionTable = {
-  'sales.document.detail.quote:tabs': [
-    { widgetId: 'example.injection.sales-todos', kind: 'tab', groupLabel: 'Todos (example)' },
-  ],
-  'crud-form:catalog.product': 'example.injection.crud-validation',
+  'crud-form:example.todo': 'example.injection.crud-validation',
 }
 ```
 
@@ -73,31 +70,15 @@ Stable replacement handles are now emitted automatically:
 - `crud-form:<entityId>` for every `CrudForm`
 - `section:ui.detail.<SectionName>` for shared detail sections (`NotesSection`, `ActivitiesSection`, `AddressesSection`, `TagsSection`, `CustomDataSection`, `DetailFieldsSection`, `AttachmentsSection`)
 - **Dashboard** – `dashboard:before` and `dashboard:after` wrap the widget grid.
-- **Sales documents** – `sales.document.detail.quote:tabs`, `sales.document.detail.order:tabs` (new tabs) and `sales.document.detail.<kind>:details` for blocks beneath the details section.
-- **Customers** – `customers.company.detail:tabs` and `customers.company.detail:details`; `customers.person.detail:tabs` and `customers.person.detail:details`.
 - **Backend record context** – `backend:record:current` is mounted once per backend page and receives `{ path, query }` context for page-level record widgets.
 - **Backend layout** – `backend:layout:top` and `backend:layout:footer` render at the start and end of the main backend content area.
 - **Backend sidebar** – `backend:sidebar:top` and `backend:sidebar:footer` render in the desktop sidebar shell above and below navigation/customization actions.
 - **Global backend mutations** – `GLOBAL_MUTATION_INJECTION_SPOT_ID` now resolves to `backend:record:current`; `backend-mutation:global` remains mounted as a legacy compatibility slot in `AppShell`.
 - **Admin layout** – `admin.page:<normalized-path>:before` / `after` wraps every backend page (path is lowercased, stripped of query, `/` → `:`).
 
-## Example: Sales todos tab (example module)
+## Example: injection widget (example module)
 
-The example module now ships `example.injection.sales-todos`, mapped to both sales quote and order tab slots:
-
-```ts
-// packages/example/src/modules/example/widgets/injection-table.ts
-export const injectionTable = {
-  'sales.document.detail.quote:tabs': [
-    { widgetId: 'example.injection.sales-todos', kind: 'tab', groupLabel: 'Todos (example)', priority: -10 },
-  ],
-  'sales.document.detail.order:tabs': [
-    { widgetId: 'example.injection.sales-todos', kind: 'tab', groupLabel: 'Todos (example)', priority: -10 },
-  ],
-}
-```
-
-The widget itself is a client component that uses `InjectionWidgetComponentProps` and the shared `apiCall` helper to list, add, and toggle todos. It renders an info banner with a link back to this page so downstream modules can copy the pattern.
+The example module ships injection widgets demonstrating various placement types. Refer to `packages/example/src/modules/example/widgets/` for the complete implementation. Each widget is a client component using `InjectionWidgetComponentProps` and the shared `apiCall` helper.
 
 ## Authoring widgets
 

@@ -15,7 +15,7 @@ describe('record_locks config defaults', () => {
       enabledResources: [],
     }
 
-    expect(isRecordLockingEnabledForResource(settings, 'customers.company')).toBe(true)
-    expect(isRecordLockingEnabledForResource(settings, 'sales.quote')).toBe(true)
+    expect(isRecordLockingEnabledForResource(settings, 'example.todo')).toBe(true)
+    expect(isRecordLockingEnabledForResource(settings, 'auth.user')).toBe(true)
   })
 })

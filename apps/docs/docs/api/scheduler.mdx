@@ -63,7 +63,7 @@ GET /api/scheduler/jobs
       "tenantId": "uuid",
       "scopeType": "tenant",
       "name": "Daily Report Generation",
-      "description": "Generate daily sales and inventory report",
+      "description": "Generate daily summary report",
       "scheduleType": "cron",
       "scheduleValue": "0 6 * * *",
       "timezone": "America/New_York",
@@ -112,7 +112,7 @@ Content-Type: application/json
 ```json
 {
   "name": "Daily Report Generation",
-  "description": "Generate daily sales and inventory report",
+  "description": "Generate daily summary report",
   "scopeType": "tenant",
   "scheduleType": "cron",
   "scheduleValue": "0 6 * * *",
@@ -175,7 +175,7 @@ Content-Type: application/json
   "tenantId": "uuid",
   "scopeType": "tenant",
   "name": "Daily Report Generation",
-  "description": "Generate daily sales and inventory report",
+  "description": "Generate daily summary report",
   "scheduleType": "cron",
   "scheduleValue": "0 6 * * *",
   "timezone": "America/New_York",
@@ -476,7 +476,7 @@ curl -X POST http://localhost:3000/api/scheduler/jobs \
   -H "Authorization: Bearer <api-key>" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "Daily Sales Report",
+    "name": "Daily Summary Report",
     "scopeType": "tenant",
     "scheduleType": "cron",
     "scheduleValue": "0 6 * * *",

@@ -9,11 +9,10 @@ To explore or understand the Open Mercato framework code:
 - **Location**: `node_modules/@open-mercato/*/dist/` contains compiled JavaScript
 - **Source exploration**: Search `node_modules/@open-mercato/` for module implementations
 - **Key packages**:
-  - `@open-mercato/core` - Core business modules (auth, customers, catalog, sales, etc.)
+  - `@open-mercato/core` - Core platform modules (auth, customer_accounts, integrations, etc.)
   - `@open-mercato/shared` - Shared utilities, types, DSL helpers, i18n
   - `@open-mercato/ui` - UI components and primitives
   - `@open-mercato/cli` - CLI tooling (mercato command)
-  - `@open-mercato/search` - Search module (fulltext, vector, tokens)
 
 **Note**: When debugging or extending functionality, reference the compiled code in `node_modules/@open-mercato/` to understand the framework's implementation details.
 
@@ -61,7 +60,7 @@ Start required services via Docker Compose:
 docker compose up -d
 ```
 
-Services: PostgreSQL (pgvector), Redis, Meilisearch
+Services: PostgreSQL, Redis
 
 ## Architecture
 
@@ -69,7 +68,7 @@ Services: PostgreSQL (pgvector), Redis, Meilisearch
 
 This is a Next.js 16 application built on the **Open Mercato** modular ERP framework. The framework provides:
 
-- **Module system**: Business modules (auth, customers, catalog, sales, etc.) from `@open-mercato/*` packages
+- **Module system**: Platform modules (auth, customer_accounts, integrations, etc.) from `@open-mercato/*` packages
 - **Entity system**: MikroORM entities with code generation
 - **DI container**: Awilix-based dependency injection
 - **RBAC**: Role-based access control with feature flags

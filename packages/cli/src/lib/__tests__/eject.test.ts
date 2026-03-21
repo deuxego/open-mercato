@@ -160,7 +160,7 @@ describe('eject', () => {
           `export const enabledModules = [`,
           `  { id: 'auth', from: '@open-mercato/core' },`,
           `  { id: 'currencies', from: '@open-mercato/core' },`,
-          `  { id: 'catalog', from: '@open-mercato/core' },`,
+          `  { id: 'example', from: '@open-mercato/core' },`,
           `]`,
         ].join('\n'),
       )
@@ -170,7 +170,7 @@ describe('eject', () => {
       const result = fs.readFileSync(filePath, 'utf8')
       expect(result).toContain("{ id: 'auth', from: '@open-mercato/core' }")
       expect(result).toContain("{ id: 'currencies', from: '@app' }")
-      expect(result).toContain("{ id: 'catalog', from: '@open-mercato/core' }")
+      expect(result).toContain("{ id: 'example', from: '@open-mercato/core' }")
     })
 
     it('throws when modules.ts does not exist', () => {
@@ -198,7 +198,7 @@ describe('eject', () => {
         [
           `export const enabledModules = [`,
           `  { id: 'auth', from: '@open-mercato/core' },`,
-          `  { id: 'catalog', from: '@open-mercato/core' },`,
+          `  { id: 'example', from: '@open-mercato/core' },`,
           `]`,
         ].join('\n'),
       )
@@ -209,7 +209,7 @@ describe('eject', () => {
 
       const result = fs.readFileSync(filePath, 'utf8')
       expect(result).toContain("{ id: 'auth', from: '@open-mercato/core' }")
-      expect(result).toContain("{ id: 'catalog', from: '@open-mercato/core' }")
+      expect(result).toContain("{ id: 'example', from: '@open-mercato/core' }")
     })
   })
 
@@ -217,67 +217,67 @@ describe('eject', () => {
     it('rewrites cross-module relative imports to package imports', () => {
       const pkgModulesRoot = path.join(tmpDir, 'pkg', 'src', 'modules')
       const appModulesRoot = path.join(tmpDir, 'app', 'src', 'modules')
-      const pkgSalesRoot = path.join(pkgModulesRoot, 'sales')
-      const appSalesRoot = path.join(appModulesRoot, 'sales')
+      const pkgExampleRoot = path.join(pkgModulesRoot, 'example')
+      const appExampleRoot = path.join(appModulesRoot, 'example')
 
-      fs.mkdirSync(path.join(pkgModulesRoot, 'customers', 'data'), { recursive: true })
+      fs.mkdirSync(path.join(pkgModulesRoot, 'auth', 'data'), { recursive: true })
       fs.mkdirSync(path.join(pkgModulesRoot, 'notifications', 'lib'), { recursive: true })
-      fs.mkdirSync(path.join(pkgSalesRoot, 'commands'), { recursive: true })
-      fs.mkdirSync(path.join(pkgSalesRoot, 'subscribers'), { recursive: true })
-      fs.mkdirSync(path.join(appSalesRoot, 'commands'), { recursive: true })
-      fs.mkdirSync(path.join(appSalesRoot, 'subscribers'), { recursive: true })
+      fs.mkdirSync(path.join(pkgExampleRoot, 'commands'), { recursive: true })
+      fs.mkdirSync(path.join(pkgExampleRoot, 'subscribers'), { recursive: true })
+      fs.mkdirSync(path.join(appExampleRoot, 'commands'), { recursive: true })
+      fs.mkdirSync(path.join(appExampleRoot, 'subscribers'), { recursive: true })
 
-      fs.writeFileSync(path.join(pkgModulesRoot, 'customers', 'data', 'entities.ts'), 'export const entities = []')
+      fs.writeFileSync(path.join(pkgModulesRoot, 'auth', 'data', 'entities.ts'), 'export const entities = []')
       fs.writeFileSync(path.join(pkgModulesRoot, 'notifications', 'lib', 'notificationService.ts'), 'export const service = {}')
       fs.writeFileSync(path.join(pkgModulesRoot, 'notifications', 'lib', 'notificationBuilder.ts'), 'export const builder = {}')
 
       fs.writeFileSync(
-        path.join(pkgSalesRoot, 'commands', 'documents.ts'),
+        path.join(pkgExampleRoot, 'commands', 'documents.ts'),
         [
           "import { resolveNotificationService } from '../../notifications/lib/notificationService'",
           "import { buildFeatureNotificationFromType } from '../../notifications/lib/notificationBuilder'",
-          "import { Customer } from '../../customers/data/entities'",
+          "import { User } from '../../auth/data/entities'",
           "import { localFn } from '../helpers'",
         ].join('\n'),
       )
-      fs.writeFileSync(path.join(pkgSalesRoot, 'helpers.ts'), 'export const localFn = () => null')
+      fs.writeFileSync(path.join(pkgExampleRoot, 'helpers.ts'), 'export const localFn = () => null')
 
       fs.writeFileSync(
-        path.join(appSalesRoot, 'commands', 'documents.ts'),
-        fs.readFileSync(path.join(pkgSalesRoot, 'commands', 'documents.ts'), 'utf8'),
+        path.join(appExampleRoot, 'commands', 'documents.ts'),
+        fs.readFileSync(path.join(pkgExampleRoot, 'commands', 'documents.ts'), 'utf8'),
       )
-      fs.writeFileSync(path.join(appSalesRoot, 'helpers.ts'), 'export const localFn = () => null')
+      fs.writeFileSync(path.join(appExampleRoot, 'helpers.ts'), 'export const localFn = () => null')
 
-      rewriteCrossModuleImports(pkgSalesRoot, appSalesRoot, 'sales', '@open-mercato/core')
+      rewriteCrossModuleImports(pkgExampleRoot, appExampleRoot, 'example', '@open-mercato/core')
 
-      const rewritten = fs.readFileSync(path.join(appSalesRoot, 'commands', 'documents.ts'), 'utf8')
+      const rewritten = fs.readFileSync(path.join(appExampleRoot, 'commands', 'documents.ts'), 'utf8')
       expect(rewritten).toContain("from '@open-mercato/core/modules/notifications/lib/notificationService'")
       expect(rewritten).toContain("from '@open-mercato/core/modules/notifications/lib/notificationBuilder'")
-      expect(rewritten).toContain("from '@open-mercato/core/modules/customers/data/entities'")
+      expect(rewritten).toContain("from '@open-mercato/core/modules/auth/data/entities'")
       expect(rewritten).toContain("from '../helpers'")
     })
 
     it('keeps unresolved relative imports unchanged', () => {
       const pkgModulesRoot = path.join(tmpDir, 'pkg', 'src', 'modules')
       const appModulesRoot = path.join(tmpDir, 'app', 'src', 'modules')
-      const pkgSalesRoot = path.join(pkgModulesRoot, 'sales')
-      const appSalesRoot = path.join(appModulesRoot, 'sales')
+      const pkgExampleRoot = path.join(pkgModulesRoot, 'example')
+      const appExampleRoot = path.join(appModulesRoot, 'example')
 
-      fs.mkdirSync(path.join(pkgSalesRoot, 'commands'), { recursive: true })
-      fs.mkdirSync(path.join(appSalesRoot, 'commands'), { recursive: true })
+      fs.mkdirSync(path.join(pkgExampleRoot, 'commands'), { recursive: true })
+      fs.mkdirSync(path.join(appExampleRoot, 'commands'), { recursive: true })
 
       fs.writeFileSync(
-        path.join(pkgSalesRoot, 'commands', 'dynamic.ts'),
+        path.join(pkgExampleRoot, 'commands', 'dynamic.ts'),
         "export const x = () => import('../../unknown/missing')",
       )
       fs.writeFileSync(
-        path.join(appSalesRoot, 'commands', 'dynamic.ts'),
+        path.join(appExampleRoot, 'commands', 'dynamic.ts'),
         "export const x = () => import('../../unknown/missing')",
       )
 
-      rewriteCrossModuleImports(pkgSalesRoot, appSalesRoot, 'sales', '@open-mercato/core')
+      rewriteCrossModuleImports(pkgExampleRoot, appExampleRoot, 'example', '@open-mercato/core')
 
-      const rewritten = fs.readFileSync(path.join(appSalesRoot, 'commands', 'dynamic.ts'), 'utf8')
+      const rewritten = fs.readFileSync(path.join(appExampleRoot, 'commands', 'dynamic.ts'), 'utf8')
       expect(rewritten).toContain("import('../../unknown/missing')")
     })
   })

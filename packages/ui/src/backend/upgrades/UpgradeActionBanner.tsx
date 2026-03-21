@@ -80,7 +80,7 @@ export function UpgradeActionBanner() {
       const message =
         response.result?.message ||
         action.successMessage ||
-        t('upgrades.v034.success', 'Example catalog products and categories installed.')
+        t('upgrades.v034.success', 'Example data installed successfully.')
       flash(message, 'success')
       setAction(null)
       await loadNextAction()

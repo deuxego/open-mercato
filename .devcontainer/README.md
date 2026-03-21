@@ -1,6 +1,6 @@
 # Dev Container
 
-One-click development environment for Open Mercato. Open VS Code, "Reopen in Container", and everything works — Node.js 24, Yarn 4, PostgreSQL (pgvector), Redis, Meilisearch, Claude Code CLI, Python 3 + pip, Ruby, and Homebrew.
+One-click development environment for Open Mercato. Open VS Code, "Reopen in Container", and everything works — Node.js 24, Yarn 4, PostgreSQL (pgvector), Redis, Claude Code CLI, Python 3 + pip, Ruby, and Homebrew.
 
 ## Prerequisites
 
@@ -25,9 +25,8 @@ Default credentials (dev only — never use in production): `superadmin@acme.com
 | **workspace** | Node 24 Debian-slim (custom Dockerfile) | Development container — VS Code connects here |
 | **postgres** | pgvector/pgvector:pg17-trixie | PostgreSQL 17 with pgvector extension |
 | **redis** | redis:7-alpine | Event transport, queue backend, caching |
-| **meilisearch** | getmeili/meilisearch:v1.11 | Full-text search engine |
 
-All services communicate over a private bridge network. Service hostnames (`postgres`, `redis`, `meilisearch`) are used in connection strings instead of `localhost`.
+All services communicate over a private bridge network. Service hostnames (`postgres`, `redis`) are used in connection strings instead of `localhost`.
 
 ### Named Volumes
 
@@ -74,7 +73,7 @@ Package `dist/` volumes are **auto-generated** by `scripts/generate-compose-volu
 
 ### Host → Container Forwarding
 
-`ANTHROPIC_API_KEY` and `OPENAI_API_KEY` are forwarded from your host shell via `devcontainer.json` `remoteEnv`. Set them in your host `~/.zshrc` or `~/.bashrc` before opening the container.
+`OPENAI_API_KEY` is forwarded from your host shell via `devcontainer.json` `remoteEnv` (used for embedding providers). Set it in your host `~/.zshrc` or `~/.bashrc` before opening the container.
 
 Alternatively, run `claude` inside the container and use the OAuth login flow (works with Max plan subscriptions).
 
@@ -95,7 +94,7 @@ Homebrew is available in all terminal sessions (bash, zsh). Install tools as nee
 | Decision | Rationale |
 |----------|-----------|
 | Self-contained compose (not reusing `docker-compose.yml`) | Existing file includes unneeded services, uses `container_name` directives that conflict with Dev Containers |
-| Named service syntax for `forwardPorts` (e.g., `"postgres:5432"`) | When the Dev Container's primary `service` is `workspace`, numeric port entries (e.g., `5432`) are forwarded on the workspace container, not on the service that actually listens on that port. Named syntax (`"<service>:<port>"`) tells VS Code which service owns the port, fixing connection failures for PostgreSQL, Redis, and Meilisearch. |
+| Named service syntax for `forwardPorts` (e.g., `"postgres:5432"`) | When the Dev Container's primary `service` is `workspace`, numeric port entries (e.g., `5432`) are forwarded on the workspace container, not on the service that actually listens on that port. Named syntax (`"<service>:<port>"`) tells VS Code which service owns the port, fixing connection failures for PostgreSQL and Redis. |
 | Debian-slim instead of Alpine | Homebrew requires glibc (Alpine uses musl); Debian-slim provides glibc with a modest image size increase |
 | `init: true` on workspace | Proper signal forwarding and zombie process reaping for the complex process tree (`yarn dev` spawns turbo + watchers + Next.js + workers) |
 | `WATCHPACK_POLLING` + `CHOKIDAR_USEPOLLING` | macOS Docker bind mounts don't support native filesystem events — polling is required |
@@ -110,7 +109,6 @@ Homebrew is available in all terminal sessions (bash, zsh). Install tools as nee
 | Full re-initialization | `bash .devcontainer/scripts/post-create.sh` |
 | Regenerate `.env` only | `bash .devcontainer/scripts/setup-env.sh` |
 | Connect to Postgres | `PGPASSWORD=postgres psql -h postgres -U postgres -d open-mercato` |
-| Check Meilisearch | `curl http://meilisearch:7700/health` |
 | Fresh start (wipe volumes) | Command Palette → **Dev Containers: Rebuild Container** |
 
 ## Updating the Dev Container
@@ -155,4 +153,4 @@ When the project evolves, the Dev Container setup may need updates. Here's when 
 | `brew: command not found` | Shell profile not loaded | Run `eval "$(/home/linuxbrew/.linuxbrew/bin/brew shellenv)"` or open a new terminal |
 | `Syntax error: "(" unexpected` during build (Claude CLI install) | Install script piped to `sh` (dash on Debian) instead of `bash` | Already fixed in Dockerfile — `curl ... \| bash`. If you see this, pull latest `.devcontainer/Dockerfile` and rebuild |
 | Stale build artifacts | Named volumes persisted old `dist/` | Wipe all: `docker volume ls -q \| grep open-mercato_devcontainer \| xargs docker volume rm` then reopen |
-| Host DB/Redis/Meilisearch tools show "connection refused" or "server closed connection unexpectedly" | `forwardPorts` used numeric port entries for non-workspace services | Fixed — `devcontainer.json` now uses named service syntax (`"postgres:5432"`, `"redis:6379"`, `"meilisearch:7700"`). Rebuild the container to pick up the change. |
+| Host DB/Redis tools show "connection refused" or "server closed connection unexpectedly" | `forwardPorts` used numeric port entries for non-workspace services | Fixed — `devcontainer.json` now uses named service syntax (`"postgres:5432"`, `"redis:6379"`). Rebuild the container to pick up the change. |

@@ -11,10 +11,10 @@ The Business Rules Engine enables you to define, manage, and execute automated b
 
 Business rules are conditional statements that execute actions when certain criteria are met. They follow an "if-then" logic pattern:
 
-- **IF** conditions are true (e.g., order total > $1000)
+- **IF** conditions are true (e.g., a field exceeds a threshold)
 - **THEN** execute actions (e.g., require manager approval)
 
-Rules can be applied to any entity type in your system (Orders, WorkOrders, Customers, etc.) and triggered by lifecycle events (beforeCreate, afterUpdate, etc.).
+Rules can be applied to any entity type in your system and triggered by lifecycle events (beforeCreate, afterUpdate, etc.).
 
 ![Business Rules Overview](/screenshots/open-mercato-business-rules-overview.png)
 
@@ -134,13 +134,6 @@ Enforce regulatory and safety requirements:
 - Block operations on expired equipment
 - Ensure required documentation is complete
 
-### Customer Experience
-
-Improve customer interactions:
-- Apply discounts automatically based on volume
-- Send notifications at key milestones
-- Escalate issues based on customer tier
-
 ## Getting Started
 
 1. [**Create Your First Rule**](./creating-rules) - Step-by-step guide to creating rules
@@ -190,4 +183,3 @@ Contact your administrator to request access.
 - [**Rule Types Reference**](./rule-types) - Detailed explanation of each rule type
 - [**Creating Rules**](./creating-rules) - Step-by-step rule creation guide
 - [**API Reference**](../../api/business-rules) - Integrate rules into your applications
-- [**Framework Architecture**](../../framework/business-rules/architecture) - Extend the rule engine

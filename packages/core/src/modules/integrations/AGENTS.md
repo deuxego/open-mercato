@@ -66,7 +66,7 @@ packages/core/src/modules/integrations/
 
 ## Adding a New Integration Provider
 
-1. Create a new module (e.g., `packages/core/src/modules/gateway_stripe/`)
+1. Create a new provider package (e.g., `packages/provider-example/`)
 2. Add `integration.ts` at the module root exporting `IntegrationDefinition`
 3. Declare `credentials.fields` for the admin UI to render a dynamic form
 4. Optionally declare `healthCheck.service` (register the service in your `di.ts`)

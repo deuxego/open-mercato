@@ -62,16 +62,11 @@ Below is the current-state inventory of extension surfaces in Open Mercato.
 | Query/index coverage | Use CRUD indexer integration and query-index tooling | [Query index](/framework/database/query-index) |
 | External ID mapping enricher (UMES L) | Add `data/enrichers.ts` with `SyncExternalIdMapping` entity | [Data extensibility](/framework/database/data-extensibility), [Integration enhancements](/framework/extensibility/integration-enhancements) |
 
-## Search, vector, cache, AI
+## Cache
 
 | Surface | How to start | Primary contract/docs |
 |---|---|---|
-| Search module config | Add `search.ts` and declare indexed entities/strategies | [Hybrid search](/framework/database/hybrid-search) |
-| Fulltext driver extension | Implement `FullTextSearchDriver` and wire into strategy | [Hybrid search](/framework/database/hybrid-search) |
-| Vector entity config | Declare vector config (`vector.ts`) with `buildSource`/presenter/links | [Hybrid search](/framework/database/hybrid-search) |
-| Vector DB backends (current set) | Use built-in driver IDs: `pgvector`, `qdrant`, `chromadb` | [Hybrid search](/framework/database/hybrid-search) |
 | Cache backends | Configure cache strategy (`memory`, `redis`, `sqlite`, `jsonfile`) | [Cache management](/user-guide/cache-management) |
-| AI tools (MCP) | Add `ai-tools.ts`, register tools via ai-assistant contracts | [AI assistant package guide](/framework/modules/overview) |
 
 ## Notifications, messages, and domain integrations
 
@@ -82,9 +77,6 @@ Below is the current-state inventory of extension surfaces in Open Mercato.
 | Reactive notification handlers | Add `notifications.handlers.ts` and export `notificationHandlers`; react via `useNotificationEffect` | [Notifications](/framework/modules/notifications), [Widget injection](/framework/widget-injection) |
 | Message types | Add `message-types.ts` in your module | [Messages system](/framework/modules/messages) |
 | Message object types | Add `message-objects.ts` for attachable domain objects | [Messages system](/framework/modules/messages) |
-| Payment/shipping providers | Register `registerPaymentProvider` / `registerShippingProvider` | [Shipping & payment providers](/framework/modules/sales-providers), [Sales calculations](/framework/modules/sales-calculations) |
-| Currency providers | Add custom rate provider implementations | [Currencies module](/framework/modules/currencies) |
-| Workflow integrations | Add custom workflow activities/signals/subscribers | [Workflows extending](/framework/workflows/extending) |
 | Integration registry (UMES L) | Use `registerIntegration()` for typed integration definitions | [Integration enhancements](/framework/extensibility/integration-enhancements), [Data extensibility](/framework/database/data-extensibility) |
 
 ## What else is extendable right now

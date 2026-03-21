@@ -183,7 +183,7 @@
   "messages.placeholders.recipients": "Wyszukaj odbiorców...",
   "messages.placeholders.replyBody": "Napisz odpowiedź...",
   "messages.placeholders.sourceEntityId": "UUID powiązanego rekordu",
-  "messages.placeholders.sourceEntityType": "np. sales.order",
+  "messages.placeholders.sourceEntityType": "np. example.todo",
   "messages.placeholders.subject": "Wpisz temat...",
   "messages.priority": "Priorytet",
   "messages.reply": "Odpowiedz",

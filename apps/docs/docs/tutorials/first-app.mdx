@@ -41,7 +41,7 @@ If you ran `yarn initialize`, this step is already done. Otherwise:
 - Open http://localhost:3000/backend
 
 ## 5) How Modules Load and Override
-- Core modules live in packages (`packages/core`, `packages/search`, etc.) and are enabled in `apps/mercato/src/modules.ts`.
+- Core modules live in packages (`packages/core`, etc.) and are enabled in `apps/mercato/src/modules.ts`.
 - App-level overrides live under `apps/mercato/src/modules/<module>/...` and take precedence over packages with the same relative path.
 - Generators discover routes/APIs/DI/i18n/entities for enabled modules and write combined outputs to `generated/`.
 
@@ -94,7 +94,7 @@ export const metadata: ModuleInfo = { id: 'my_module', title: 'My Module', versi
 export const enabledModules = [
   { id: 'auth', from: '@open-mercato/core' },
   { id: 'directory', from: '@open-mercato/core' },
-  { id: 'customers', from: '@open-mercato/core' },
+  { id: 'example', from: '@open-mercato/core' },
   { id: 'my_module', from: '@open-mercato/my-module' },
 ]
 ```

@@ -237,25 +237,25 @@ The Query Engine provides advanced data retrieval capabilities:
 const crud = makeCrudRoute({
   // ...
   list: {
-    entityId: E.customers.customer_person_profile,
+    entityId: E.example.todo,
     fields: [
       "id",
-      "display_name",
-      "primary_email",
+      "title",
+      "status",
       "cf:priority", // Custom field
       "cf:tags", // Another custom field
     ],
     buildFilters: async (query, ctx) => {
-      const filters: Record<string, any> = { kind: { $eq: "person" } };
+      const filters: Record<string, any> = {};
 
       // Text search
       if (query.search) {
-        filters.display_name = { $ilike: `%${query.search}%` };
+        filters.title = { $ilike: `%${query.search}%` };
       }
 
       // Custom field filters
       const cfFilters = await buildCustomFieldFiltersFromQuery({
-        entityIds: [E.customers.customer_entity],
+        entityIds: [E.example.todo],
         query,
         em: ctx.container.resolve("em"),
         tenantId: ctx.auth.tenantId,
@@ -266,20 +266,10 @@ const crud = makeCrudRoute({
     },
     customFieldSources: [
       {
-        entityId: E.customers.customer_person_profile,
-        table: "customer_people",
-        alias: "person_profile",
+        entityId: E.example.todo,
+        table: "todos",
+        alias: "todo",
         recordIdColumn: "id",
-        join: { fromField: "id", toField: "entity_id" },
-      },
-    ],
-    joins: [
-      {
-        alias: "tags",
-        table: "customer_tag_assignments",
-        from: { field: "id" },
-        to: { field: "entity_id" },
-        type: "left",
       },
     ],
   },

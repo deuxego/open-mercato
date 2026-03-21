@@ -17,7 +17,7 @@ export const PORTAL_EVENT_DOM_NAME = 'om:portal-event'
  * event bridge (see `usePortalEventBridge.ts`). This hook filters events by pattern
  * and calls the handler.
  *
- * @param eventPattern - Pattern to match event IDs against (e.g., 'sales.order.*')
+ * @param eventPattern - Pattern to match event IDs against (e.g., 'example.todo.*')
  * @param handler - Callback invoked when a matching event arrives
  * @param deps - Optional dependency array for the handler (defaults to [])
  *
@@ -25,8 +25,8 @@ export const PORTAL_EVENT_DOM_NAME = 'om:portal-event'
  * ```tsx
  * import { usePortalAppEvent } from '@open-mercato/ui/portal/hooks/usePortalAppEvent'
  *
- * usePortalAppEvent('sales.order.status_changed', (event) => {
- *   refetch() // Refresh order list
+ * usePortalAppEvent('example.todo.completed', (event) => {
+ *   refetch() // Refresh todo list
  * })
  * ```
  */

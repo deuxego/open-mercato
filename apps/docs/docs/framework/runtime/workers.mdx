@@ -374,8 +374,8 @@ Open Mercato includes these workers:
 | Module | Worker | Queue | Purpose |
 |--------|--------|-------|---------|
 | events | `events.worker.ts` | `events` | Dispatches persistent events to subscribers |
-| search | `fulltext-index.worker.ts` | `fulltext-indexing` | Indexes documents for Meilisearch |
-| search | `vector-index.worker.ts` | `vector-indexing` | Generates embeddings for vector search |
+| query_index | `fulltext-index.worker.ts` | `fulltext-indexing` | Indexes documents for fulltext search |
+| query_index | `vector-index.worker.ts` | `vector-indexing` | Generates embeddings for vector queries |
 
 ## Related Documentation
 
