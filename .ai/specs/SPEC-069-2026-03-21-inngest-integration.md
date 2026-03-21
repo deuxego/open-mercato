@@ -65,17 +65,17 @@ The event bus and Inngest are **independent systems** with clear responsibilitie
 
 ### 3.2 Design Decisions
 
-**Triggering via `inngest.send()` with namespaced event names:**
+**Triggering via `inngest.send()` with the workflow ID as event name:**
 
-Workflows are triggered using the native Inngest SDK method `inngest.send()`. To avoid confusion between Mercato domain events (`orders.invoice.created`) and Inngest workflow triggers, workflow events use a distinct `app/` prefix namespace: `app/workflow.orders.invoice-followup`. The `wrapWorkflow` adapter auto-generates this event name from the workflow ID when no explicit `event` is provided in metadata.
+Workflows are triggered using the native Inngest SDK method `inngest.send()`. The event name is the workflow ID (e.g., `orders.invoice-followup`). This is naturally distinct from Mercato domain events which use dots only (`orders.invoice.created`) — workflow IDs contain hyphens. The `wrapWorkflow` adapter uses `config.id` as the event trigger when no explicit `event` is provided.
 
 **Why direct `inngest.send()` instead of an event bus bridge:**
 
 The previous spec version routed events through BullMQ → persistent wildcard subscriber → Inngest. This added ~50-100ms latency per hop and required changes to the events worker. The native approach:
 - **Zero changes to existing packages** — no events worker modifications
 - **Native latency** — only DI resolution overhead (~10-20ms for container creation)
-- **Clear namespace** — `app/workflow.*` events are visually distinct from `module.entity.action` domain events
 - **Native SDK** — uses `inngest.send()` exactly as documented in Inngest's Next.js quickstart
+- **Explicit triggering** — developers clearly see when a workflow is triggered vs when an event is emitted
 
 **Coupling concern mitigated by DI:** Modules resolve `inngestClient` from the DI container. If the Inngest package is removed, the DI registration disappears and `resolve('inngestClient')` fails at the call site — no hidden residue.
 
@@ -251,7 +251,7 @@ export function wrapWorkflow(metadata: WorkflowMeta, handler: WorkflowHandler) {
       }],
     },
     // trigger: use event if provided (for cancelOn/waitForEvent), otherwise invocation-only
-    event ? { event } : trigger ?? { event: `app/workflow.${config.id}` },
+    event ? { event } : trigger ?? { event: `${config.id}` },
     async ({ event, step }) => {
       if (!event.data.organizationId || !event.data.tenantId) {
         throw new NonRetriableError(
@@ -294,7 +294,7 @@ Workflows are triggered using the native `inngest.send()` method with a namespac
 // Any module code that has access to DI container
 const inngestClient = ctx.resolve<Inngest>('inngestClient')
 await inngestClient.send({
-  name: 'app/workflow.orders.invoice-followup',
+  name: 'orders.invoice-followup',
   data: { invoiceId, organizationId, tenantId },
 })
 ```
@@ -318,7 +318,7 @@ export default async function handler(
   // Trigger durable workflow
   const inngestClient = ctx.resolve<Inngest>('inngestClient')
   await inngestClient.send({
-    name: 'app/workflow.orders.invoice-followup',
+    name: 'orders.invoice-followup',
     data: payload,
   })
 }
@@ -332,7 +332,7 @@ await ctx.emitToEventBus('orders.order.fulfilled', { orderId, organizationId, te
 
 // Trigger another workflow (saga coordination) — via Inngest SDK step
 await ctx.step.sendEvent('trigger-shipping', {
-  name: 'app/workflow.orders.shipping-request',
+  name: 'orders.shipping-request',
   data: { orderId, organizationId, tenantId },
 })
 ```
@@ -342,9 +342,9 @@ await ctx.step.sendEvent('trigger-shipping', {
 | Context | Pattern | Example |
 |---------|---------|---------|
 | Mercato domain event | `module.entity.action` | `orders.invoice.created` |
-| Inngest workflow trigger | `app/workflow.{workflowId}` | `app/workflow.orders.invoice-followup` |
+| Inngest workflow trigger | `module.entity-action` (hyphens) | `orders.invoice-followup` |
 
-The `app/` prefix is an Inngest convention for application events. The `workflow.` segment makes it immediately clear this triggers an Inngest function, not a domain side effect.
+Domain events use dots as separators (`orders.invoice.created`). Workflow IDs use hyphens (`orders.invoice-followup`). The difference is natural — no artificial prefix needed.
 
 ### 9.5 Decision Tree: When to Use What
 
@@ -359,7 +359,7 @@ Need durable execution (sleep, retry steps, cancel on event, fan-out)?
   → Inngest workflow (workflows/*.ts)
 
 Need to trigger a workflow from module code?
-  → inngest.send({ name: 'app/workflow.{id}', data }) via DI
+  → inngest.send({ name: workflowId, data }) via DI
 
 Need DI services inside a workflow step?
   → ctx.run() (not ctx.step.run())
@@ -754,7 +754,7 @@ if (parseBooleanWithDefault(process.env.OM_ENABLE_INNGEST, false)) {
 | `inngest.send()` → workflow | Invoke workflow by function ID, verify it executes |
 | Workflow step execution | Trigger workflow, verify step runs with tenant-scoped DI |
 | `ctx.emitToEventBus()` | Workflow emits to bus, verify subscriber fires |
-| `ctx.invokeWorkflow()` | Workflow invokes another workflow by ID |
+| `ctx.step.sendEvent()` | Workflow triggers another workflow via send |
 | `cancelOn` | Trigger workflow with sleep, send cancel event, verify workflow stops |
 | Missing `organizationId` | Invoke without org, verify `NonRetriableError` |
 
@@ -788,6 +788,7 @@ if (parseBooleanWithDefault(process.env.OM_ENABLE_INNGEST, false)) {
 | 0.1 | 2026-03-21 | Initial draft with BullMQ persistent bridge approach |
 | 0.2 | 2026-03-21 | Pre-implementation fixes: export `matchEventPattern`, fix worker `eventName` propagation, replace `process.exit` with `throw` |
 | 0.3 | 2026-03-21 | **Major rewrite:** replaced BullMQ bridge with native Inngest integration. Eliminated events worker modifications, wildcard fix, `_inngestOrigin` loop prevention, bridge subscriber, and registry. Direct `inngest.send()` via DI. Zero changes to existing packages. |
-| 0.4 | 2026-03-21 | Switched from `inngest.send()` (event-based) to `inngest.send()` (function ID-based) to eliminate naming confusion between Mercato domain events and Inngest triggers. |
-| 0.5 | 2026-03-21 | Thin wrapper philosophy: `WorkflowMeta` re-exports `FunctionConfiguration`, `WorkflowContext` exposes `ctx.step` for direct SDK access, `ctx.run()` replaces `ctx.step()` for DI-aware execution. No custom type duplication — SDK features available immediately. |
-| 0.6 | 2026-03-21 | Added Inngest Dashboard sidebar link in settings (dev-only, widget injection). Port forwarding + admin UI link for discoverability. |
+| 0.4 | 2026-03-21 | Switched to `inngest.invoke()` (function ID-based) to eliminate naming confusion. |
+| 0.5 | 2026-03-21 | Thin wrapper philosophy: `WorkflowMeta` re-exports `FunctionConfiguration`, `WorkflowContext` exposes `ctx.step` for direct SDK access, `ctx.run()` for DI-aware execution. |
+| 0.6 | 2026-03-21 | Added Inngest Dashboard sidebar link in settings (dev-only, widget injection). |
+| 0.7 | 2026-03-21 | Reverted to `inngest.send()` (native SDK method). `invoke()` is step-level only. Workflow ID used directly as event name — hyphens in IDs naturally distinguish from dot-separated domain events. |

@@ -18,11 +18,13 @@ test.describe('TC-UMES-010: DevTools panel', () => {
   test('opens and closes via Ctrl+Shift+U keyboard shortcut', async ({ page }) => {
     test.setTimeout(30_000)
     await page.goto('/backend/todos')
-    await page.waitForLoadState('networkidle')
+    await page.waitForLoadState('domcontentloaded')
+    // Wait for JS event listeners to attach
+    await page.waitForTimeout(2_000)
 
     // Ensure page body has focus so keyboard events are captured
     await page.locator('body').click()
-    await page.waitForTimeout(500)
+    await page.waitForTimeout(300)
 
     // Panel should NOT be visible initially
     await expect(page.getByText('UMES DevTools')).not.toBeVisible()

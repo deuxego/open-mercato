@@ -3,6 +3,11 @@ import { createMDX } from 'fumadocs-mdx/next';
 const config = {
   reactStrictMode: true,
   output: 'standalone',
+  images: {
+    remotePatterns: [
+      { hostname: 'img.youtube.com' },
+    ],
+  },
   redirects: async () => [
     {
       source: '/docs',
