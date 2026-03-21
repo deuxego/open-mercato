@@ -1,9 +1,9 @@
 {
-  "title": "API",
+  "title": "API Routes",
   "pages": [
     "api-development-guide",
-    "building-api-modules",
     "crud-factory",
+    "building-api-modules",
     "extending-api"
   ]
 }

@@ -1,9 +1,9 @@
 {
-  "title": "Tutorials",
+  "title": "Hands-on Tutorials",
   "pages": [
     "first-app",
-    "authoring-first-module",
     "building-todo-module",
+    "authoring-first-module",
     "api-data-fetching",
     "testing",
     "business-rules"

@@ -1,4 +1,4 @@
 {
   "title": "Runtime",
-  "pages": ["request-lifecycle", "data-engine", "workers"]
+  "pages": ["data-engine", "request-lifecycle", "workers"]
 }

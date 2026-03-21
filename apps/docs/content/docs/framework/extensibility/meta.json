@@ -1,11 +1,11 @@
 {
-  "title": "Extensibility",
+  "title": "Extensibility Directory",
   "pages": [
     "index",
     "current-surfaces",
-    "query-engine-extensibility",
-    "integration-enhancements",
     "umes-phases",
+    "integration-enhancements",
+    "query-engine-extensibility",
     "umes-2-09-roadmap"
   ]
 }

@@ -1,5 +1,6 @@
 import { DocsLayout } from 'fumadocs-ui/layouts/docs';
 import { source } from '@/lib/source';
+import { NavTitle, navLinks } from '@/lib/nav';
 import type { ReactNode } from 'react';
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -7,16 +8,7 @@ export default function Layout({ children }: { children: ReactNode }) {
     <DocsLayout
       tree={source.pageTree}
       nav={{
-        title: (
-          <span className="flex items-center gap-2 font-semibold">
-            <img
-              src="/img/open-mercato.svg"
-              alt=""
-              className="size-5"
-            />
-            Open Mercato
-          </span>
-        ),
+        title: <NavTitle />,
         url: '/',
         transparentMode: 'top',
       }}
@@ -24,20 +16,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         defaultOpenLevel: 1,
         collapsible: true,
       }}
-      links={[
-        {
-          text: 'User Guide',
-          url: '/docs/user-guide/overview',
-        },
-        {
-          text: 'Framework',
-          url: '/docs/framework/modules/overview',
-        },
-        {
-          text: 'REST API',
-          url: '/docs/api/overview',
-        },
-      ]}
+      links={navLinks}
       githubUrl="https://github.com/open-mercato/open-mercato"
     >
       {children}

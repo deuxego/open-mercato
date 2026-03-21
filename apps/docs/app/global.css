@@ -3,16 +3,16 @@
 @import 'fumadocs-ui/css/preset.css';
 
 :root {
-  --color-fd-primary: oklch(0.65 0.19 130);
-  --color-fd-primary-foreground: oklch(1 0 0);
-  --radius: 0.5rem;
+  --color-fd-primary: oklch(0.25 0 0);
+  --color-fd-primary-foreground: oklch(0.98 0 0);
+  --radius: 0.375rem;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }
 
 .dark {
-  --color-fd-primary: oklch(0.75 0.18 130);
-  --color-fd-primary-foreground: oklch(0.15 0 0);
+  --color-fd-primary: oklch(0.93 0 0);
+  --color-fd-primary-foreground: oklch(0.12 0 0);
 }
 
 /* Geist font family */
@@ -24,20 +24,22 @@ code, kbd, pre {
   font-family: var(--font-geist-mono), ui-monospace, monospace;
 }
 
-/* Clean code blocks */
-.dark pre:has(code) {
-  background: #0a0a0a !important;
-  border: 1px solid rgba(255, 255, 255, 0.08) !important;
-}
-
+/* Code blocks — remove inner pre border, let Fumadocs figure handle it */
 pre:has(code) {
-  border-radius: 0.5rem;
+  border: none !important;
+  border-radius: 0 !important;
+  background: transparent !important;
 }
 
 /* Smooth scrollbar */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-fd-border) transparent;
+}
+
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {

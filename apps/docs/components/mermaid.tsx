@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useId, useRef, useState } from 'react';
+import { useEffect, useId, useState } from 'react';
 import { useTheme } from 'next-themes';
 
 interface MermaidProps {
@@ -9,8 +9,8 @@ interface MermaidProps {
 
 export function Mermaid({ chart }: MermaidProps) {
   const id = useId().replace(/:/g, '-');
-  const containerRef = useRef<HTMLDivElement>(null);
   const [svg, setSvg] = useState('');
+  const [error, setError] = useState(false);
   const { resolvedTheme } = useTheme();
 
   useEffect(() => {
@@ -29,9 +29,12 @@ export function Mermaid({ chart }: MermaidProps) {
           `mermaid-${id}`,
           chart,
         );
-        if (!cancelled) setSvg(rendered);
+        if (!cancelled) {
+          setSvg(rendered);
+          setError(false);
+        }
       } catch {
-        if (!cancelled) setSvg(`<pre>${chart}</pre>`);
+        if (!cancelled) setError(true);
       }
     }
 
@@ -41,9 +44,16 @@ export function Mermaid({ chart }: MermaidProps) {
     };
   }, [chart, id, resolvedTheme]);
 
+  if (error) {
+    return (
+      <pre className="my-4 overflow-auto rounded border border-fd-border bg-fd-card p-4 text-xs">
+        {chart}
+      </pre>
+    );
+  }
+
   return (
     <div
-      ref={containerRef}
       className="my-4 flex justify-center [&_svg]:max-w-full"
       dangerouslySetInnerHTML={{ __html: svg }}
     />

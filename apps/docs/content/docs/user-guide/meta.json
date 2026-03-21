@@ -17,6 +17,7 @@
     "integrations",
     "business-rules",
     "audit-logs",
-    "scheduler"
+    "scheduler",
+    "self-service-onboarding"
   ]
 }

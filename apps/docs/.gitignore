@@ -1,5 +1,6 @@
 node_modules
 .next
 .source
+.turbo
 /yarn.lock
 /package-lock.json

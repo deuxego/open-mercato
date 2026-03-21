@@ -1,16 +1,17 @@
 {
-  "title": "API Reference",
+  "title": "REST API",
   "pages": [
     "overview",
+    "---Module Guides---",
     "auth",
     "directory",
-    "entities",
-    "feature-toggles",
-    "modules",
-    "attachments",
     "dashboards",
     "integrations-data-sync",
-    "business-rules",
-    "scheduler"
+    "entities",
+    "attachments",
+    "feature-toggles",
+    "scheduler",
+    "modules",
+    "business-rules"
   ]
 }

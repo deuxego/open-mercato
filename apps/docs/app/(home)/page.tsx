@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { Metadata } from 'next';
 
 export const metadata: Metadata = {
+  title: 'Open Mercato — Modular ERP Framework',
   description:
     'Documentation for the Open Mercato framework covering modules, APIs, data extensibility, and admin customization.',
 };
@@ -90,31 +91,30 @@ export default function HomePage() {
     <main>
       {/* Hero */}
       <section className="relative overflow-hidden border-b border-fd-border">
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,var(--color-fd-primary)/0.08,transparent_70%)]" />
-        <div className="relative mx-auto max-w-5xl px-6 pb-20 pt-28 text-center">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-fd-border bg-fd-card px-3 py-1 text-xs text-fd-muted-foreground">
-            <span className="size-1.5 rounded-full bg-fd-primary" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,rgba(128,128,128,0.06),transparent_70%)]" />
+        <div className="relative mx-auto max-w-5xl px-6 pb-24 pt-32 text-center">
+          <p className="mb-6 text-sm font-medium tracking-wide text-fd-muted-foreground">
             Open Source ERP Framework
-          </div>
-          <h1 className="mb-4 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+          </p>
+          <h1 className="mb-5 text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
             Build business apps
             <br />
-            <span className="text-fd-primary">without starting from scratch</span>
+            without starting from scratch.
           </h1>
-          <p className="mx-auto mb-8 max-w-2xl text-lg text-fd-muted-foreground">
-            Open Mercato is a modular, extensible ERP foundation framework.
-            Strong defaults, room to customize everything.
+          <p className="mx-auto mb-10 max-w-xl text-fd-muted-foreground">
+            Modular, extensible ERP foundation. Strong defaults, room to
+            customize everything.
           </p>
           <div className="flex items-center justify-center gap-3">
             <Link
               href="/docs"
-              className="rounded-md bg-fd-primary px-5 py-2.5 text-sm font-medium text-fd-primary-foreground transition-colors hover:bg-fd-primary/90"
+              className="rounded-md bg-fd-foreground px-5 py-2.5 text-sm font-medium text-fd-background transition-colors hover:bg-fd-foreground/90"
             >
               Read the Docs
             </Link>
             <Link
               href="/docs/customization/standalone-app"
-              className="rounded-md border border-fd-border bg-fd-card px-5 py-2.5 text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-accent"
+              className="rounded-md border border-fd-border px-5 py-2.5 text-sm font-medium text-fd-foreground transition-colors hover:bg-fd-accent"
             >
               Get Started
             </Link>
@@ -131,7 +131,7 @@ export default function HomePage() {
                 key={feature.title}
                 className="flex flex-col gap-2 bg-fd-card p-5"
               >
-                <span className="font-mono text-xs text-fd-primary">
+                <span className="font-mono text-xs text-fd-muted-foreground" aria-hidden="true">
                   {feature.icon}
                 </span>
                 <h3 className="text-sm font-semibold">{feature.title}</h3>
@@ -158,7 +158,7 @@ export default function HomePage() {
                 href={shot.src}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="group overflow-hidden rounded-lg border border-fd-border transition-all hover:border-fd-primary/40 hover:shadow-md"
+                className="group overflow-hidden rounded-lg border border-fd-border transition-all hover:border-fd-foreground/20 hover:shadow-md"
               >
                 <img
                   src={shot.src}
@@ -187,9 +187,9 @@ export default function HomePage() {
               <Link
                 key={link.title}
                 href={link.href}
-                className="group rounded-lg border border-fd-border bg-fd-card p-5 transition-all hover:border-fd-primary/40 hover:shadow-md"
+                className="group rounded-lg border border-fd-border bg-fd-card p-5 transition-all hover:border-fd-foreground/20 hover:shadow-md"
               >
-                <h3 className="mb-1 text-sm font-semibold group-hover:text-fd-primary">
+                <h3 className="mb-1 text-sm font-semibold group-hover:text-fd-foreground">
                   {link.title}
                 </h3>
                 <p className="text-xs text-fd-muted-foreground">

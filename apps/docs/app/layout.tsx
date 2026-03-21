@@ -12,6 +12,13 @@ export const metadata = {
   description:
     'Extensible ERP foundation framework with modular architecture',
   icons: { icon: '/img/open-mercato.svg' },
+  openGraph: {
+    type: 'website' as const,
+    siteName: 'Open Mercato Docs',
+  },
+  twitter: {
+    card: 'summary' as const,
+  },
 };
 
 export default function RootLayout({ children }: { children: ReactNode }) {
