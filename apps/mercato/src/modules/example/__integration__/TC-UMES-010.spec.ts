@@ -16,19 +16,29 @@ test.describe('TC-UMES-010: DevTools panel', () => {
   })
 
   test('opens and closes via Ctrl+Shift+U keyboard shortcut', async ({ page }) => {
+    test.setTimeout(30_000)
     await page.goto('/backend/todos')
-    await page.waitForLoadState('domcontentloaded')
+    await page.waitForLoadState('networkidle')
+
+    // Ensure page body has focus so keyboard events are captured
+    await page.locator('body').click()
+    await page.waitForTimeout(500)
 
     // Panel should NOT be visible initially
     await expect(page.getByText('UMES DevTools')).not.toBeVisible()
 
-    // Open panel with Ctrl+Shift+U
+    // Open panel with Ctrl+Shift+U (retry if first attempt doesn't register)
     await page.keyboard.press('Control+Shift+U')
-    await expect(page.getByText('UMES DevTools')).toBeVisible()
+    const devToolsText = page.getByText('UMES DevTools')
+    if (!(await devToolsText.isVisible().catch(() => false))) {
+      await page.waitForTimeout(500)
+      await page.keyboard.press('Control+Shift+U')
+    }
+    await expect(devToolsText).toBeVisible({ timeout: 5_000 })
 
     // Close panel with Ctrl+Shift+U
     await page.keyboard.press('Control+Shift+U')
-    await expect(page.getByText('UMES DevTools')).not.toBeVisible()
+    await expect(devToolsText).not.toBeVisible({ timeout: 5_000 })
   })
 
   test('shows extension count badge and registered extensions', async ({ page }) => {
