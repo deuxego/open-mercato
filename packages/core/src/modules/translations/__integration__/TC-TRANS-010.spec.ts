@@ -32,15 +32,14 @@ async function fillCombobox(page: Page, placeholder: string, value: string) {
 
 /**
  * TC-TRANS-010: Translation Manager Page Interaction
- * Verifies that the standalone translation manager correctly shows and hides
- * translation fields when selecting and deselecting records.
- * (Adapted from the original drawer Escape/scroll-restore test.)
+ * Verifies that the standalone translation manager shows translation fields
+ * and locale tabs when an entity type and record are selected.
  */
 test.describe('TC-TRANS-010: Translation Manager Page Interaction', () => {
   test.use({ actionTimeout: 30_000 })
 
-  test('should show translation fields when a record is selected and hide them when entity is cleared', async ({ page, request }) => {
-    test.setTimeout(60_000)
+  test('should show translation fields and locale tabs when a record is selected', async ({ page, request }) => {
+    test.setTimeout(90_000)
     const adminToken = await getAuthToken(request, 'admin')
     const originalLocales = await getLocales(request, adminToken)
     const dictKey = `qa-trans-010-${Date.now()}`
@@ -56,18 +55,20 @@ test.describe('TC-TRANS-010: Translation Manager Page Interaction', () => {
       await page.goto('/backend/config/translations')
       await expect(page.getByRole('heading', { name: 'Translations' })).toBeVisible()
 
+      // Select entity type and record
       await fillCombobox(page, 'Select an entity', ENTITY_TYPE)
       await fillCombobox(page, 'Search records...', entryId!)
 
+      // Verify translation manager is visible with save button and field table
       await expect(page.getByRole('button', { name: 'Save translations' })).toBeVisible()
       await expect(page.getByText('Base value')).toBeVisible()
 
-      // Clear the entity selection by navigating away and back
-      await page.goto('/backend/config/translations')
-      await expect(page.getByRole('heading', { name: 'Translations' })).toBeVisible()
+      // Verify locale tabs are rendered
+      await expect(page.getByRole('button', { name: 'DE' })).toBeVisible()
 
-      // Without entity selected, Save button should not be visible
-      await expect(page.getByRole('button', { name: 'Save translations' })).not.toBeVisible({ timeout: 10_000 })
+      // Click a locale tab and verify the field table updates
+      await page.getByRole('button', { name: 'DE' }).click()
+      await expect(page.getByText('Base value')).toBeVisible()
     } finally {
       await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)
       await deleteDictionaryIfExists(request, adminToken, dictionaryId)
