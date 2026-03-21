@@ -128,7 +128,7 @@ export function createSyncEngine(deps: EngineDeps) {
         ? item.data.sourceIdentifier.trim()
         : null
       const message = [
-        `Failed to import Akeneo product ${item.externalId}`,
+        `Failed to import item ${item.externalId}`,
         sourceProductUuid ? `(uuid: ${sourceProductUuid})` : null,
         sourceIdentifier ? `(identifier: ${sourceIdentifier})` : null,
         `: ${errorMessage}`,

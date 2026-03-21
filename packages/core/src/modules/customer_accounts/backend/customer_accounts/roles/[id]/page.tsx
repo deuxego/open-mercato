@@ -27,11 +27,6 @@ type RoleDetail = {
 const PORTAL_FEATURES = [
   { id: 'portal.profile.view', labelKey: 'customer_accounts.admin.portalFeatures.profile.view', fallback: 'View profile' },
   { id: 'portal.profile.edit', labelKey: 'customer_accounts.admin.portalFeatures.profile.edit', fallback: 'Edit profile' },
-  { id: 'portal.orders.view', labelKey: 'customer_accounts.admin.portalFeatures.orders.view', fallback: 'View orders' },
-  { id: 'portal.orders.create', labelKey: 'customer_accounts.admin.portalFeatures.orders.create', fallback: 'Create orders' },
-  { id: 'portal.invoices.view', labelKey: 'customer_accounts.admin.portalFeatures.invoices.view', fallback: 'View invoices' },
-  { id: 'portal.quotes.view', labelKey: 'customer_accounts.admin.portalFeatures.quotes.view', fallback: 'View quotes' },
-  { id: 'portal.quotes.request', labelKey: 'customer_accounts.admin.portalFeatures.quotes.request', fallback: 'Request quotes' },
   { id: 'portal.addresses.view', labelKey: 'customer_accounts.admin.portalFeatures.addresses.view', fallback: 'View addresses' },
   { id: 'portal.addresses.manage', labelKey: 'customer_accounts.admin.portalFeatures.addresses.manage', fallback: 'Manage addresses' },
   { id: 'portal.users.view', labelKey: 'customer_accounts.admin.portalFeatures.users.view', fallback: 'View team members' },

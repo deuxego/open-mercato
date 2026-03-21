@@ -439,35 +439,6 @@ export default function CustomerUserDetailPage({ params }: { params?: { id?: str
             </dl>
           </div>
 
-          <div className="rounded-lg border p-4 space-y-3">
-            <h2 className="text-sm font-semibold">{t('customer_accounts.admin.detail.sections.crmLinks', 'CRM Links')}</h2>
-            <dl className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">{t('customer_accounts.admin.detail.fields.personEntity', 'Linked Person')}</dt>
-                <dd>
-                  {data.personEntityId ? (
-                    <Link href={`/backend/customers/people/${data.personEntityId}`} className="text-primary hover:underline">
-                      {t('customer_accounts.admin.detail.actions.viewPerson', 'View')}
-                    </Link>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </dd>
-              </div>
-              <div className="flex justify-between">
-                <dt className="text-muted-foreground">{t('customer_accounts.admin.detail.fields.customerEntity', 'Linked Company')}</dt>
-                <dd>
-                  {data.customerEntityId ? (
-                    <Link href={`/backend/customers/companies/${data.customerEntityId}`} className="text-primary hover:underline">
-                      {t('customer_accounts.admin.detail.actions.viewCompany', 'View')}
-                    </Link>
-                  ) : (
-                    <span className="text-muted-foreground">-</span>
-                  )}
-                </dd>
-              </div>
-            </dl>
-          </div>
         </div>
 
         <div className="rounded-lg border p-4 space-y-4">

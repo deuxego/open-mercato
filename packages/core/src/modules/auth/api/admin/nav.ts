@@ -250,14 +250,8 @@ export async function GET(req: Request) {
     }
   })
   const defaultGroupOrder = [
-    'customers.nav.group',
-    'catalog.nav.group',
-    'customers~sales.nav.group',
-    'resources.nav.group',
-    'staff.nav.group',
     'entities.nav.group',
     'directory.nav.group',
-    'customers.storage.nav.group',
   ]
   const groupOrderIndex = new Map(defaultGroupOrder.map((id, index) => [id, index]))
   groups.sort((a, b) => {

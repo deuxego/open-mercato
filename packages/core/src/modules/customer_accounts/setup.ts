@@ -39,12 +39,6 @@ const DEFAULT_ROLES = [
       isPortalAdmin: false,
       features: [
         'portal.account.manage',
-        'portal.orders.view',
-        'portal.orders.create',
-        'portal.quotes.view',
-        'portal.quotes.request',
-        'portal.invoices.view',
-        'portal.catalog.view',
       ],
     },
   },
@@ -59,9 +53,6 @@ const DEFAULT_ROLES = [
       isPortalAdmin: false,
       features: [
         'portal.account.manage',
-        'portal.orders.view',
-        'portal.invoices.view',
-        'portal.catalog.view',
       ],
     },
   },

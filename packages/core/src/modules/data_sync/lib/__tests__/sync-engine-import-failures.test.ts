@@ -50,7 +50,7 @@ describe('data sync engine import item failures', () => {
               externalId: 'product-1',
               action: 'failed',
               data: {
-                errorMessage: 'Akeneo media file missing-image.jpg was not found',
+                errorMessage: 'Media file missing-image.jpg was not found',
                 sourceProductUuid: 'product-1',
                 sourceIdentifier: 'sku-1',
               },
@@ -147,9 +147,9 @@ describe('data sync engine import item failures', () => {
       integrationId: 'sync_akeneo',
       runId: 'run-1',
       level: 'error',
-      message: expect.stringContaining('Failed to import Akeneo product product-1'),
+      message: expect.stringContaining('Failed to import item product-1'),
       payload: expect.objectContaining({
-        errorMessage: 'Akeneo media file missing-image.jpg was not found',
+        errorMessage: 'Media file missing-image.jpg was not found',
         sourceProductUuid: 'product-1',
       }),
     }), {
