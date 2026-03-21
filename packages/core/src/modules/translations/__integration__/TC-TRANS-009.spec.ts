@@ -11,14 +11,19 @@ import { deleteTranslationIfExists, getLocales, setLocales } from './helpers/tra
 
 const ENTITY_TYPE = 'dictionaries:dictionary_entry'
 
-async function fillCombobox(page: import('@playwright/test').Page, placeholder: string, value: string) {
+async function fillCombobox(page: Page, placeholder: string, value: string) {
   const input = page.getByPlaceholder(placeholder)
   await expect(input).toBeEnabled({ timeout: 30_000 })
   await input.click()
   await input.fill(value)
-  await input.press('Enter')
+  const option = page.getByRole('option', { name: new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) })
+  try {
+    await option.first().click({ timeout: 5_000 })
+  } catch {
+    await input.press('Enter')
+  }
   await input.press('Tab')
-  await page.waitForTimeout(300)
+  await page.waitForTimeout(500)
 }
 
 /**

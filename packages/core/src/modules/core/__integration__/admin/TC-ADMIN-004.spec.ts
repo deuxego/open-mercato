@@ -53,8 +53,8 @@ test.describe('TC-ADMIN-004: Dictionary Management', () => {
       // Submit
       await page.getByRole('button', { name: 'Save' }).click();
 
-      // Verify the new dictionary appears in the sidebar list
-      await expect(page.getByText(dictName)).toBeVisible({ timeout: 10_000 });
+      // Verify the new dictionary appears in the sidebar list (use first() to avoid strict mode — name appears in both sidebar and heading)
+      await expect(page.getByText(dictName).first()).toBeVisible({ timeout: 10_000 });
 
       // Now verify the details panel is visible (dictionary is auto-selected after creation)
       await expect(page.getByText('Manage reusable values and appearance')).toBeVisible({ timeout: 10_000 });

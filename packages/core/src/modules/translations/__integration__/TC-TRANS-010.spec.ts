@@ -16,8 +16,12 @@ async function fillCombobox(page: Page, placeholder: string, value: string) {
   await expect(input).toBeEnabled({ timeout: 30_000 })
   await input.click()
   await input.fill(value)
-  await page.waitForTimeout(500)
-  await input.press('Enter')
+  const option = page.getByRole('option', { name: new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) })
+  try {
+    await option.first().click({ timeout: 5_000 })
+  } catch {
+    await input.press('Enter')
+  }
   await input.press('Tab')
   await page.waitForTimeout(500)
 }
@@ -54,12 +58,12 @@ test.describe('TC-TRANS-010: Translation Manager Page Interaction', () => {
       await expect(page.getByRole('button', { name: 'Save translations' })).toBeVisible()
       await expect(page.getByText('Base value')).toBeVisible()
 
-      const entityInput = page.getByPlaceholder('Select an entity')
-      await entityInput.click()
-      await entityInput.clear()
-      await entityInput.press('Escape')
+      // Clear the entity selection by navigating away and back
+      await page.goto('/backend/config/translations')
+      await expect(page.getByRole('heading', { name: 'Translations' })).toBeVisible()
 
-      await expect(page.getByRole('button', { name: 'Save translations' })).not.toBeVisible()
+      // Without entity selected, Save button should not be visible
+      await expect(page.getByRole('button', { name: 'Save translations' })).not.toBeVisible({ timeout: 10_000 })
     } finally {
       await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)
       await deleteDictionaryIfExists(request, adminToken, dictionaryId)

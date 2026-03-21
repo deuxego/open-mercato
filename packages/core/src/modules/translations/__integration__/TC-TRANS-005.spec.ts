@@ -11,18 +11,19 @@ import { deleteTranslationIfExists, getLocales, setLocales } from './helpers/tra
 
 const ENTITY_TYPE = 'dictionaries:dictionary_entry'
 
-/**
- * Helper: set a value directly into a ComboboxInput using allowCustomValues.
- * Types the value and presses Enter to confirm — avoids flaky dropdown clicks
- * and search index lag for async suggestions.
- */
 async function fillCombobox(page: import('@playwright/test').Page, placeholder: string, value: string) {
   const input = page.getByPlaceholder(placeholder)
   await expect(input).toBeEnabled({ timeout: 30_000 })
   await input.click()
   await input.fill(value)
-  await page.waitForTimeout(500)
-  await input.press('Enter')
+  // Wait for dropdown suggestion to appear and click it
+  const option = page.getByRole('option', { name: new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) })
+  try {
+    await option.first().click({ timeout: 5_000 })
+  } catch {
+    // Fallback: press Enter if no dropdown option found (allowCustomValues combobox)
+    await input.press('Enter')
+  }
   await input.press('Tab')
   await page.waitForTimeout(500)
 }
