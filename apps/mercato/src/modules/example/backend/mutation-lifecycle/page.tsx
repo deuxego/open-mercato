@@ -354,12 +354,12 @@ export default function MutationLifecyclePage() {
           <div>
             <h2 className="text-base font-semibold">{t('example.mutationLifecycle.m4.title', 'Phase m4 — Command Interceptors')}</h2>
             <p className="text-sm text-muted-foreground">
-              {t('example.mutationLifecycle.m4.description', 'The `example.audit-logging` interceptor wraps all `customers.*` command bus operations with timing metadata.')}
+              {t('example.mutationLifecycle.m4.description', 'The `example.audit-logging` interceptor wraps all `example.*` command bus operations with timing metadata.')}
             </p>
           </div>
           <div className={`grid gap-1 ${hintClassName}`}>
             <div className="font-medium text-amber-900 dark:text-amber-50">{t('example.mutationLifecycle.hintHeading', 'What should be visible and how it should work')}</div>
-            <div>{t('example.mutationLifecycle.m4.hint1', '1. `example.audit-logging` intercepts all `customers.*` commands (wildcard pattern).')}</div>
+            <div>{t('example.mutationLifecycle.m4.hint1', '1. `example.audit-logging` intercepts all `example.*` commands (wildcard pattern).')}</div>
             <div>{t('example.mutationLifecycle.m4.hint2', '2. `beforeExecute` stores `auditStartedAt` timestamp in metadata.')}</div>
             <div>{t('example.mutationLifecycle.m4.hint3', '3. `afterExecute` reads metadata and logs: `[example:audit] Command {id} completed in {ms}ms`.')}</div>
             <div>{t('example.mutationLifecycle.m4.hint4', '4. Pattern matching supports `*` (all), exact ID, and `prefix.*` (namespace wildcard).')}</div>
@@ -367,14 +367,14 @@ export default function MutationLifecyclePage() {
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
             <Button asChild type="button" variant="outline">
-              <Link href="/backend/customers/people">{t('example.mutationLifecycle.m4.openCustomers', 'Open customers')}</Link>
+              <Link href="/backend/todos">{t('example.mutationLifecycle.m4.openTodos', 'Open todos')}</Link>
             </Button>
-            <span>{t('example.mutationLifecycle.m4.note', 'Create or edit a customer, then check server console for the audit log entry.')}</span>
+            <span>{t('example.mutationLifecycle.m4.note', 'Create or edit a todo, then check server console for the audit log entry.')}</span>
           </div>
           <div className="rounded border border-border bg-muted/30 p-2 text-xs text-muted-foreground">
             interceptor={print({
               id: 'example.audit-logging',
-              targetCommand: 'customers.*',
+              targetCommand: 'example.*',
               priority: 50,
               hooks: ['beforeExecute', 'afterExecute'],
             })}
