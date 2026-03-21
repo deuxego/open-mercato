@@ -15,8 +15,8 @@ test.describe('TC-ADMIN-010: Cache Management', () => {
     await login(page, 'superadmin');
 
     // First visit a CRUD page to ensure some cache entries exist
-    await page.goto('/backend/customers/companies');
-    await page.getByText('Loading data...').waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {});
+    await page.goto('/backend/config/dictionaries');
+    await page.getByText('Loading dictionaries').waitFor({ state: 'hidden', timeout: 10_000 }).catch(() => {});
 
     // Navigate to cache management
     await page.goto('/backend/config/cache');

@@ -69,3 +69,5 @@ export async function deleteGeneralEntityIfExists(
     return;
   }
 }
+
+export const deleteEntityIfExists = deleteGeneralEntityIfExists

@@ -13,7 +13,7 @@ import {
 } from '@open-mercato/core/modules/core/__integration__/helpers/api'
 import {
   readJsonSafe,
-} from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures'
+} from '@open-mercato/core/modules/core/__integration__/helpers/generalFixtures'
 import {
   buildExtensionHeader,
   parseExtensionHeaders,

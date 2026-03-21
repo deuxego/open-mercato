@@ -1,7 +1,7 @@
 import { test, expect } from '@playwright/test'
 import { getAuthToken, apiRequest } from '@open-mercato/core/modules/core/__integration__/helpers/api'
 import { login } from '@open-mercato/core/modules/core/__integration__/helpers/auth'
-import { deleteEntityIfExists } from '@open-mercato/core/modules/core/__integration__/helpers/crmFixtures'
+import { deleteEntityIfExists } from '@open-mercato/core/modules/core/__integration__/helpers/generalFixtures'
 
 test.describe('TC-UMES-004: Phase E-H completion', () => {
   let adminToken = ''
