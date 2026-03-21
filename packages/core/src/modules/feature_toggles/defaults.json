@@ -9,18 +9,18 @@
       "defaultValue": true
     },
     {
-      "identifier": "marketing_banner_text",
-      "name": "Marketing Banner Text",
-      "description": "Controls the banner copy shown on the storefront.",
-      "category": "storefront",
+      "identifier": "maintenance_banner_text",
+      "name": "Maintenance Banner Text",
+      "description": "Controls the banner copy shown to users during maintenance.",
+      "category": "system",
       "type": "string",
-      "defaultValue": "Free shipping on orders over $50"
+      "defaultValue": "System maintenance scheduled for this weekend."
     },
     {
-      "identifier": "order_review_threshold",
-      "name": "Order Review Threshold",
-      "description": "Routes orders above this total to manual review.",
-      "category": "sales",
+      "identifier": "approval_threshold",
+      "name": "Approval Threshold",
+      "description": "Routes requests above this value to manual review.",
+      "category": "operations",
       "type": "number",
       "defaultValue": 2500
     },
