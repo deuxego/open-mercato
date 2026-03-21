@@ -1,0 +1,11 @@
+{
+  "title": "Security",
+  "pages": [
+    "index",
+    "change-password",
+    "mfa-user",
+    "mfa-admin",
+    "extending-mfa-providers",
+    "sudo"
+  ]
+}

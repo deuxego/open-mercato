@@ -1,0 +1,11 @@
+{
+  "title": "Modules",
+  "pages": [
+    "overview",
+    "routes-and-pages",
+    "configs",
+    "notifications",
+    "messages",
+    "integrations-data-sync"
+  ]
+}

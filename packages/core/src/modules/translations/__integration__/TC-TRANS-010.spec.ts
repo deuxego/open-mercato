@@ -64,10 +64,10 @@ test.describe('TC-TRANS-010: Translation Manager Page Interaction', () => {
       await expect(page.getByText('Base value')).toBeVisible()
 
       // Verify locale tabs are rendered
-      await expect(page.getByRole('button', { name: 'DE' })).toBeVisible()
+      await expect(page.getByRole('button', { name: 'DE', exact: true })).toBeVisible()
 
       // Click a locale tab and verify the field table updates
-      await page.getByRole('button', { name: 'DE' }).click()
+      await page.getByRole('button', { name: 'DE', exact: true }).click()
       await expect(page.getByText('Base value')).toBeVisible()
     } finally {
       await deleteDictionaryEntryIfExists(request, adminToken, dictionaryId, entryId)

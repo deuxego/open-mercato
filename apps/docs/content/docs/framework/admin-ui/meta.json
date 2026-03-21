@@ -1,0 +1,9 @@
+{
+  "title": "Admin UI",
+  "pages": [
+    "crud-form",
+    "data-grids",
+    "field-registry",
+    "custom-field-validation"
+  ]
+}

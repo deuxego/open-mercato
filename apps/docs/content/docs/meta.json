@@ -1,0 +1,16 @@
+{
+  "title": "Documentation",
+  "pages": [
+    "introduction",
+    "installation",
+    "user-guide",
+    "architecture",
+    "enterprise",
+    "api",
+    "cli",
+    "customization",
+    "framework",
+    "tutorials",
+    "appendix"
+  ]
+}

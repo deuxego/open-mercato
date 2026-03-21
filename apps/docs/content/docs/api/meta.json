@@ -1,0 +1,16 @@
+{
+  "title": "API Reference",
+  "pages": [
+    "overview",
+    "auth",
+    "directory",
+    "entities",
+    "feature-toggles",
+    "modules",
+    "attachments",
+    "dashboards",
+    "integrations-data-sync",
+    "business-rules",
+    "scheduler"
+  ]
+}

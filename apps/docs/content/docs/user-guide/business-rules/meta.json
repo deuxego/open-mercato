@@ -1,0 +1,12 @@
+{
+  "title": "Business Rules",
+  "pages": [
+    "index",
+    "creating-rules",
+    "rule-types",
+    "conditions",
+    "actions",
+    "rule-sets",
+    "execution-logs"
+  ]
+}

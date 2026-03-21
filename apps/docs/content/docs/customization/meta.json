@@ -1,0 +1,13 @@
+{
+  "title": "Customization",
+  "pages": [
+    "standalone-app",
+    "build-first-app",
+    "create-first-module",
+    "create-inventory-data",
+    "create-inventory-api",
+    "list-inventory",
+    "inventory-crud-forms",
+    "custom-fields-overview"
+  ]
+}

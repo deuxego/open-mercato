@@ -1,6 +1,5 @@
 node_modules
-.docusaurus
-build
-.cache-loader
+.next
+.source
 /yarn.lock
 /package-lock.json
