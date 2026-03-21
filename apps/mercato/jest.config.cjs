@@ -20,8 +20,6 @@ module.exports = {
     '^@open-mercato/cache/(.*)$': '<rootDir>/../../packages/cache/src/$1',
     '^@open-mercato/queue$': '<rootDir>/../../packages/queue/src/index.ts',
     '^@open-mercato/queue/(.*)$': '<rootDir>/../../packages/queue/src/$1',
-    '^@open-mercato/search$': '<rootDir>/../../packages/search/src/index.ts',
-    '^@open-mercato/search/(.*)$': '<rootDir>/../../packages/search/src/$1',
     '^@open-mercato/events/(.*)$': '<rootDir>/../../packages/events/src/$1',
     '^@open-mercato/cli/(.*)$': '<rootDir>/../../packages/cli/src/$1',
     '^@open-mercato/content/(.*)$': '<rootDir>/../../packages/content/src/$1',

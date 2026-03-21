@@ -56,7 +56,6 @@ export default async function SiteCatchAll({ params }: FrontendParams) {
     const { getCustomerAuthFromCookies } = await import('@open-mercato/core/modules/customer_accounts/lib/customerAuthServer')
     const customerAuth = await getCustomerAuthFromCookies()
     if (!customerAuth) {
-      // Extract orgSlug from pathname for redirect (e.g., /my-org/portal/orders → my-org)
       const segments = pathname.split('/').filter(Boolean)
       const orgSlug = segments[0] ?? ''
       redirect(`/${orgSlug}/portal/login`)

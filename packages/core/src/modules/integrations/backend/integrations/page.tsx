@@ -16,7 +16,6 @@ import { Bell, Cog, CreditCard, HardDrive, LayoutGrid, MessageSquare, RefreshCw,
 import {
   buildIntegrationMarketplaceFilterDefs,
   getIntegrationMarketplaceCategory,
-  INTEGRATION_MARKETPLACE_CATEGORIES,
   normalizeIntegrationMarketplaceFilterValues,
 } from './filters'
 
@@ -68,7 +67,15 @@ export default function IntegrationsMarketplacePage() {
   const scopeVersion = useOrganizationScopeVersion()
   const t = useT()
 
-  const categoryFilters = React.useMemo(() => buildIntegrationMarketplaceFilterDefs(t), [t])
+  const dynamicCategories = React.useMemo(() => {
+    if (!data) return ['all']
+    const seen = new Set<string>()
+    for (const item of data.items) {
+      if (item.category) seen.add(item.category)
+    }
+    return ['all', ...Array.from(seen).sort()]
+  }, [data])
+  const categoryFilters = React.useMemo(() => buildIntegrationMarketplaceFilterDefs(t, dynamicCategories), [t, dynamicCategories])
   const selectedCategory = React.useMemo(() => getIntegrationMarketplaceCategory(filterValues), [filterValues])
 
   const load = React.useCallback(async () => {
@@ -196,7 +203,7 @@ export default function IntegrationsMarketplacePage() {
           </div>
 
           <div className="hidden lg:flex flex-wrap gap-1.5">
-            {INTEGRATION_MARKETPLACE_CATEGORIES.map((category) => {
+            {dynamicCategories.map((category) => {
               const Icon = CATEGORY_ICONS[category]
               return (
                 <Button

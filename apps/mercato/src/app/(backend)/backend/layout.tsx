@@ -16,7 +16,6 @@ import { ProfileDropdown } from '@open-mercato/ui/backend/ProfileDropdown'
 import { IntegrationsButton } from '@open-mercato/ui/backend/IntegrationsButton'
 import { SettingsButton } from '@open-mercato/ui/backend/SettingsButton'
 import { MessagesIcon } from '@open-mercato/ui/backend/messages'
-import { GlobalSearchDialog } from '@open-mercato/search/modules/search/frontend'
 import OrganizationSwitcher from '@/components/OrganizationSwitcher'
 import { NotificationBellWrapper } from '@/components/NotificationBellWrapper'
 import { resolveTranslations } from '@open-mercato/shared/lib/i18n/server'
@@ -37,7 +36,6 @@ import { resolveFeatureCheckContext } from '@open-mercato/core/modules/directory
 import { profileSections, profilePathPrefixes } from '@open-mercato/core/modules/auth/lib/profile-sections'
 import { APP_VERSION } from '@open-mercato/shared/lib/version'
 import { PageInjectionBoundary } from '@open-mercato/ui/backend/injection/PageInjectionBoundary'
-import { AiAssistantIntegration, AiChatHeaderButton } from '@open-mercato/ai-assistant/frontend'
 import { CustomEntity } from '@open-mercato/core/modules/entities/data/entities'
 
 type NavItem = {
@@ -108,15 +106,6 @@ export default async function BackendLayout({ children, params }: { children: Re
   const ctx = { auth: ctxAuth, path }
 
   const { translate, locale, dict } = await resolveTranslations()
-  const embeddingConfigured = Boolean(
-    process.env.OPENAI_API_KEY ||
-    process.env.GOOGLE_GENERATIVE_AI_API_KEY ||
-    process.env.MISTRAL_API_KEY ||
-    process.env.COHERE_API_KEY ||
-    process.env.AWS_ACCESS_KEY_ID ||
-    process.env.OLLAMA_BASE_URL
-  )
-  const missingConfigMessage = translate('search.messages.missingConfig', 'Search requires configuring an embedding provider for semantic search.')
 
   const featureChecker = auth
     ? async (features: string[]): Promise<Set<string>> => {
@@ -231,14 +220,8 @@ export default async function BackendLayout({ children, params }: { children: Re
     items: group.items.map(mapItem),
   }))
   const defaultGroupOrder = [
-    'customers.nav.group',
-    'catalog.nav.group',
-    'customers~sales.nav.group',
-    'resources.nav.group',
-    'staff.nav.group',
     'entities.nav.group',
     'directory.nav.group',
-    'customers.storage.nav.group',
   ]
   const groupOrderIndex = new Map(defaultGroupOrder.map((id, index) => [id, index]))
   baseGroups.sort((a, b) => {
@@ -357,8 +340,6 @@ export default async function BackendLayout({ children, params }: { children: Re
 
   const rightHeaderContent = (
     <>
-      <AiChatHeaderButton />
-      <GlobalSearchDialog embeddingConfigured={embeddingConfigured} missingConfigMessage={missingConfigMessage} />
       <div className="hidden lg:contents">
         <OrganizationSwitcher />
       </div>
@@ -388,10 +369,6 @@ export default async function BackendLayout({ children, params }: { children: Re
     <>
       <Script async src="https://w.appzi.io/w.js?token=TtIV6" strategy="afterInteractive" />
       <I18nProvider locale={locale} dict={dict}>
-        <AiAssistantIntegration
-          tenantId={auth?.tenantId ?? null}
-          organizationId={auth?.orgId ?? null}
-        >
           <AppShell
             key={path}
             productName={productName}
@@ -415,7 +392,6 @@ export default async function BackendLayout({ children, params }: { children: Re
               {children}
             </PageInjectionBoundary>
           </AppShell>
-        </AiAssistantIntegration>
       </I18nProvider>
     </>
   )

@@ -1,6 +1,3 @@
-jest.mock('@open-mercato/core/modules/catalog/lib/seeds', () => ({
-  installExampleCatalogData: jest.fn(),
-}))
 jest.mock('@open-mercato/cache', () => ({
   runWithCacheTenant: jest.fn((_, fn) => fn()),
 }))

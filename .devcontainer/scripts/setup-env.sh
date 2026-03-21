@@ -24,10 +24,6 @@ sed -i 's|@localhost:5432|@postgres:5432|g' "$ENV_FILE"
 sed -i 's|^# REDIS_URL=redis://localhost:6379|REDIS_URL=redis://redis:6379|' "$ENV_FILE"
 sed -i 's|^# EVENTS_REDIS_URL=redis://localhost:6379|EVENTS_REDIS_URL=redis://redis:6379|' "$ENV_FILE"
 
-# Meilisearch: uncomment and point to container
-sed -i 's|^# MEILISEARCH_HOST=http://localhost:7700|MEILISEARCH_HOST=http://meilisearch:7700|' "$ENV_FILE"
-sed -i 's|^# MEILISEARCH_API_KEY=your_master_key_here|MEILISEARCH_API_KEY=meilisearch-dev-key|' "$ENV_FILE"
-
 # Cache: switch to redis strategy
 sed -i 's|^CACHE_STRATEGY=sqlite|CACHE_STRATEGY=redis|' "$ENV_FILE"
 sed -i 's|^#CACHE_REDIS_URL=redis://localhost:6379|CACHE_REDIS_URL=redis://redis:6379|' "$ENV_FILE"
@@ -51,10 +47,6 @@ if ! grep -q 'postgres:5432' "$ENV_FILE"; then
 fi
 if ! grep -q 'REDIS_URL=redis://redis:6379' "$ENV_FILE"; then
   echo "WARNING: REDIS_URL was not rewritten to use redis:6379"
-  errors=$((errors + 1))
-fi
-if ! grep -q 'MEILISEARCH_HOST=http://meilisearch:7700' "$ENV_FILE"; then
-  echo "WARNING: MEILISEARCH_HOST was not rewritten to use meilisearch:7700"
   errors=$((errors + 1))
 fi
 if [ $errors -gt 0 ]; then

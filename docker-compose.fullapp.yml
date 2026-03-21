@@ -1,19 +1,4 @@
-
-
 services:
-  opencode:
-    build:
-      context: ./docker/opencode
-    image: opencode-mvp
-    container_name: mercato-opencode-${DEPLOY_ENV:-local}
-    restart: unless-stopped
-    environment:
-      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
-    networks:
-      - mercato-network-fullapp
-
   app:
     build:
       context: .
@@ -50,8 +35,6 @@ services:
       CACHE_STRATEGY: redis
       ENABLE_CRUD_API_CACHE: ${ENABLE_CRUD_API_CACHE:-true}
       OPENAI_API_KEY: ${OPENAI_API_KEY}
-      MEILISEARCH_HOST: http://mercato-meilisearch-${DEPLOY_ENV:-local}:7700
-      MEILISEARCH_API_KEY: ${MEILISEARCH_MASTER_KEY:-meilisearch-dev-key}
       NEXT_PUBLIC_UPGRADE_ACTIONS_ENABLED: ${NEXT_PUBLIC_UPGRADE_ACTIONS_ENABLED:-true}
       UPGRADE_ACTIONS_ENABLED: ${UPGRADE_ACTIONS_ENABLED:-true}
       SELF_SERVICE_ONBOARDING_ENABLED: ${SELF_SERVICE_ONBOARDING_ENABLED:-true}
@@ -69,8 +52,6 @@ services:
       postgres:
         condition: service_healthy
       redis:
-        condition: service_healthy
-      meilisearch:
         condition: service_healthy
     networks:
       - mercato-network-fullapp
@@ -108,32 +89,11 @@ services:
     networks:
       - mercato-network-fullapp
 
-  meilisearch:
-    image: getmeili/meilisearch:v1.11
-    container_name: mercato-meilisearch-${DEPLOY_ENV:-local}
-    restart: unless-stopped
-    environment:
-      MEILI_ENV: development
-      MEILI_MASTER_KEY: ${MEILISEARCH_MASTER_KEY:-meilisearch-dev-key}
-      MEILI_NO_ANALYTICS: "true"
-    # ports not exposed - only accessible within docker network
-    volumes:
-      - meilisearch_data:/meili_data
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
-    networks:
-      - mercato-network-fullapp
-
 volumes:
   postgres_data:
     name: mercato-postgres-data-${DEPLOY_ENV:-local}
   redis_data:
     name: mercato-redis-data-${DEPLOY_ENV:-local}
-  meilisearch_data:
-    name: mercato-meilisearch-data-${DEPLOY_ENV:-local}
   init_marker:
     name: mercato-init-marker-${DEPLOY_ENV:-local}
   attachments_storage:

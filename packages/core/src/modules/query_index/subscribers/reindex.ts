@@ -2,7 +2,7 @@ import type { EntityManager } from '@mikro-orm/postgresql'
 import { recordIndexerError } from '@open-mercato/shared/lib/indexers/error-log'
 import { recordIndexerLog } from '@open-mercato/shared/lib/indexers/status-log'
 import { reindexEntity } from '../lib/reindexer'
-import type { VectorIndexService } from '@open-mercato/search/vector'
+type VectorIndexService = Record<string, any>
 import type { ProgressService } from '@open-mercato/core/modules/progress/lib/progressService'
 
 export const metadata = { event: 'query_index.reindex', persistent: true }

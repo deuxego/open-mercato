@@ -117,37 +117,4 @@ export const interceptors: ApiInterceptor[] = [
       }
     },
   },
-  {
-    id: 'example.customer-priority-filter',
-    targetRoute: 'customers/people',
-    methods: ['GET'],
-    priority: 70,
-    async before(request, context) {
-      const priority = readString(request.query?.examplePriority)
-      if (!priority) return { ok: true }
-      const matches = await context.em.find(ExampleCustomerPriority, {
-        priority: priority as ExampleCustomerPriority['priority'],
-        organizationId: context.organizationId,
-        tenantId: context.tenantId,
-        deletedAt: null,
-      }, { fields: ['customerId'] })
-      const matchedCustomerIds = Array.from(new Set(matches.map((entry) => entry.customerId)))
-      const existingIdsRaw = readString(request.query?.ids)
-      const existingIds = existingIdsRaw
-        ? existingIdsRaw.split(',').map((value) => value.trim()).filter((value) => value.length > 0)
-        : []
-      const ids = existingIds.length > 0
-        ? existingIds.filter((value) => matchedCustomerIds.includes(value))
-        : matchedCustomerIds
-
-      return {
-        ok: true,
-        query: {
-          ...(request.query ?? {}),
-          examplePriority: undefined,
-          ids: ids.length > 0 ? ids.join(',') : undefined,
-        },
-      }
-    },
-  },
 ]

@@ -163,8 +163,6 @@ jobs:
 
   docker-build:
     runs-on: ubuntu-latest
-    # Only run on non-fork PRs (forks don't have access to GHA cache)
-    if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -190,10 +188,3 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build opencode container
-        uses: docker/build-push-action@v6
-        with:
-          context: ./docker/opencode
-          push: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max

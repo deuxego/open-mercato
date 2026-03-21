@@ -9,17 +9,15 @@
   "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
   "postStartCommand": "bash .devcontainer/scripts/post-start.sh",
 
-  "forwardPorts": [3000, "postgres:5432", "redis:6379", "meilisearch:7700"],
+  "forwardPorts": [3000, "postgres:5432", "redis:6379"],
   "portsAttributes": {
     "3000": { "label": "App", "onAutoForward": "notify" },
     "5432": { "label": "PostgreSQL", "onAutoForward": "silent" },
-    "6379": { "label": "Redis", "onAutoForward": "silent" },
-    "7700": { "label": "Meilisearch", "onAutoForward": "silent" }
+    "6379": { "label": "Redis", "onAutoForward": "silent" }
   },
 
   "remoteEnv": {
     "COREPACK_ENABLE_DOWNLOAD_PROMPT": "0",
-    "ANTHROPIC_API_KEY": "${localEnv:ANTHROPIC_API_KEY}",
     "OPENAI_API_KEY": "${localEnv:OPENAI_API_KEY}"
   },
 

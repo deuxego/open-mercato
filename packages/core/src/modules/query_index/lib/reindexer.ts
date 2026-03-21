@@ -7,7 +7,7 @@ import { upsertIndexBatch, type AnyRow } from './batch'
 import { refreshCoverageSnapshot, writeCoverageCounts, applyCoverageAdjustments } from './coverage'
 import { prepareJob, updateJobProgress, finalizeJob, type JobScope } from './jobs'
 import { purgeOrphans } from './stale'
-import type { VectorIndexService } from '@open-mercato/search/vector'
+type VectorIndexService = Record<string, any>
 import { isSearchDebugEnabled } from './search-tokens'
 
 export type ReindexJobOptions = {
