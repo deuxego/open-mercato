@@ -26,7 +26,7 @@ export default defineConfig({
     timeout: 20_000,
   },
   retries: 1,
-  workers: 1,
+  workers: process.env.PW_WORKERS ? Number(process.env.PW_WORKERS) : 1,
   use: {
     baseURL: process.env.BASE_URL || 'http://localhost:3000',
     headless: true,
