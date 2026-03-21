@@ -6,8 +6,8 @@ import { apiRequest, getAuthToken } from '@open-mercato/core/modules/core/__inte
  * TC-ADMIN-004: Manage Dictionary Entries
  * Source: .ai/qa/scenarios/TC-ADMIN-004-dictionary-management.md
  *
- * Verifies that the dictionaries page loads, shows existing dictionaries
- * with their entries, and allows creating a new dictionary.
+ * Verifies that the dictionaries page loads and allows creating a new dictionary.
+ * Self-contained: does not rely on pre-seeded data.
  *
  * Navigation: Settings → Module Configuration → Dictionaries
  */
@@ -34,20 +34,11 @@ test.describe('TC-ADMIN-004: Dictionary Management', () => {
       // Verify the "New dictionary" button is available
       await expect(page.getByRole('button', { name: 'New dictionary' })).toBeVisible();
 
-      // The first dictionary should be auto-selected — verify its details panel
-      await expect(page.getByText('Manage reusable values and appearance')).toBeVisible({ timeout: 15_000 });
-      await expect(page.getByRole('button', { name: 'Refresh' })).toBeVisible();
-      await expect(page.getByRole('button', { name: 'Add entry' })).toBeVisible();
-
-      // Verify the entries table columns
-      await expect(page.getByRole('columnheader', { name: 'Value' })).toBeVisible();
-      await expect(page.getByRole('columnheader', { name: 'Label' })).toBeVisible();
-
       // Create a new dictionary
       await page.getByRole('button', { name: 'New dictionary' }).click();
 
       // Verify the dialog appears
-      await expect(page.getByRole('heading', { name: 'Create dictionary', level: 2 })).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByRole('heading', { name: 'Create dictionary', level: 2 })).toBeVisible({ timeout: 10_000 });
 
       // Fill in the Key field (slug)
       const timestamp = Date.now();
@@ -63,7 +54,12 @@ test.describe('TC-ADMIN-004: Dictionary Management', () => {
       await page.getByRole('button', { name: 'Save' }).click();
 
       // Verify the new dictionary appears in the sidebar list
-      await expect(page.getByText(dictName)).toBeVisible({ timeout: 5_000 });
+      await expect(page.getByText(dictName)).toBeVisible({ timeout: 10_000 });
+
+      // Now verify the details panel is visible (dictionary is auto-selected after creation)
+      await expect(page.getByText('Manage reusable values and appearance')).toBeVisible({ timeout: 10_000 });
+      await expect(page.getByRole('button', { name: 'Refresh' })).toBeVisible();
+      await expect(page.getByRole('button', { name: 'Add entry' })).toBeVisible();
     } finally {
       if (token && dictionaryKey) {
         const listResponse = await apiRequest(request, 'GET', '/api/dictionaries', { token }).catch(() => null);

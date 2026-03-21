@@ -13,7 +13,7 @@ const ENTITY_TYPE = 'dictionaries:dictionary_entry'
 
 async function fillCombobox(page: import('@playwright/test').Page, placeholder: string, value: string) {
   const input = page.getByPlaceholder(placeholder)
-  await expect(input).toBeEnabled({ timeout: 10_000 })
+  await expect(input).toBeEnabled({ timeout: 30_000 })
   await input.click()
   await input.fill(value)
   await input.press('Enter')

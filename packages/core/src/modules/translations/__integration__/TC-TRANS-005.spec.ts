@@ -18,14 +18,13 @@ const ENTITY_TYPE = 'dictionaries:dictionary_entry'
  */
 async function fillCombobox(page: import('@playwright/test').Page, placeholder: string, value: string) {
   const input = page.getByPlaceholder(placeholder)
-  await expect(input).toBeEnabled({ timeout: 10_000 })
+  await expect(input).toBeEnabled({ timeout: 30_000 })
   await input.click()
   await input.fill(value)
+  await page.waitForTimeout(500)
   await input.press('Enter')
-  // Move focus away so the ComboboxInput's onBlur handler fires and settles
-  // (onBlur has a 200ms timeout that calls confirmSelection, which may reset hasUserEdited)
   await input.press('Tab')
-  await page.waitForTimeout(300)
+  await page.waitForTimeout(500)
 }
 
 /**

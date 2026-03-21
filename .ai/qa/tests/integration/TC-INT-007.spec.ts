@@ -23,21 +23,29 @@ function yarnBinary(): string {
 function runCommand(command: string, args: string[], cwd: string): string {
   const yarnCacheFolder = path.join(cwd, '.yarn', 'cache')
   const env = { ...process.env }
+  // Strip variables that can cause spurious failures in temp directories
   delete env.NODE_EXTRA_CA_CERTS
-  return execFileSync(command, args, {
-    cwd,
-    encoding: 'utf8',
-    timeout: 60_000,
-    env: {
-      ...env,
-      FORCE_COLOR: '0',
-      NODE_NO_WARNINGS: '1',
-      NODE_TLS_REJECT_UNAUTHORIZED: '1',
-      YARN_CACHE_FOLDER: yarnCacheFolder,
-      YARN_ENABLE_GLOBAL_CACHE: '0',
-      YARN_NODE_LINKER: 'node-modules',
-    },
-  })
+  delete env.DOTENV_KEY
+  try {
+    return execFileSync(command, args, {
+      cwd,
+      encoding: 'utf8',
+      timeout: 60_000,
+      stdio: ['pipe', 'pipe', 'pipe'],
+      env: {
+        ...env,
+        FORCE_COLOR: '0',
+        NODE_NO_WARNINGS: '1',
+        YARN_CACHE_FOLDER: yarnCacheFolder,
+        YARN_ENABLE_GLOBAL_CACHE: '0',
+        YARN_NODE_LINKER: 'node-modules',
+      },
+    })
+  } catch (err: any) {
+    const stderr = err.stderr?.toString() || ''
+    const stdout = err.stdout?.toString() || ''
+    throw new Error(`Command failed: ${command} ${args.join(' ')}\nstderr: ${stderr}\nstdout: ${stdout}`)
+  }
 }
 
 function runMercato(args: string[], cwd: string): string {
