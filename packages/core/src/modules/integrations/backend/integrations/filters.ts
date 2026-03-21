@@ -1,26 +1,15 @@
 import type { FilterDef, FilterValues } from '@open-mercato/ui/backend/FilterBar'
 import type { TranslateFn } from '@open-mercato/shared/lib/i18n/context'
 
-export const INTEGRATION_MARKETPLACE_CATEGORIES = [
-  'all',
-  'payment',
-  'shipping',
-  'data_sync',
-  'communication',
-  'notification',
-  'storage',
-  'webhook',
-] as const
-
-export function buildIntegrationMarketplaceFilterDefs(t: TranslateFn): FilterDef[] {
+export function buildIntegrationMarketplaceFilterDefs(t: TranslateFn, categories: string[]): FilterDef[] {
   return [
     {
       id: 'category',
       label: t('integrations.marketplace.filters.category', 'Category'),
       type: 'select',
-      options: INTEGRATION_MARKETPLACE_CATEGORIES.map((category) => ({
+      options: categories.map((category) => ({
         value: category,
-        label: t(`integrations.marketplace.categories.${category}`),
+        label: t(`integrations.marketplace.categories.${category}`, category),
       })),
       formatValue: (value) => t(`integrations.marketplace.categories.${value}`, value),
     },

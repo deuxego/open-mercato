@@ -35,94 +35,10 @@ const alwaysEnabledInjectionTable: ModuleInjectionTable = {
   },
 }
 
-const optionalCrossModuleInjectionTable: ModuleInjectionTable = {
-  // Customer page injections are opt-in via NEXT_PUBLIC_OM_EXAMPLE_INJECTION_WIDGETS_ENABLED.
-  // Backward-compatible aliasing: support both legacy and current customer form spot ids.
-  'crud-form:customers.person:fields': {
-    widgetId: 'example.injection.customer-priority-field',
-    priority: 40,
-  },
-  'crud-form:customers.customer_entity:fields': {
-    widgetId: 'example.injection.customer-priority-field',
-    priority: 40,
-  },
-  // Backward-compatible aliasing: support both legacy and current people table ids.
-  'data-table:customers.people:columns': {
-    widgetId: 'example.injection.customer-priority-column',
-    priority: 30,
-  },
-  'data-table:customers.people.list:columns': {
-    widgetId: 'example.injection.customer-priority-column',
-    priority: 30,
-  },
-  'data-table:customers.people:filters': {
-    widgetId: 'example.injection.customer-priority-filter',
-    priority: 30,
-  },
-  'data-table:customers.people.list:filters': {
-    widgetId: 'example.injection.customer-priority-filter',
-    priority: 30,
-  },
-  'data-table:customers.people:row-actions': {
-    widgetId: 'example.injection.customer-priority-row-action',
-    priority: 30,
-  },
-  'data-table:customers.people.list:row-actions': {
-    widgetId: 'example.injection.customer-priority-row-action',
-    priority: 30,
-  },
-  'data-table:customers.people:bulk-actions': {
-    widgetId: 'example.injection.customer-priority-bulk-actions',
-    priority: 30,
-  },
-  'data-table:customers.people.list:bulk-actions': {
-    widgetId: 'example.injection.customer-priority-bulk-actions',
-    priority: 30,
-  },
-  'customers.person.detail:details': {
-    widgetId: 'example.injection.customer-priority-detail',
-    priority: 30,
-  },
-
-  // Inject the validation widget into catalog CRUD forms when enabled
-  'crud-form:catalog.product': 'example.injection.crud-validation',
-  'crud-form:catalog.catalog_product': 'example.injection.crud-validation',
-  'crud-form:catalog.variant': 'example.injection.crud-validation',
-  'crud-form:catalog.catalog_variant': 'example.injection.crud-validation',
-
-  // Add example todos tab to sales quote/order detail pages
-  'sales.document.detail.quote:tabs': [
-    {
-      widgetId: 'example.injection.sales-todos',
-      kind: 'tab',
-      groupLabel: 'example.salesTodos.tabLabel',
-      priority: -10,
-    },
-  ],
-  'sales.document.detail.order:tabs': [
-    {
-      widgetId: 'example.injection.sales-todos',
-      kind: 'tab',
-      groupLabel: 'example.salesTodos.tabLabel',
-      priority: -10,
-    },
-  ],
-
-  // Catalog products table header: quick SEO health report
-  'data-table:catalog.products:header': {
-    widgetId: 'example.injection.catalog-seo-report',
-    kind: 'stack',
-    priority: 5,
-  },
-}
-
 /**
  * Example module injection table
  * Maps injection spot IDs to widget IDs for automatic widget injection
  */
-export const injectionTable: ModuleInjectionTable = (exampleInjectionWidgetsEnabled
-  || crudFormExtendedEventsEnabled)
-  ? { ...alwaysEnabledInjectionTable, ...optionalCrossModuleInjectionTable }
-  : alwaysEnabledInjectionTable
+export const injectionTable: ModuleInjectionTable = alwaysEnabledInjectionTable
 
 export default injectionTable

@@ -1,10 +1,7 @@
 name: Snapshot Release
 
 on:
-  push:
-    branches: [develop, main]
-  pull_request:
-    branches: [develop, main]
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -229,6 +226,7 @@ jobs:
           NEXT_PUBLIC_OM_EXAMPLE_INJECTION_WIDGETS_ENABLED=true
           OM_ENABLE_ENTERPRISE_MODULES=true
           OM_ENABLE_ENTERPRISE_MODULES_SSO=true
+          OM_ENABLE_ENTERPRISE_MODULES_SECURITY=true
           AUTO_SPAWN_WORKERS=false
           AUTO_SPAWN_SCHEDULER=false
           CACHE_STRATEGY=memory

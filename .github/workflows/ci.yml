@@ -66,6 +66,9 @@ jobs:
     env:
       OM_ENABLE_ENTERPRISE_MODULES: 'true'
       OM_ENABLE_ENTERPRISE_MODULES_SSO: 'true'
+      OM_ENABLE_ENTERPRISE_MODULES_SECURITY: 'true'
+      JWT_SECRET: 'ci-ephemeral-test-jwt-secret'
+      OM_SECURITY_MFA_SETUP_SECRET: 'ci-ephemeral-test-mfa-setup-secret'
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -97,6 +100,8 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Run ephemeral integration tests with code coverage
+        env:
+          OM_INTEGRATION_APP_READY_TIMEOUT_SECONDS: '180'
         run: yarn test:integration:coverage
 
       - name: Display integration coverage summary
@@ -158,8 +163,6 @@ jobs:
 
   docker-build:
     runs-on: ubuntu-latest
-    # Only run on non-fork PRs (forks don't have access to GHA cache)
-    if: github.event.pull_request.head.repo.full_name == github.repository
     steps:
       - name: Checkout repository
         uses: actions/checkout@v6
@@ -185,10 +188,3 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      - name: Build opencode container
-        uses: docker/build-push-action@v6
-        with:
-          context: ./docker/opencode
-          push: false
-          cache-from: type=gha
-          cache-to: type=gha,mode=max

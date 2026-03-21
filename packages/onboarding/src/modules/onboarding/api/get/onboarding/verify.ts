@@ -11,7 +11,7 @@ import { refreshCoverageSnapshot } from '@open-mercato/core/modules/query_index/
 import { flattenSystemEntityIds } from '@open-mercato/shared/lib/entities/system-entities'
 import { getEntityIds } from '@open-mercato/shared/lib/encryption/entityIds'
 import { getModules } from '@open-mercato/shared/lib/modules/registry'
-import type { VectorIndexService } from '@open-mercato/search/vector'
+type VectorIndexService = Record<string, any>
 import type { OpenApiMethodDoc, OpenApiRouteDoc } from '@open-mercato/shared/lib/openapi'
 
 export const metadata = {

@@ -3,7 +3,7 @@ import { BasicQueryEngine, resolveEntityTableName } from '@open-mercato/shared/l
 import { HybridQueryEngine } from './lib/engine'
 import { markDeleted } from './lib/indexer'
 import type { EventBus } from '@open-mercato/events'
-import type { VectorIndexService } from '@open-mercato/search/vector'
+type VectorIndexService = Record<string, any>
 
 function toEntityTypeFromEvent(event: string): string | null {
   // Expect '<module>.<entity>.<action>'

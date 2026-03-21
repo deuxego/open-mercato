@@ -7,12 +7,6 @@ import { createKmsService } from '@open-mercato/shared/lib/encryption/kms'
 import { TenantDataEncryptionService } from '@open-mercato/shared/lib/encryption/tenantDataEncryptionService'
 import { registerTenantEncryptionSubscriber } from '@open-mercato/shared/lib/encryption/subscriber'
 import { isTenantDataEncryptionEnabled } from '@open-mercato/shared/lib/encryption/toggles'
-import { getSearchModuleConfigs } from '@open-mercato/shared/modules/search'
-import {
-  registerSearchModule,
-  createSearchDeleteSubscriber,
-  searchDeleteMetadata,
-} from '@open-mercato/search'
 import { RateLimiterService } from '@open-mercato/shared/lib/ratelimit/service'
 import { readRateLimitConfig } from '@open-mercato/shared/lib/ratelimit/config'
 import type { EntityManager } from '@mikro-orm/postgresql'
@@ -144,34 +138,4 @@ export async function bootstrap(container: AwilixContainer) {
     container.register({ rateLimiterService: asValue(rateLimiterService) })
   }
 
-  // Register search module
-  try {
-    // Get configs from global registry (registered during app bootstrap)
-    const searchModuleConfigs = getSearchModuleConfigs()
-    registerSearchModule(container as any, { moduleConfigs: searchModuleConfigs })
-
-    // Register searchModuleConfigs in container so status API can access vector-enabled entities
-    container.register({
-      searchModuleConfigs: asValue(searchModuleConfigs),
-    })
-
-    // Register search delete event subscriber
-    // Note: search.index_record is now handled by auto-discovered fulltext_upsert.ts subscriber
-    try {
-      const searchIndexer = container.resolve('searchIndexer') as any
-      if (searchIndexer && eventBus) {
-        eventBus.registerModuleSubscribers([
-          {
-            event: searchDeleteMetadata.event,
-            persistent: searchDeleteMetadata.persistent,
-            handler: createSearchDeleteSubscriber(searchIndexer),
-          },
-        ])
-      }
-    } catch {
-      // searchIndexer may not be available
-    }
-  } catch (err) {
-    console.warn('[search] Failed to register search module:', (err as Error)?.message || err)
-  }
 }

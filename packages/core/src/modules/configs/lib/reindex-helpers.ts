@@ -1,5 +1,5 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
-import type { VectorIndexService } from '@open-mercato/search/vector'
+type VectorIndexService = Record<string, any>
 import { reindexEntity } from '@open-mercato/core/modules/query_index/lib/reindexer'
 import { E } from '#generated/entities.ids.generated'
 
