@@ -16,15 +16,20 @@ async function fillCombobox(page: import('@playwright/test').Page, placeholder: 
   await expect(input).toBeEnabled({ timeout: 30_000 })
   await input.click()
   await input.fill(value)
-  // Wait for dropdown suggestion to appear and click it
-  const option = page.getByRole('option', { name: new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) })
+  await page.waitForTimeout(1_000)
+  // ComboboxInput renders dropdown items as Button > span.font-medium
+  // Try clicking the dropdown suggestion that contains our value
+  const dropdown = page.locator('.absolute.z-50')
   try {
-    await option.first().click({ timeout: 5_000 })
+    await dropdown.waitFor({ state: 'visible', timeout: 5_000 })
+    const item = dropdown.locator('button', { hasText: value }).first()
+    await item.click({ timeout: 3_000 })
   } catch {
-    // Fallback: press Enter if no dropdown option found (allowCustomValues combobox)
+    // Fallback: press ArrowDown + Enter to select first suggestion
+    await input.press('ArrowDown')
+    await page.waitForTimeout(300)
     await input.press('Enter')
   }
-  await input.press('Tab')
   await page.waitForTimeout(500)
 }
 

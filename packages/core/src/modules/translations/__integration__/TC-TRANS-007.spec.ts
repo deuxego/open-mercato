@@ -16,13 +16,17 @@ async function fillCombobox(page: Page, placeholder: string, value: string) {
   await expect(input).toBeEnabled({ timeout: 30_000 })
   await input.click()
   await input.fill(value)
-  const option = page.getByRole('option', { name: new RegExp(value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')) })
+  await page.waitForTimeout(1_000)
+  const dropdown = page.locator('.absolute.z-50')
   try {
-    await option.first().click({ timeout: 5_000 })
+    await dropdown.waitFor({ state: 'visible', timeout: 5_000 })
+    const item = dropdown.locator('button', { hasText: value }).first()
+    await item.click({ timeout: 3_000 })
   } catch {
+    await input.press('ArrowDown')
+    await page.waitForTimeout(300)
     await input.press('Enter')
   }
-  await input.press('Tab')
   await page.waitForTimeout(500)
 }
 
