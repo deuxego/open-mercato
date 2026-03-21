@@ -73,16 +73,16 @@ export async function GET(req: Request) {
         version: nextAction.version,
         message: translate(
           nextAction.messageKey,
-          'The version {{version}} has been installed. To fully use all the features from this edition please do "Install example catalog products and categories".',
+          'The version {{version}} has been installed. To fully use all the features from this edition please run the upgrade action below.',
           { version: nextAction.version }
         ),
         ctaLabel: translate(
           nextAction.ctaKey,
-          'Install example catalog products and categories'
+          'Install example data'
         ),
         successMessage: translate(
           nextAction.successKey,
-          'Example catalog products and categories installed.'
+          'Example data installed successfully.'
         ),
         loadingLabel: nextAction.loadingKey
           ? translate(nextAction.loadingKey, 'Installing…')
@@ -129,7 +129,7 @@ export async function POST(req: Request) {
     })
     const successMessage = translate(
       result.action.successKey,
-      'Example catalog products and categories installed.'
+      'Example data installed successfully.'
     )
     return NextResponse.json({
       status: result.status,

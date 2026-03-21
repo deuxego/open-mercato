@@ -216,7 +216,7 @@ export async function run(argv = process.argv) {
       console.log(
         `🏋️ Stress test dataset: ${
           stressTestEnabled
-            ? `enabled (target ${stressTestCount} contacts${stressTestLite ? ', lite payload' : ''})`
+            ? `enabled (target ${stressTestCount} records${stressTestLite ? ', lite payload' : ''})`
             : 'disabled'
         }`
       )
@@ -483,12 +483,12 @@ export async function run(argv = process.argv) {
 
         if (stressTestEnabled) {
           console.log(
-            `🏋️  Seeding stress test customers${stressTestLite ? ' (lite payload)' : ''}...`
+            `🏋️  Seeding stress test data${stressTestLite ? ' (lite payload)' : ''}...`
           )
           const stressArgs = ['--tenant', tenantId, '--org', orgId, '--count', String(stressTestCount)]
           if (stressTestLite) stressArgs.push('--lite')
           await runModuleCommand(allModules, 'customers', 'seed-stresstest', stressArgs, { optional: true })
-          console.log(`✅ Stress test customers seeded (requested ${stressTestCount})\n`)
+          console.log(`✅ Stress test data seeded (requested ${stressTestCount})\n`)
         }
 
         console.log('🧩 Enabling default dashboard widgets...')
@@ -507,13 +507,6 @@ export async function run(argv = process.argv) {
       } else {
         console.log('⚠️  Could not get organization ID or tenant ID, skipping seeding steps\n')
       }
-
-      console.log('🧠 Building search indexes...')
-      const vectorArgs = tenantId
-        ? ['--tenant', tenantId, ...(orgId ? ['--org', orgId] : [])]
-        : ['--purgeFirst=false']
-      await runModuleCommand(allModules, 'search', 'reindex', vectorArgs, { optional: true })
-      console.log('✅ Search indexes built\n')
 
       console.log('🔍 Rebuilding query indexes...')
       const queryIndexArgs = ['--force', ...(tenantId ? ['--tenant', tenantId] : [])]

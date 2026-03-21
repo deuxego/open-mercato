@@ -240,10 +240,6 @@ function formatLogPrimitiveValue(value: string | number | boolean | null): strin
   return String(value)
 }
 
-function isAkeneoSettingsTab(tab: IntegrationDetailInjectedTab): boolean {
-  return tab.id.includes('sync_akeneo') || tab.label.toLowerCase().includes('akeneo')
-}
-
 function splitLogPayload(payload: Record<string, unknown> | null | undefined) {
   if (!payload) {
     return {
@@ -700,9 +696,7 @@ export default function IntegrationDetailPage({ params }: IntegrationDetailPageP
         ? 'The provider responded successfully using the current credentials.'
         : state.lastHealthStatus === 'degraded'
           ? 'The provider responded, but reported warnings or limited functionality.'
-          : integration?.id === 'gateway_stripe'
-            ? 'Stripe rejected the last check. This usually means the secret key is invalid, missing required permissions, revoked, or Stripe was temporarily unavailable.'
-            : 'The last check failed. This usually means invalid credentials, missing permissions, or a provider outage.',
+          : 'The last check failed. This usually means invalid credentials, missing permissions, or a provider outage.',
     )
     : null
 
@@ -726,20 +720,9 @@ export default function IntegrationDetailPage({ params }: IntegrationDetailPageP
   const resolvedState = detail.state
   const CategoryIcon = resolvedIntegration.category ? CATEGORY_ICONS[resolvedIntegration.category] : null
   const HealthStatusIcon = resolvedState.lastHealthStatus ? HEALTH_STATUS_ICONS[resolvedState.lastHealthStatus] : null
-  const prioritizedInjectedTabs = resolvedIntegration.id === 'sync_akeneo'
-    ? [...injectedTabs].sort((left, right) => {
-      const leftPriority = isAkeneoSettingsTab(left) ? 1 : 0
-      const rightPriority = isAkeneoSettingsTab(right) ? 1 : 0
-      if (leftPriority !== rightPriority) return rightPriority - leftPriority
-      return 0
-    })
-    : injectedTabs
-  const leadingInjectedTab = resolvedIntegration.id === 'sync_akeneo'
-    ? prioritizedInjectedTabs.find(isAkeneoSettingsTab) ?? null
-    : null
-  const trailingInjectedTabs = leadingInjectedTab
-    ? prioritizedInjectedTabs.filter((tab) => tab.id !== leadingInjectedTab.id)
-    : prioritizedInjectedTabs
+  const prioritizedInjectedTabs = injectedTabs
+  const leadingInjectedTab: IntegrationDetailInjectedTab | null = null
+  const trailingInjectedTabs = prioritizedInjectedTabs
   const StateIcon = resolvedState.isEnabled ? CheckCircle2 : XCircle
   const stateBadgeClass = resolvedState.isEnabled
     ? 'border-emerald-500/30 bg-emerald-500/10 text-emerald-300'

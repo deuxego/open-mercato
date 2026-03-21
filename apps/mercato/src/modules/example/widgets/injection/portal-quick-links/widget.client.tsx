@@ -1,8 +1,8 @@
 "use client"
 
 const LINKS = [
-  { label: 'My Orders', description: 'View order history', href: '#', icon: 'O' },
-  { label: 'Invoices', description: 'Download invoices', href: '#', icon: 'I' },
+  { label: 'My Tasks', description: 'View task history', href: '#', icon: 'T' },
+  { label: 'Notifications', description: 'View notifications', href: '#', icon: 'N' },
   { label: 'Addresses', description: 'Manage addresses', href: '#', icon: 'A' },
   { label: 'Support', description: 'Contact support', href: '#', icon: 'S' },
 ]

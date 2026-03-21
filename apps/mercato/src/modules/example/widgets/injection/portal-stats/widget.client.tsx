@@ -1,10 +1,10 @@
 "use client"
 
 const STATS = [
-  { label: 'Orders', value: '12', trend: '+3 this month', color: 'text-emerald-600 dark:text-emerald-400' },
-  { label: 'Pending', value: '2', trend: 'Awaiting shipment', color: 'text-amber-600 dark:text-amber-400' },
-  { label: 'Invoices', value: '8', trend: '3 unpaid', color: 'text-blue-600 dark:text-blue-400' },
-  { label: 'Quotes', value: '4', trend: '1 expiring soon', color: 'text-violet-600 dark:text-violet-400' },
+  { label: 'Tasks', value: '12', trend: '+3 this month', color: 'text-emerald-600 dark:text-emerald-400' },
+  { label: 'In progress', value: '2', trend: 'Awaiting review', color: 'text-amber-600 dark:text-amber-400' },
+  { label: 'Messages', value: '8', trend: '3 unread', color: 'text-blue-600 dark:text-blue-400' },
+  { label: 'Requests', value: '4', trend: '1 expiring soon', color: 'text-violet-600 dark:text-violet-400' },
 ]
 
 export default function PortalStatsWidget() {

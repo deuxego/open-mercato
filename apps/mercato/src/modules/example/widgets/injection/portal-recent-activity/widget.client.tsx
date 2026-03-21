@@ -3,8 +3,8 @@
 const MOCK_ACTIVITY = [
   { id: '1', action: 'Logged in', time: '2 minutes ago', icon: 'login' },
   { id: '2', action: 'Updated profile', time: '1 hour ago', icon: 'profile' },
-  { id: '3', action: 'Viewed order #1042', time: '3 hours ago', icon: 'order' },
-  { id: '4', action: 'Downloaded invoice', time: 'Yesterday', icon: 'download' },
+  { id: '3', action: 'Viewed task #1042', time: '3 hours ago', icon: 'order' },
+  { id: '4', action: 'Downloaded report', time: 'Yesterday', icon: 'download' },
   { id: '5', action: 'Changed password', time: '3 days ago', icon: 'security' },
 ]
 
