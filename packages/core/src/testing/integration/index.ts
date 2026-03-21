@@ -18,5 +18,10 @@ export {
   deleteEntityByPathIfExists,
   deleteGeneralEntityIfExists,
 } from '../../helpers/integration/generalFixtures'
-export { createDictionaryFixture } from '../../helpers/integration/dictionariesFixtures'
+export {
+  createDictionaryFixture,
+  createDictionaryEntryFixture,
+  deleteDictionaryEntryIfExists,
+  deleteDictionaryIfExists,
+} from '../../helpers/integration/dictionariesFixtures'
 export { createRoleFixture, deleteRoleIfExists, createUserFixture, deleteUserIfExists } from '../../helpers/integration/authFixtures'

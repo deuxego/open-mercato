@@ -1,9 +1,14 @@
 import { expect, test, type APIRequestContext } from '@playwright/test'
 import { apiRequest, getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api'
-import { createCategoryFixture, deleteCatalogCategoryIfExists } from '@open-mercato/core/modules/core/__integration__/helpers/catalogFixtures'
+import {
+  createDictionaryFixture,
+  createDictionaryEntryFixture,
+  deleteDictionaryEntryIfExists,
+  deleteDictionaryIfExists,
+} from '@open-mercato/core/modules/core/__integration__/helpers/dictionariesFixtures'
 import { deleteTranslationIfExists } from './helpers/translationFixtures'
 
-const ENTITY_TYPE = 'catalog:catalog_product_category'
+const ENTITY_TYPE = 'dictionaries:dictionary_entry'
 type RoleAclResponse = {
   isSuperAdmin: boolean
   features: string[]
@@ -58,11 +63,13 @@ test.describe('TC-TRANS-011: RBAC Save Blocked Without translations.manage', () 
     const adminToken = await getAuthToken(request, 'admin')
     const adminRoleId = await findRoleId(request, saToken, 'admin')
     const originalAdminRoleAcl = await getRoleAcl(request, saToken, adminRoleId)
-    let categoryId: string | null = null
+    const dictKey = `qa-trans-011-${Date.now()}`
+    let dictionaryId: string | null = null
+    let entryId: string | null = null
 
     try {
-      const categoryName = `QA TC-TRANS-011 ${Date.now()}`
-      categoryId = await createCategoryFixture(request, adminToken, { name: categoryName })
+      dictionaryId = await createDictionaryFixture(request, adminToken, { key: dictKey, name: `QA TC-TRANS-011 ${Date.now()}` })
+      entryId = await createDictionaryEntryFixture(request, adminToken, dictionaryId, { value: dictKey, label: `Label ${Date.now()}` })
 
       const restrictedFeatures = Array.from(new Set([
         ...originalAdminRoleAcl.features.filter((feature) =>
@@ -84,23 +91,19 @@ test.describe('TC-TRANS-011: RBAC Save Blocked Without translations.manage', () 
 
       const restrictedToken = await getAuthToken(request, 'admin')
 
-      // Restricted admin CAN view translation locales (translations.view grants read)
       const localesProbe = await apiRequest(request, 'GET', '/api/translations/locales', { token: restrictedToken })
       expect(localesProbe.ok()).toBeTruthy()
 
-      // Restricted admin CAN read translations for a record
-      const readProbe = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${categoryId}`, { token: restrictedToken })
+      const readProbe = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${entryId}`, { token: restrictedToken })
       expect([200, 404]).toContain(readProbe.status())
 
-      // Restricted admin CANNOT save translations (requires translations.manage)
-      const saveProbe = await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${categoryId}`, {
+      const saveProbe = await apiRequest(request, 'PUT', `/api/translations/${ENTITY_TYPE}/${entryId}`, {
         token: restrictedToken,
-        data: { en: { name: 'Unauthorized Save QA' } },
+        data: { en: { label: 'Unauthorized Save QA' } },
       })
       expect(saveProbe.status()).toBe(403)
 
-      // Verify no translation was persisted
-      const verifyResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${categoryId}`, { token: saToken })
+      const verifyResponse = await apiRequest(request, 'GET', `/api/translations/${ENTITY_TYPE}/${entryId}`, { token: saToken })
       expect(verifyResponse.status()).toBe(404)
     } finally {
       await setRoleAcl(request, saToken, {
@@ -109,8 +112,9 @@ test.describe('TC-TRANS-011: RBAC Save Blocked Without translations.manage', () 
         features: originalAdminRoleAcl.features,
         organizations: originalAdminRoleAcl.organizations,
       }).catch(() => {})
-      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, categoryId).catch(() => {})
-      await deleteCatalogCategoryIfExists(request, saToken, categoryId).catch(() => {})
+      await deleteTranslationIfExists(request, saToken, ENTITY_TYPE, entryId).catch(() => {})
+      await deleteDictionaryEntryIfExists(request, saToken, dictionaryId, entryId).catch(() => {})
+      await deleteDictionaryIfExists(request, saToken, dictionaryId).catch(() => {})
     }
   })
 })
