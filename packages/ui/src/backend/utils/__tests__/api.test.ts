@@ -43,7 +43,7 @@ describe('apiFetch', () => {
     jest.resetAllMocks()
     jest.spyOn(console, 'warn').mockImplementation(() => undefined)
     jest.useFakeTimers()
-    window.history.pushState({}, '', '/backend/sales/documents')
+    window.history.pushState({}, '', '/backend/example/documents')
     ;(window as unknown as Record<string, unknown>).__omOriginalFetch = undefined
   })
 

@@ -1072,7 +1072,7 @@ function NotesSectionImpl<C = unknown>({
                       <div className="flex items-center gap-2 text-xs text-muted-foreground">
                         <ArrowUpRightSquare className="h-3.5 w-3.5" />
                         <a
-                          href={`/backend/customers/deals/${encodeURIComponent(note.dealId)}`}
+                          href={`#`}
                           className="font-medium text-foreground hover:underline"
                         >
                           {note.dealTitle && note.dealTitle.length

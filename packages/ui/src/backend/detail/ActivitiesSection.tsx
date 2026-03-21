@@ -1071,7 +1071,7 @@ function ActivitiesSectionImpl<C = unknown>({
   )
 
   const resolveDealHref = React.useCallback(
-    (id: string) => (dealLinkHref ? dealLinkHref(id) : `/backend/customers/deals/${encodeURIComponent(id)}`),
+    (id: string) => (dealLinkHref ? dealLinkHref(id) : `#`),
     [dealLinkHref],
   )
 

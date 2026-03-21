@@ -1,9 +1,9 @@
 import type { EntityManager } from '@mikro-orm/postgresql'
 
 export interface SyncCrudEventPayload {
-  /** The full event ID (e.g., 'customers.person.creating') */
+  /** The full event ID (e.g., 'example.todo.creating') */
   eventId: string
-  /** Entity identifier (e.g., 'customers.person') */
+  /** Entity identifier (e.g., 'example.todo') */
   entity: string
   /** CRUD operation */
   operation: 'create' | 'update' | 'delete'

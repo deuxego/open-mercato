@@ -112,10 +112,10 @@ describe('isTerminalMessageAction', () => {
   })
 
   it('defaults command actions to terminal', () => {
-    expect(isTerminalMessageAction({ commandId: 'sales.orders.approve' })).toBe(true)
+    expect(isTerminalMessageAction({ commandId: 'example.items.approve' })).toBe(true)
   })
 
   it('defaults href actions to non-terminal', () => {
-    expect(isTerminalMessageAction({ href: '/backend/sales/orders/1' })).toBe(false)
+    expect(isTerminalMessageAction({ href: '/backend/example/items/1' })).toBe(false)
   })
 })

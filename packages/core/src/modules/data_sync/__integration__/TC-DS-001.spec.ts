@@ -182,7 +182,7 @@ test.describe('TC-DS-001: Data sync hub APIs', () => {
     const withoutToken = await request.post(`${BASE_URL}/api/data_sync/run`, {
       data: {
         integrationId: 'any',
-        entityType: 'catalog.product',
+        entityType: 'example.todo',
         direction: 'import',
       },
     })
@@ -193,7 +193,7 @@ test.describe('TC-DS-001: Data sync hub APIs', () => {
       token: employeeToken,
       data: {
         integrationId: 'any',
-        entityType: 'catalog.product',
+        entityType: 'example.todo',
         direction: 'import',
       },
     })

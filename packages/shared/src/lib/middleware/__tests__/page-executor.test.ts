@@ -11,7 +11,7 @@ import {
 
 function buildContext(overrides?: Partial<PageMiddlewareContext>): PageMiddlewareContext {
   return {
-    pathname: '/backend/customers/people',
+    pathname: '/backend/example/items',
     mode: 'backend',
     routeMeta: { requireAuth: true },
     auth: {

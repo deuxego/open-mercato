@@ -10,7 +10,7 @@ async function readJson(response: APIResponse): Promise<JsonRecord> {
 }
 
 const TEST_INTEGRATION_ID = 'test_mapping_integration'
-const ENTITY_TYPE = 'catalog.product'
+const ENTITY_TYPE = 'example.todo'
 
 /**
  * TC-DS-002: Data sync field mapping CRUD APIs

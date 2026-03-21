@@ -24,7 +24,7 @@ jest.mock('next/link', () => {
 })
 
 jest.mock('next/navigation', () => ({
-  usePathname: () => '/backend/customers/people/123',
+  usePathname: () => '/backend/example/items/123',
   useSearchParams: () => new URLSearchParams('showIncomingChanges=1'),
 }))
 
@@ -52,7 +52,7 @@ describe('FormHeader', () => {
       expect.objectContaining({
         spotId: 'form-header:detail',
         context: {
-          path: '/backend/customers/people/123',
+          path: '/backend/example/items/123',
           query: 'showIncomingChanges=1',
         },
       }),
@@ -71,7 +71,7 @@ describe('FormHeader', () => {
       expect.objectContaining({
         spotId: 'form-header:edit',
         context: {
-          path: '/backend/customers/people/123',
+          path: '/backend/example/items/123',
           query: 'showIncomingChanges=1',
         },
       }),

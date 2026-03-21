@@ -53,7 +53,7 @@ export interface ResponseEnricher<TRecord = any, TEnriched = any> {
   /** Unique identifier: `<module>.<enricher-name>` */
   id: string
 
-  /** Target entity to enrich: `<module>.<entity>` (e.g., 'customers.person') */
+  /** Target entity to enrich: `<module>.<entity>` (e.g., 'example.todo') */
   targetEntity: string
 
   /** ACL features required for this enricher to run */

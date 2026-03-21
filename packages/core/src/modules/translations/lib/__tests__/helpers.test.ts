@@ -77,23 +77,23 @@ describe('translation helpers', () => {
 
   describe('buildEntityListUrl', () => {
     it('builds URL for standard entity type', () => {
-      expect(buildEntityListUrl('catalog:catalog_product')).toBe('/api/catalog/products')
+      expect(buildEntityListUrl('example:example_item')).toBe('/api/example/items')
     })
 
     it('builds URL when entity does not have module prefix', () => {
-      expect(buildEntityListUrl('catalog:offer')).toBe('/api/catalog/offers')
+      expect(buildEntityListUrl('example:offer')).toBe('/api/example/offers')
     })
 
     it('does not double-pluralize already-plural entity', () => {
-      expect(buildEntityListUrl('catalog:products')).toBe('/api/catalog/products')
+      expect(buildEntityListUrl('example:products')).toBe('/api/example/products')
     })
 
     it('returns null when no entity part after colon', () => {
-      expect(buildEntityListUrl('catalog:')).toBeNull()
+      expect(buildEntityListUrl('example:')).toBeNull()
     })
 
     it('returns null when no colon present', () => {
-      expect(buildEntityListUrl('catalog')).toBeNull()
+      expect(buildEntityListUrl('example')).toBeNull()
     })
 
     it('returns null for empty string', () => {
@@ -101,27 +101,27 @@ describe('translation helpers', () => {
     })
 
     it('strips module prefix from entity name', () => {
-      expect(buildEntityListUrl('sales:sales_order')).toBe('/api/sales/orders')
+      expect(buildEntityListUrl('directory:directory_order')).toBe('/api/directory/orders')
     })
 
     it('correctly pluralizes category', () => {
-      expect(buildEntityListUrl('catalog:category')).toBe('/api/catalog/categories')
+      expect(buildEntityListUrl('example:category')).toBe('/api/example/categories')
     })
 
     it('correctly pluralizes entity ending in y after consonant', () => {
-      expect(buildEntityListUrl('catalog:catalog_company')).toBe('/api/catalog/companies')
+      expect(buildEntityListUrl('example:example_company')).toBe('/api/example/companies')
     })
 
     it('correctly pluralizes entity ending in x', () => {
-      expect(buildEntityListUrl('catalog:catalog_box')).toBe('/api/catalog/boxes')
+      expect(buildEntityListUrl('example:example_box')).toBe('/api/example/boxes')
     })
 
     it('correctly pluralizes entity ending in sh', () => {
-      expect(buildEntityListUrl('catalog:catalog_dish')).toBe('/api/catalog/dishes')
+      expect(buildEntityListUrl('example:example_dish')).toBe('/api/example/dishes')
     })
 
     it('correctly pluralizes entity ending in ch', () => {
-      expect(buildEntityListUrl('catalog:catalog_match')).toBe('/api/catalog/matches')
+      expect(buildEntityListUrl('example:example_match')).toBe('/api/example/matches')
     })
 
     it('replaces underscores with hyphens in multi-word resource names', () => {
@@ -129,7 +129,7 @@ describe('translation helpers', () => {
     })
 
     it('replaces underscores with hyphens after prefix stripping', () => {
-      expect(buildEntityListUrl('catalog:catalog_product_category')).toBe('/api/catalog/product-categories')
+      expect(buildEntityListUrl('example:example_product_category')).toBe('/api/example/product-categories')
     })
 
     it('handles entity with underscores and plural exception', () => {

@@ -365,7 +365,7 @@ export type CrudFactoryOptions<TCreate, TUpdate, TList> = {
   }
   /** Response enricher configuration. When set, enrichers targeting this entity run after afterList hook. */
   enrichers?: {
-    /** Entity ID for enricher matching (e.g., 'customers.person') */
+    /** Entity ID for enricher matching (e.g., 'example.todo') */
     entityId: string
   }
 }
