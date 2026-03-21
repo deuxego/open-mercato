@@ -1,0 +1,11 @@
+{
+  "title": "Hands-on Tutorials",
+  "pages": [
+    "first-app",
+    "building-todo-module",
+    "authoring-first-module",
+    "api-data-fetching",
+    "testing",
+    "business-rules"
+  ]
+}

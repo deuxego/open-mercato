@@ -1,0 +1,10 @@
+{
+  "title": "Database & Entities",
+  "pages": [
+    "entities",
+    "data-extensibility",
+    "query-engine",
+    "hybrid-query-engine",
+    "query-index"
+  ]
+}

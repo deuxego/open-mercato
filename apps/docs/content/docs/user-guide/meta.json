@@ -1,0 +1,23 @@
+{
+  "title": "User Guide",
+  "pages": [
+    "overview",
+    "login",
+    "users-and-roles",
+    "api-keys",
+    "feature-toggles",
+    "custom-fieldsets",
+    "encryption",
+    "user-custom-fields",
+    "dictionaries",
+    "user-entities",
+    "system-status",
+    "cache-management",
+    "organizations",
+    "integrations",
+    "business-rules",
+    "audit-logs",
+    "scheduler",
+    "self-service-onboarding"
+  ]
+}

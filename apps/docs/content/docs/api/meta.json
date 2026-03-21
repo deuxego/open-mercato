@@ -1,0 +1,17 @@
+{
+  "title": "REST API",
+  "pages": [
+    "overview",
+    "---Module Guides---",
+    "auth",
+    "directory",
+    "dashboards",
+    "integrations-data-sync",
+    "entities",
+    "attachments",
+    "feature-toggles",
+    "scheduler",
+    "modules",
+    "business-rules"
+  ]
+}

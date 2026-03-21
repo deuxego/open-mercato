@@ -1,0 +1,25 @@
+{
+  "title": "Framework",
+  "pages": [
+    "ioc",
+    "modules",
+    "extensibility",
+    "commands",
+    "database",
+    "custom-entities",
+    "admin-ui",
+    "widget-injection",
+    "dashboard",
+    "api",
+    "events",
+    "webhooks",
+    "rbac",
+    "feature-toggles",
+    "security",
+    "runtime",
+    "business-rules",
+    "operations",
+    "progress",
+    "scheduler"
+  ]
+}

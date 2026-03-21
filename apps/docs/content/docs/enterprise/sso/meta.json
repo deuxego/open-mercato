@@ -1,0 +1,9 @@
+{
+  "title": "SSO",
+  "pages": [
+    "index",
+    "entra-id-setup",
+    "google-workspace-setup",
+    "zitadel-setup"
+  ]
+}

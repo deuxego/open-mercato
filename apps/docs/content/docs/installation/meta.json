@@ -1,0 +1,9 @@
+{
+  "title": "Installation",
+  "pages": [
+    "prerequisites",
+    "setup",
+    "railway",
+    "[Standalone App (create-mercato-app)](/docs/customization/standalone-app)"
+  ]
+}
