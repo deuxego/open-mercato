@@ -39,7 +39,7 @@ export default workflows  // REQUIRED for Turbopack
 
 ```typescript
 import type { WorkflowMeta, WorkflowHandler, BaseWorkflowPayload } from '@open-mercato/inngest'
-import type { EntityManager } from '@mikro-orm/core'
+import type { EntityManager } from '@mikro-orm/postgresql'
 
 // 1. Define a typed payload — extends BaseWorkflowPayload (which has organizationId + tenantId)
 type MyPayload = BaseWorkflowPayload & {
@@ -53,7 +53,7 @@ export const metadata: WorkflowMeta = {
 }
 
 // 3. Typed handler — payload is fully typed, no `as` casts needed
-const handler: WorkflowHandler<MyPayload> = async (payload, { step, run, resolve }) => {
+const handler: WorkflowHandler<MyPayload> = async (payload, { step, run, resolve, logger }) => {
   // Full Inngest SDK via `step.*`
   await step.sleep('wait', '1h')
 

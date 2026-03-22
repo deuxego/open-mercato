@@ -1,5 +1,8 @@
 # Checkpointing for Performance Optimization
 
+> **Note**: This file documents generic Inngest SDK patterns for background context. Open Mercato workflows MUST use `WorkflowHandler<T>`, `run()`, and `resolve<T>()` as documented in the parent SKILL.md. Do not copy these raw SDK examples directly into Open Mercato modules.
+
+
 Guide to using Inngest's checkpointing feature for dramatically lower latency in real-time workflows.
 
 ## What is Checkpointing?

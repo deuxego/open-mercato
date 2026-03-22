@@ -1,5 +1,8 @@
 # Step Execution and Memoization
 
+> **Note**: This file documents generic Inngest SDK patterns for background context. Open Mercato workflows MUST use `WorkflowHandler<T>`, `run()`, and `resolve<T>()` as documented in the parent SKILL.md. Do not copy these raw SDK examples directly into Open Mercato modules.
+
+
 Deep dive into how Inngest executes steps, handles memoization, and manages state persistence.
 
 ## How Step Execution Works

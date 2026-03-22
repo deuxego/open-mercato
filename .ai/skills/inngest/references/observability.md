@@ -1,5 +1,8 @@
 # Observability and Extended Traces
 
+> **Note**: This file documents generic Inngest SDK patterns for background context. Open Mercato workflows MUST use `WorkflowHandler<T>`, `run()`, and `resolve<T>()` as documented in the parent SKILL.md. Do not copy these raw SDK examples directly into Open Mercato modules.
+
+
 Comprehensive guide to monitoring, tracing, and observing Inngest functions with OpenTelemetry integration.
 
 ## Extended Traces Setup
