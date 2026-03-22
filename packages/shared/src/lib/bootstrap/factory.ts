@@ -13,6 +13,7 @@ import { registerMutationGuards } from '../crud/mutation-guard-store'
 import { registerCommandInterceptors } from '../commands/command-interceptor-store'
 import { registerNotificationHandlers } from '../notifications/handler-registry'
 import { clearRegisteredIntegrations, registerBundles, registerIntegrations } from '../../modules/integrations/types'
+import { defineHub } from '../hub'
 
 let _bootstrapped = false
 
@@ -49,6 +50,25 @@ export function createBootstrap(data: BootstrapData, options: BootstrapOptions =
       }
       if (module.bundles?.length) {
         registerBundles(module.bundles)
+      }
+    }
+
+    // === 2b. Hub adapter auto-registration ===
+    const hubIdsToClear = new Set<string>()
+    for (const module of data.modules) {
+      for (const entry of module.hubAdapters ?? []) {
+        hubIdsToClear.add(entry.hub)
+      }
+    }
+    for (const hubId of hubIdsToClear) {
+      defineHub({ id: hubId }).clear()
+    }
+    for (const module of data.modules) {
+      if (module.hubAdapters?.length) {
+        for (const entry of module.hubAdapters) {
+          const hub = defineHub({ id: entry.hub })
+          hub.register(entry.adapter as object, { version: entry.version })
+        }
       }
     }
 

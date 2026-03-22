@@ -6,6 +6,7 @@
     "configs",
     "notifications",
     "messages",
-    "integrations-data-sync"
+    "integrations-data-sync",
+    "hub-adapters"
   ]
 }

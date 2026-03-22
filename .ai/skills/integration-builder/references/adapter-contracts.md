@@ -542,8 +542,12 @@ export interface DataSyncAdapter {
 }
 
 // Registry functions
+// @deprecated — delegates to `dataSyncHub` from `@open-mercato/shared/lib/hub`.
+// Providers should prefer exporting `adapter` from `integration.ts` for auto-discovery.
 export function registerDataSyncAdapter(adapter: DataSyncAdapter): void
+// @deprecated — use `dataSyncHub.get(providerKey)` instead.
 export function getDataSyncAdapter(providerKey: string): DataSyncAdapter | undefined
+// @deprecated — use `dataSyncHub.getAll()` instead.
 export function getAllDataSyncAdapters(): DataSyncAdapter[]
 ```
 

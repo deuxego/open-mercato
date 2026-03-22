@@ -1025,6 +1025,7 @@ export async function generateModuleRegistry(options: ModuleRegistryOptions): Pr
       ${setupImportName ? `setup: (${setupImportName}.default ?? ${setupImportName}.setup) || undefined,` : ''}
       ${integrationImportName ? `integrations: (( ${integrationImportName}.integrations ?? (${integrationImportName}.integration ? [${integrationImportName}.integration] : []) ) as import('@open-mercato/shared/modules/integrations/types').IntegrationDefinition[]),` : ''}
       ${integrationImportName ? `bundles: (( ${integrationImportName}.bundles ?? (${integrationImportName}.bundle ? [${integrationImportName}.bundle] : []) ) as import('@open-mercato/shared/modules/integrations/types').IntegrationBundle[]),` : ''}
+      ${integrationImportName ? `hubAdapters: (() => { const _int = ${integrationImportName}; const _hub = (_int.integration?.hub ?? _int.integrations?.[0]?.hub) || undefined; const _pk = (_int.integration?.providerKey ?? _int.integrations?.[0]?.providerKey) || undefined; if (!_hub || !_pk) return []; if (_int.adapters) return _int.adapters.map((e: { adapter: unknown; version?: string }) => ({ hub: _hub, providerKey: _pk, adapter: e.adapter, version: e.version })); if (_int.adapter) return [{ hub: _hub, providerKey: _pk, adapter: _int.adapter }]; return [] })(),` : ''}
     }`)
   }
 

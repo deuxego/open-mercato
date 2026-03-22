@@ -46,6 +46,35 @@ For the integrations marketplace specifically:
 - These read routes also execute API interceptors
 - Safety rule: marketplace read routes preserve built-in response fields and only allow additive fields from enrichers and `after` interceptors
 
+## Hub adapter registries
+
+Hub adapters let you define typed, auto-discovered adapter registries for entire integration categories — payment gateways, shipping carriers, notification channels, and any custom category your application needs.
+
+- `defineHub<T>()` from `@open-mercato/shared/lib/hub` creates a typed registry in a single line
+- Each hub is identified by a string `id` and keyed by a configurable adapter field (default: `providerKey`)
+- Optional `versioned: true` enables side-by-side adapter versions with automatic latest-fallback
+- Provider packages export an `adapter` object from `integration.ts` — the platform registers it automatically during bootstrap
+- No manual registry boilerplate: define the hub once in the owning module, and providers plug in by exporting the right shape
+
+```ts
+import { defineHub } from '@open-mercato/shared/lib/hub'
+
+interface PaymentGateway {
+  providerKey: string
+  charge(amount: number, currency: string): Promise<ChargeResult>
+}
+
+// One line creates the entire registry
+export const paymentHub = defineHub<PaymentGateway>({ id: 'payment' })
+
+// Provider packages simply export their adapter
+paymentHub.register(myAdapter)          // register
+paymentHub.get('stripe')                // lookup by key
+paymentHub.list()                       // all registered adapters
+```
+
+Start with: [Hub adapters guide](/framework/modules/hub-adapters)
+
 ## Integration extension widgets (UMES Phase L)
 
 Phase L adds first-class UI widgets and data primitives for building integration modules.

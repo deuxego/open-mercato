@@ -1,0 +1,386 @@
+---
+title: Hub Adapter Registry
+description: Create typed adapter registries with defineHub and let providers register via integration.ts auto-discovery.
+---
+
+# Hub Adapter Registry
+
+A **hub** is a typed adapter registry created by `defineHub<T>()`. It replaces hand-rolled Maps, singleton registries, and global arrays with a single API that supports auto-discovery, versioning, and cross-package sharing.
+
+The platform ships one built-in hub (`data_sync`). You can create your own for any adapter pattern — payment gateways, shipping carriers, notification channels, etc.
+
+```ts title="How it looks end-to-end"
+// 1. Define the hub (once)
+const paymentHub = defineHub<PaymentAdapter>({ id: 'payments' })
+
+// 2. Provider registers (auto or manual)
+paymentHub.register(stripeAdapter)
+
+// 3. Consumer resolves
+const adapter = paymentHub.get('stripe')
+```
+
+## Creating a Hub
+
+<Steps>
+<Step>
+### Define the adapter interface
+
+Every adapter must carry a string key so the hub can index it. By default the field is `providerKey`, but you can customize it.
+
+```ts title="src/modules/payments/lib/adapter.ts"
+export interface PaymentAdapter {
+  readonly providerKey: string
+  charge(amount: number, currency: string): Promise<{ transactionId: string }>
+  refund(transactionId: string): Promise<void>
+}
+```
+</Step>
+
+<Step>
+### Create the hub
+
+One line. Export it so providers and consumers can import it.
+
+```ts title="src/modules/payments/lib/hub.ts"
+import { defineHub } from '@open-mercato/shared/lib/hub'
+import type { PaymentAdapter } from './adapter'
+
+export const paymentHub = defineHub<PaymentAdapter>({ id: 'payments' })
+```
+
+Options:
+
+| Option | Default | Description |
+|--------|---------|-------------|
+| `id` | *(required)* | Unique hub identifier. Same id = same backing store across packages. |
+| `adapterKeyField` | `'providerKey'` | The property name used to extract the adapter's lookup key. |
+| `versioned` | `false` | Enable versioned registration (multiple versions per key). |
+</Step>
+
+<Step>
+### Use the hub in your API routes
+
+```ts title="src/modules/payments/api/post/charge.ts"
+import { paymentHub } from '../../lib/hub'
+
+export default async function handler(req, res) {
+  const adapter = paymentHub.get(req.body.provider)
+  if (!adapter) {
+    return res.status(400).json({ error: 'Unknown payment provider' })
+  }
+  const result = await adapter.charge(req.body.amount, req.body.currency)
+  return res.json(result)
+}
+```
+</Step>
+</Steps>
+
+## Registering Providers
+
+### Preferred: Export from `integration.ts`
+
+The generator reads `adapter` (or `adapters`) exports from every module's `integration.ts` and wires them into the bootstrap sequence. No manual registration code needed.
+
+```ts title="packages/provider-stripe/src/integration.ts"
+import type { PaymentAdapter } from '@open-mercato/core/modules/payments/lib/adapter'
+
+export const adapter: PaymentAdapter = {
+  providerKey: 'stripe',
+  async charge(amount, currency) { /* ... */ },
+  async refund(transactionId) { /* ... */ },
+}
+
+// The generator detects integration.hub or the hub field on
+// the integration definition to route this adapter to the correct hub.
+export const integration = {
+  id: 'stripe_payments',
+  hub: 'payments',
+  // ...
+}
+```
+
+At bootstrap, the platform calls `paymentHub.register(adapter)` automatically.
+
+### Versioned adapters
+
+Export an `adapters` array when shipping multiple versions:
+
+```ts title="packages/provider-stripe/src/integration.ts"
+export const adapters = [
+  { adapter: stripeV1Adapter, version: '1.0' },
+  { adapter: stripeV2Adapter, version: '2.0' },
+]
+```
+
+The first-registered version becomes the default when `hub.get('stripe')` is called without a version.
+
+### Manual registration
+
+For adapters that depend on DI services, register from `di.ts` or `setup.ts`:
+
+```ts title="src/modules/my_provider/di.ts"
+import { paymentHub } from '@open-mercato/core/modules/payments/lib/hub'
+
+export function register(container) {
+  const adapter = {
+    providerKey: 'my_provider',
+    async charge(amount, currency) {
+      const client = container.resolve('myProviderClient')
+      return client.charge(amount, currency)
+    },
+    async refund(transactionId) {
+      const client = container.resolve('myProviderClient')
+      return client.refund(transactionId)
+    },
+  }
+  paymentHub.register(adapter)
+}
+```
+
+## Common Patterns
+
+### Hub Service Layer
+
+Never call `hub.get()` directly from API routes. Wrap it in a service that handles credentials, logging, and errors. This is the standard pattern for every hub.
+
+```ts title="src/modules/payments/lib/payment-service.ts"
+import { paymentHub } from './hub'
+import type { CredentialsService } from '../../integrations/lib/credentials-service'
+import type { IntegrationLogService } from '../../integrations/lib/log-service'
+
+interface TenantScope {
+  tenantId: string
+  organizationId: string
+}
+
+export function createPaymentService(deps: {
+  credentialsService: CredentialsService
+  logService: IntegrationLogService
+}) {
+  return {
+    async charge(providerKey: string, amount: number, currency: string, scope: TenantScope) {
+      // 1. Resolve adapter
+      const adapter = paymentHub.get(providerKey)
+      if (!adapter) throw new Error(`No payment adapter for "${providerKey}"`)
+
+      // 2. Fetch tenant-scoped credentials
+      const credentials = await deps.credentialsService.resolve(providerKey, scope)
+
+      // 3. Execute with logging
+      const startedAt = Date.now()
+      try {
+        const result = await adapter.charge(amount, currency)
+        await deps.logService.success(providerKey, { duration: Date.now() - startedAt })
+        return result
+      } catch (error) {
+        await deps.logService.failure(providerKey, { error, duration: Date.now() - startedAt })
+        throw error
+      }
+    },
+
+    async refund(providerKey: string, transactionId: string, scope: TenantScope) {
+      const adapter = paymentHub.get(providerKey)
+      if (!adapter) throw new Error(`No payment adapter for "${providerKey}"`)
+      await deps.credentialsService.resolve(providerKey, scope)
+      return adapter.refund(transactionId)
+    },
+  }
+}
+```
+
+### DI Wiring for Hub Services
+
+Register the service via Awilix so API routes resolve it from the container:
+
+```ts title="src/modules/payments/di.ts"
+import { asFunction } from 'awilix'
+import { createPaymentService } from './lib/payment-service'
+
+export function register(container: AppContainer) {
+  container.register({
+    paymentService: asFunction(({ credentialsService, integrationLogService }) =>
+      createPaymentService({
+        credentialsService,
+        logService: integrationLogService,
+      })
+    ).singleton(),
+  })
+}
+```
+
+API routes stay thin:
+
+```ts title="src/modules/payments/api/post/charge.ts"
+const service = container.resolve('paymentService')
+const result = await service.charge(providerKey, amount, currency, { tenantId, organizationId })
+```
+
+### Bundle Providers
+
+When one provider package covers multiple entity types (e.g., Shopify products + orders), export a bundle with a single adapter:
+
+```ts title="packages/sync-shopify/src/integration.ts"
+import type { IntegrationBundle, IntegrationDefinition } from '@open-mercato/shared/modules/integrations/types'
+
+export const bundle: IntegrationBundle = {
+  id: 'sync_shopify',
+  title: 'Shopify',
+  credentials: { fields: [{ key: 'api_key', label: 'API Key', type: 'password' }] },
+}
+
+export const integrations: IntegrationDefinition[] = [
+  { id: 'sync_shopify_products', hub: 'data_sync', providerKey: 'shopify', bundleId: 'sync_shopify', title: 'Products' },
+  { id: 'sync_shopify_orders', hub: 'data_sync', providerKey: 'shopify', bundleId: 'sync_shopify', title: 'Orders' },
+]
+
+// One adapter handles all entity types — routes internally by entityType
+export const adapter = new ShopifyDataSyncAdapter()
+```
+
+All integrations in a bundle share the same `hub` and `providerKey`. The generator extracts one adapter registration for the group.
+
+### Health Checks
+
+Health checks stay in `di.ts` — they're DI services, not hub adapters:
+
+```ts title="packages/provider-stripe/src/di.ts"
+import { asFunction } from 'awilix'
+
+export function register(container: AppContainer) {
+  // Only DI services — no adapter registration (that's in integration.ts)
+  container.register({
+    stripeHealthCheck: asFunction(({ credentialsService }) => ({
+      async check(scope: TenantScope) {
+        const creds = await credentialsService.resolve('stripe', scope)
+        const response = await fetch('https://api.stripe.com/v1/balance', {
+          headers: { Authorization: `Bearer ${creds.secret_key}` },
+        })
+        return { ok: response.ok }
+      },
+    })).singleton(),
+  })
+}
+```
+
+Reference the health check in `integration.ts`:
+
+```ts title="integration.ts"
+export const integration = {
+  id: 'stripe_payments',
+  hub: 'payments',
+  providerKey: 'stripe',
+  healthCheck: { service: 'stripeHealthCheck' },
+}
+```
+
+## Architecture
+
+Three layers — the hub is the thin registry in the middle:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│  API Route                                              │
+│  const result = await paymentService.charge(...)        │
+├─────────────────────────────────────────────────────────┤
+│  Hub Service (orchestration)                            │
+│  credentials → adapter.charge() → logging               │
+├─────────────────────────────────────────────────────────┤
+│  Hub Registry (defineHub)                               │
+│  paymentHub.get('stripe') → StripeAdapter               │
+├─────────────────────────────────────────────────────────┤
+│  Provider (integration.ts)                              │
+│  export const adapter = new StripeAdapter()             │
+└─────────────────────────────────────────────────────────┘
+```
+
+Provider registration flow:
+
+```
+integration.ts ─── export adapter ──→ Generator ──→ Bootstrap ──→ Hub (Symbol.for Map)
+                                                                       ↑
+                                                            hub.get() ─┘ ← Hub Service ← API Route
+```
+
+## API Reference
+
+### `defineHub<T>(options): Hub<T>`
+
+```ts
+import { defineHub } from '@open-mercato/shared/lib/hub'
+```
+
+Returns a frozen `Hub<T>` object with these methods:
+
+| Method | Signature | Description |
+|--------|-----------|-------------|
+| `register` | `(adapter: T, options?: { version?: string }) => () => void` | Registers an adapter. Returns a dispose function that removes it. |
+| `get` | `(key: string, version?: string) => T \| undefined` | Retrieves an adapter by key. For versioned hubs, falls back to the default version when the requested version is not found. |
+| `list` | `() => T[]` | Returns all registered adapters. Versioned hubs deduplicate — one entry per provider key. |
+| `clear` | `() => void` | Removes all adapters. Intended for test teardown. |
+
+The `id` property is also exposed as a readonly string.
+
+<Callout type="info">
+`register()` returns a **dispose function**. Call it to remove a single adapter without clearing the entire hub.
+</Callout>
+
+### Custom key field
+
+If your adapter interface uses a different property name:
+
+```ts
+const carrierHub = defineHub<CarrierAdapter>({
+  id: 'shipping_carriers',
+  adapterKeyField: 'carrierId',
+})
+```
+
+### Versioned hubs
+
+```ts
+const hub = defineHub<MyAdapter>({ id: 'my_hub', versioned: true })
+
+hub.register(adapterV1, { version: '1.0' })
+hub.register(adapterV2, { version: '2.0' })
+
+hub.get('my_key')          // returns adapterV1 (first registered = default)
+hub.get('my_key', '2.0')   // returns adapterV2
+hub.get('my_key', '99.0')  // falls back to adapterV1
+hub.list()                  // returns [adapterV1] (deduped, one per key)
+```
+
+## Testing
+
+Use `hub.clear()` in `afterEach` to prevent state leaking between tests:
+
+```ts
+import { paymentHub } from '../lib/hub'
+
+afterEach(() => {
+  paymentHub.clear()
+})
+
+it('resolves the stripe adapter', () => {
+  const adapter = { providerKey: 'stripe', charge: jest.fn(), refund: jest.fn() }
+  paymentHub.register(adapter)
+
+  expect(paymentHub.get('stripe')).toBe(adapter)
+})
+```
+
+For scoped cleanup (single adapter), use the dispose function:
+
+```ts
+it('removes adapter on dispose', () => {
+  const dispose = paymentHub.register(myAdapter)
+  dispose()
+  expect(paymentHub.get('my_provider')).toBeUndefined()
+})
+```
+
+## How It Works
+
+The backing store uses `Symbol.for('@open-mercato/hub/<id>')` on `globalThis`. Two `defineHub()` calls with the same `id` — even from different packages — share the same `Map`. This is what makes cross-package registration work without an explicit import chain.
+
+At build time, the generator extracts `adapter`/`adapters` exports from each module's `integration.ts`. At app startup, the bootstrap factory iterates these entries, clears each referenced hub, and calls `hub.register(adapter)` for every discovered adapter. This means providers just need to export — no registration boilerplate.

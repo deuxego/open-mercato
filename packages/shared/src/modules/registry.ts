@@ -190,6 +190,12 @@ export type Module = {
   // Optional: integration marketplace declarations discovered from integration.ts
   integrations?: IntegrationDefinition[]
   bundles?: IntegrationBundle[]
+  hubAdapters?: Array<{
+    hub: string
+    providerKey: string
+    adapter: unknown
+    version?: string
+  }>
 }
 
 function normPath(s: string) {

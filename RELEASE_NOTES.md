@@ -1,3 +1,41 @@
+# Release Notes - Open Mercato v0.5.0
+
+**Date:** March 22, 2026
+
+## Deprecations & Migration
+
+### Data Sync Adapter Registry → Hub API
+
+The standalone adapter registration functions are deprecated in favor of the new `dataSyncHub` API. The old functions remain functional and will be removed in v0.6.0.
+
+| Deprecated | Replacement |
+|------------|-------------|
+| `registerDataSyncAdapter(adapter)` | `dataSyncHub.register(adapter)` |
+| `getDataSyncAdapter(id)` | `dataSyncHub.get(id)` |
+| `getAllDataSyncAdapters()` | `dataSyncHub.list()` |
+
+**New:** `defineHub<T>()` factory in `@open-mercato/shared/lib/hub` for creating typed adapter registries with a consistent register/get/list contract.
+
+**New:** Providers can export `adapter` (single instance) or `adapters` (versioned array) from `integration.ts` for automatic hub registration at bootstrap — no manual `registerDataSyncAdapter()` call needed.
+
+**Migration example:**
+
+```ts
+// Before
+import { registerDataSyncAdapter } from '@open-mercato/core/modules/data_sync';
+registerDataSyncAdapter(myAdapter);
+
+// After — option A: programmatic
+import { dataSyncHub } from '@open-mercato/core/modules/data_sync/lib/adapter-registry';
+const deregister = dataSyncHub.register(myAdapter);
+
+// After — option B: declarative (preferred)
+// In your provider's integration.ts, just export the adapter:
+export const adapter = myAdapter;
+```
+
+---
+
 # Release Notes - Open Mercato v0.4.2
 
 **Date:** January 29, 2026

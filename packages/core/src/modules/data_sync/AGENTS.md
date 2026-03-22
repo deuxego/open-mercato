@@ -77,7 +77,31 @@ interface DataSyncAdapter {
 }
 ```
 
-Register adapters in your provider module's `di.ts`:
+### Adapter Registration
+
+**Preferred — auto-registration via `integration.ts`:**
+
+Export `adapter` (single instance) or `adapters` (array of `{ adapter, version }`) from your provider module's `integration.ts`. The platform auto-registers them with the hub at startup.
+
+```typescript
+// provider module integration.ts
+export const adapter: DataSyncAdapter = { providerKey: 'my-provider', ... }
+```
+
+**Programmatic — hub API:**
+
+```typescript
+import { dataSyncHub } from '@open-mercato/core/modules/data_sync/lib/adapter-registry'
+
+dataSyncHub.register(myAdapter)
+dataSyncHub.get('my-provider')   // retrieve by providerKey
+dataSyncHub.list()               // all registered adapters
+```
+
+**Deprecated — legacy helper:**
+
+`registerDataSyncAdapter()` still works but delegates to the hub internally. Prefer the approaches above for new code.
+
 ```typescript
 registerDataSyncAdapter(myAdapter)
 ```

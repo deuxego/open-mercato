@@ -97,7 +97,33 @@ Compatibility note:
 
 ## Register data sync adapters
 
-Adapters are registered from provider `setup.ts`:
+The preferred way to register adapters is to export `adapter` (or `adapters`) from `integration.ts` alongside the integration definition:
+
+```ts
+import type { DataSyncAdapter } from '@open-mercato/core/modules/data_sync/lib/adapter'
+import { integrations, bundle, bundles } from './integration-definition'
+
+export { integrations, bundle, bundles }
+
+// Compatibility alias for generator/discovery
+export const integration = integrations[0]
+
+export const adapter: DataSyncAdapter = {
+  providerKey: 'my_provider_products',
+  direction: 'import',
+  supportedEntities: ['products'],
+  async *streamImport(input) { /* ... */ },
+  async getMapping(input) { /* ... */ },
+}
+```
+
+The platform auto-discovers the `adapter` export and registers it with the `dataSyncHub`.
+
+<Callout type="warn">
+`registerDataSyncAdapter()` is deprecated. Use the `integration.ts` export pattern above, or call `dataSyncHub.register()` from `@open-mercato/shared/lib/hub` directly.
+</Callout>
+
+Legacy `setup.ts` registration (deprecated):
 
 ```ts
 import type { ModuleSetupConfig } from '@open-mercato/shared/modules/setup'
@@ -122,6 +148,16 @@ Adapter contract (`data_sync/lib/adapter.ts`) requires:
 - `getMapping(...)`
 - `streamImport(...)` and/or `streamExport(...)`
 - optional `validateConnection(...)`
+
+### Hub adapter pattern
+
+The data sync adapter above is one instance of a general hub adapter pattern used across the platform (payment gateways, shipping carriers, notification channels, etc.). The key principle is the same for every hub:
+
+- Provider packages export `adapter` from `integration.ts` — the platform registers it with the appropriate hub automatically during bootstrap.
+- No manual `registerXxxAdapter()` calls are needed; the generator discovers the export and wires it in.
+- Each hub is created with `defineHub<T>()` from `@open-mercato/shared/lib/hub` and supports typed lookup, listing, and optional versioning.
+
+For the full hub adapter API and examples of defining custom hubs, see [Hub adapter registries](/framework/extensibility/integration-enhancements#hub-adapter-registries).
 
 ## Provider-owned environment preconfiguration
 

@@ -1,15 +1,22 @@
+import { defineHub } from '@open-mercato/shared/lib/hub'
 import type { DataSyncAdapter } from './adapter'
 
-const adapters = new Map<string, DataSyncAdapter>()
+export const dataSyncHub = defineHub<DataSyncAdapter>({
+  id: 'data_sync',
+  adapterKeyField: 'providerKey',
+})
 
-export function registerDataSyncAdapter(adapter: DataSyncAdapter): void {
-  adapters.set(adapter.providerKey, adapter)
+/** @deprecated Use dataSyncHub.register() */
+export function registerDataSyncAdapter(adapter: DataSyncAdapter): () => void {
+  return dataSyncHub.register(adapter)
 }
 
+/** @deprecated Use dataSyncHub.get() */
 export function getDataSyncAdapter(providerKey: string): DataSyncAdapter | undefined {
-  return adapters.get(providerKey)
+  return dataSyncHub.get(providerKey)
 }
 
+/** @deprecated Use dataSyncHub.list() */
 export function getAllDataSyncAdapters(): DataSyncAdapter[] {
-  return Array.from(adapters.values())
+  return dataSyncHub.list()
 }

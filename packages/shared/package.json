@@ -35,6 +35,10 @@
       "types": "./src/lib/bootstrap/index.ts",
       "default": "./dist/lib/bootstrap/index.js"
     },
+    "./lib/hub": {
+      "types": "./src/lib/hub/index.ts",
+      "default": "./dist/lib/hub/index.js"
+    },
     "./lib/bootstrap/dynamicLoader": {
       "types": "./src/lib/bootstrap/dynamicLoader.ts",
       "default": "./dist/lib/bootstrap/dynamicLoader.js"

@@ -38,6 +38,7 @@ IMPORTANT: Before any research or coding, match the task to the root `AGENTS.md`
 | Adding DOM Event Bridge (SSE-based real-time events to browser), `useAppEvent`, `useOperationProgress` | `packages/events/AGENTS.md` → DOM Event Bridge |
 | Building customer portal pages, portal auth, portal nav injection, portal event bridge | `packages/ui/AGENTS.md` → Portal Extension |
 | Adding new widget event handlers (`onFieldChange`, `onBeforeNavigate`, transformers) | `packages/ui/AGENTS.md` |
+| Creating typed adapter registries, `defineHub<T>()`, hub auto-registration from `integration.ts` | `packages/shared/AGENTS.md` |
 | **Specific Modules** | |
 | Users/roles/RBAC implementation, authentication flow, session management, feature-based access control | `packages/core/src/modules/auth/AGENTS.md` |
 | Customer identity, customer portal auth (login/signup/magic links), customer RBAC, sessions, CRM auto-linking, admin user management | `packages/core/src/modules/customer_accounts/AGENTS.md` |
@@ -158,6 +159,7 @@ All packages use the `@open-mercato/<package>` naming convention:
 | Inngest workflow types | `import type { WorkflowMeta, WorkflowTools } from '@open-mercato/inngest'` |
 | Inngest client (DI) | `ctx.resolve('inngestClient') as Inngest` |
 | Inngest send event | `(ctx.resolve('inngestClient') as Inngest).send({ name: workflowId, data })` |
+| Hub adapter factory | `import { defineHub } from '@open-mercato/shared/lib/hub'` |
 
 Import strategy:
 - Prefer package-level imports (`@open-mercato/<package>/...`) over deep relative imports (`../../../...`) when crossing module boundaries, referencing shared module internals, or importing from deeply nested files.
@@ -214,6 +216,7 @@ All paths use `src/modules/<module>/` as shorthand. See `packages/core/AGENTS.md
 | `widgets/injection/` | — | Injected UI widgets |
 | `widgets/injection-table.ts` | — | Widget-to-slot mappings |
 | `widgets/components.ts` | `componentOverrides` | Component replacement/wrapper/props override definitions |
+| `integration.ts` | `integration`, `adapter` | Integration marketplace declarations + optional hub adapter export |
 | `data/enrichers.ts` | `enrichers` | Response enrichers for data federation |
 
 ### Key Rules

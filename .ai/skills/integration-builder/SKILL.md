@@ -53,6 +53,8 @@ Match the external service to ONE hub category:
 **Package naming**: `@open-mercato/<prefix><provider>` (e.g., `@open-mercato/gateway-stripe`)
 **Module naming**: `<prefix>_<provider>` in snake_case (e.g., `gateway_stripe`)
 
+Each hub category uses a typed adapter registry created with `defineHub<T>()` from `@open-mercato/shared/lib/hub`. The hub provides a consistent `register`/`get`/`list` API backed by a global Symbol-keyed map. Provider adapters exported from `integration.ts` are auto-registered with the appropriate hub at bootstrap.
+
 If the service spans multiple categories (e.g., MedusaJS does products + customers + orders), use an **Integration Bundle** — see [Section 4.2](#42-bundle-integration).
 
 ---
@@ -193,6 +195,15 @@ export const integration: IntegrationDefinition = {
   ],
   healthCheck: { service: '<providerKey>HealthCheck' },
 }
+
+// Optional: export adapter for automatic hub registration (preferred over di.ts registration)
+// The platform auto-registers adapters exported here at bootstrap via the hub system.
+export const adapter = new MyGatewayAdapter()
+
+// Optional: export versioned adapters array instead of a single adapter
+// export const adapters = [
+//   { adapter: new MyGatewayAdapter(), version: '2025-01-01' },
+// ]
 ```
 
 **Credential field types**: `text`, `secret`, `url`, `select`, `boolean`, `oauth`, `ssh_keypair`
@@ -311,13 +322,15 @@ export default setup
 
 ### 4.6 di.ts
 
+Only needed for DI-specific services (health checks, webhook handlers). Adapter registration is handled automatically when you export `adapter` or `adapters` from `integration.ts` (see Section 4.1).
+
 ```typescript
 import type { AppContainer } from '@open-mercato/shared/lib/di/container'
 
 export function register(container: AppContainer): void {
-  // Register adapter(s) — see Section 5 for category-specific registration
   // Register health check — see Section 7
   // Register webhook handler — see Section 6
+  // NOTE: adapter registration is NOT needed here — export from integration.ts instead
 }
 ```
 
@@ -347,14 +360,19 @@ export class MyGatewayAdapter implements GatewayAdapter {
 }
 ```
 
-**DI registration** (in `di.ts`):
+**Adapter registration** — export from `integration.ts` (preferred):
 ```typescript
-import { registerGatewayAdapter, registerWebhookHandler } from '@open-mercato/shared/modules/payment_gateways/types'
-import { MyGatewayAdapter } from './lib/adapters/v2025'
+// In integration.ts, alongside the integration definition:
+export const adapter = new MyGatewayAdapter()
+// Or for versioned adapters:
+// export const adapters = [{ adapter: new MyGatewayAdapter(), version: '2025-01-01' }]
+```
 
+The platform auto-registers the exported adapter with the hub at bootstrap. No `registerGatewayAdapter()` call in `di.ts` is needed.
+
+**Webhook handler** (still registered in `di.ts`):
+```typescript
 export function register(container: AppContainer): void {
-  const adapter = new MyGatewayAdapter()
-  registerGatewayAdapter(adapter, { version: '2025-01-01' })
   registerWebhookHandler('<provider>', (input) => adapter.verifyWebhook(input), { queue: '<provider>-webhook' })
 }
 ```

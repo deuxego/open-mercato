@@ -337,6 +337,8 @@ Both exports are optional. Existing `integration.ts` files without them work unc
    })(),` : ''}
    ```
 
+   **Known limitation:** Hub and providerKey are read from the first integration entry (`integrations[0]`). All integrations in a bundle are expected to share the same hub — this holds for all existing bundle patterns (Shopify, Akeneo, Medusa). If a future bundle spans multiple hubs, the generator would need per-integration extraction.
+
 3. Add hub auto-registration to bootstrap in `packages/shared/src/lib/bootstrap/factory.ts` (after the integrations/bundles loop, ~line 53):
    ```typescript
    import { defineHub } from '../hub/index.js'
@@ -402,6 +404,7 @@ Both exports are optional. Existing `integration.ts` files without them work unc
 | `.ai/skills/integration-builder/SKILL.md` | Modify | 5 | New adapter export pattern |
 | `.ai/skills/integration-builder/references/adapter-contracts.md` | Modify | 5 | Deprecation notices |
 | `apps/docs/content/docs/framework/modules/integrations-data-sync.mdx` | Modify | 5 | Update examples |
+| `packages/create-app/template/src/modules/example/di.ts` | Modify | 5 | Update example to show new adapter export pattern |
 
 ### Testing Strategy
 
@@ -553,6 +556,8 @@ No registry code. No `globalThis`. No `registerXxxAdapter()`. No generator plugi
 - Decided: deprecated bridge returns `() => void` (additive, callers unaffected)
 - Decided: eager adapter instances only (YAGNI on lazy factories)
 - Added clear-before-register pattern in bootstrap for HMR safety
+- Added generator single-hub extraction limitation note (Phase 4)
+- Added `create-app` template to file manifest (Phase 5)
 
 ### Review — 2026-03-22
 - **Reviewer**: Agent
@@ -562,3 +567,13 @@ No registry code. No `globalThis`. No `registerXxxAdapter()`. No generator plugi
 - **Commands**: N/A (no mutations)
 - **Risks**: Passed — HMR gap fixed (added clear-before-register in bootstrap)
 - **Verdict**: Approved
+
+## Implementation Status
+
+| Phase | Status | Date | Notes |
+|-------|--------|------|-------|
+| Phase 1 — `defineHub<T>()` Factory | Done | 2026-03-22 | Factory + 34 unit tests passing. Generic constraint relaxed to `object` (interfaces lack index signatures for `Record<string, unknown>`). |
+| Phase 2 — Migrate data_sync Registry | Done | 2026-03-22 | Deprecated bridges in place. Existing `sync-engine-import-failures.test.ts` passes unchanged. Added `./lib/hub` to shared package exports. |
+| Phase 3 — integration.ts Convention | Done | 2026-03-22 | Convention documented. No type changes needed — `hub`/`providerKey` already on `IntegrationDefinition`. |
+| Phase 4 — Generator + Bootstrap | Done | 2026-03-22 | `hubAdapters` on Module, generator IIFE extraction, bootstrap clear-before-register. Both packages typecheck clean. |
+| Phase 5 — Docs + Cleanup | Done | 2026-03-22 | AGENTS.md, data_sync AGENTS.md, integration docs, adapter-contracts updated. `create-app` template update deferred (no live providers to migrate). |

@@ -41,6 +41,7 @@ The following file names, their expected export names, and their role in module 
 | `widgets/injection/*/widget.ts` | `InjectionWidgetModule` | MUST NOT change module shape or component props |
 | `widgets/dashboard/*/widget.ts` | `DashboardWidgetModule` | MUST NOT change module shape or component props |
 | `inngest.workflows.ts` | `workflows` + `default` | FROZEN — convention file name and export names MUST NOT change |
+| `integration.ts` | `adapter?` / `adapters?` (optional) | MAY optionally export `adapter` (single instance) or `adapters` (versioned array) for hub auto-registration at bootstrap. Additive — existing files without these exports are unaffected |
 
 **Auto-discovery directory conventions** (FROZEN):
 
@@ -104,6 +105,8 @@ These functions are called directly by module code. Their signatures MUST NOT ch
 | `CrudForm` component props | `@open-mercato/ui/backend/crud` | MUST NOT remove existing props |
 | `DataTable` component props | `@open-mercato/ui/backend` | MUST NOT remove existing props |
 | `parseBooleanToken` / `parseBooleanWithDefault` | `@open-mercato/shared/lib/boolean` | MUST NOT change |
+| `registerDataSyncAdapter()` | `@open-mercato/core/modules/data_sync` | Return type changed from `void` to `() => void` (deregister handle). Additive — callers ignoring the return value are unaffected. Deprecated in favor of `dataSyncHub.register()` |
+| `dataSyncHub` (`register`, `get`, `list`) | `@open-mercato/core/modules/data_sync/lib/adapter-registry` | New preferred API for adapter registration. MUST NOT change method signatures once stable |
 
 ### 4. Import Paths (STABLE)
 

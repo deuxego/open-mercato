@@ -13,7 +13,7 @@ COPY package.json yarn.lock .yarnrc.yml ./
 COPY apps/docs/package.json ./apps/docs/
 
 # Install all dependencies (including devDependencies needed for build)
-RUN yarn workspaces focus open-mercato-docs --production=false
+RUN yarn workspaces focus open-mercato-docs
 
 # Copy docs source files
 COPY apps/docs ./apps/docs
