@@ -22,6 +22,7 @@ Use `@open-mercato/shared` for cross-cutting utilities, types, DSL helpers, and 
 | `data/` | When you need `DataEngine` or `QueryEngine` types | `@open-mercato/shared/lib/data/engine` |
 | `di/` | When setting up dependency injection (Awilix) | `@open-mercato/shared/lib/di` |
 | `encryption/` | When querying encrypted entities (MUST use instead of raw `em.find`) | `@open-mercato/shared/lib/encryption/find` |
+| `hub/` | When creating typed adapter registries for integration hubs | `@open-mercato/shared/lib/hub` |
 | `i18n/` | When translating strings — `useT()` client-side, `resolveTranslations()` server-side | `@open-mercato/shared/lib/i18n/context` or `/server` |
 | `indexers/` | When building query index helpers | `@open-mercato/shared/lib/indexers` |
 | `modules/` | When registering or listing modules | `@open-mercato/shared/lib/modules/registry` |

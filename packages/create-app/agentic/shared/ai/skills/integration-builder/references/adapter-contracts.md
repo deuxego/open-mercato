@@ -309,18 +309,14 @@ export interface RegisterAdapterOptions {
   version?: string
 }
 
-// Registry functions
-export function registerGatewayAdapter(adapter: GatewayAdapter, options?: RegisterAdapterOptions): () => void
-export function getGatewayAdapter(providerKey: string, version?: string): GatewayAdapter | undefined
-export function listGatewayAdapters(): GatewayAdapter[]
-export function clearGatewayAdapters(): void
-export function registerWebhookHandler(
-  providerKey: string,
-  handler: (input: VerifyWebhookInput) => Promise<WebhookEvent>,
-  options?: { queue?: string },
-): () => void
-export function getWebhookHandler(providerKey: string): WebhookHandlerRegistration | undefined
-export function clearWebhookHandlers(): void
+// Registry -- via gatewayHub from @open-mercato/shared/lib/hub
+// Providers should export `adapter` from `integration.ts` for auto-discovery.
+import { defineHub } from '@open-mercato/shared/lib/hub'
+export const gatewayHub = defineHub<GatewayAdapter>({ id: 'payment_gateways', adapterKeyField: 'providerKey' })
+// gatewayHub.register(adapter)   -> returns dispose function
+// gatewayHub.get(providerKey)    -> GatewayAdapter | undefined
+// gatewayHub.list()              -> GatewayAdapter[]
+// gatewayHub.clear()             -> void (test teardown)
 ```
 
 ---
@@ -435,11 +431,14 @@ export interface ShippingAdapter {
   mapStatus(carrierStatus: string): UnifiedShipmentStatus
 }
 
-// Registry functions
-export function registerShippingAdapter(adapter: ShippingAdapter): () => void
-export function getShippingAdapter(providerKey: string): ShippingAdapter | undefined
-export function listShippingAdapters(): ShippingAdapter[]
-export function clearShippingAdapters(): void
+// Registry -- via shippingHub from @open-mercato/shared/lib/hub
+// Providers should export `adapter` from `integration.ts` for auto-discovery.
+import { defineHub } from '@open-mercato/shared/lib/hub'
+export const shippingHub = defineHub<ShippingAdapter>({ id: 'shipping_carriers', adapterKeyField: 'providerKey' })
+// shippingHub.register(adapter)   -> returns dispose function
+// shippingHub.get(providerKey)    -> ShippingAdapter | undefined
+// shippingHub.list()              -> ShippingAdapter[]
+// shippingHub.clear()             -> void (test teardown)
 ```
 
 ---
@@ -541,10 +540,14 @@ export interface DataSyncAdapter {
   }): Promise<ValidationResult>
 }
 
-// Registry functions
-export function registerDataSyncAdapter(adapter: DataSyncAdapter): void
-export function getDataSyncAdapter(providerKey: string): DataSyncAdapter | undefined
-export function getAllDataSyncAdapters(): DataSyncAdapter[]
+// Registry -- via dataSyncHub from @open-mercato/shared/lib/hub
+// Providers should export `adapter` from `integration.ts` for auto-discovery.
+import { defineHub } from '@open-mercato/shared/lib/hub'
+export const dataSyncHub = defineHub<DataSyncAdapter>({ id: 'data_sync', adapterKeyField: 'providerKey' })
+// dataSyncHub.register(adapter)   -> returns dispose function
+// dataSyncHub.get(providerKey)    -> DataSyncAdapter | undefined
+// dataSyncHub.list()              -> DataSyncAdapter[]
+// dataSyncHub.clear()             -> void (test teardown)
 ```
 
 ---
@@ -745,18 +748,18 @@ export interface TenantScope {
 }
 ```
 
-### DI Registration Pattern
+### Adapter Registration Pattern
 
-All adapters follow the same DI registration pattern in `di.ts`:
+All adapters follow the hub-based registration pattern. Export the adapter from `integration.ts` for auto-discovery at bootstrap:
 
 ```typescript
-import type { AppContainer } from '@open-mercato/shared/lib/di/container'
-import { register<Category>Adapter } from '<hub-types-path>'
+// integration.ts
+import { MyAdapter } from './lib/adapters/v2025'
 
-export function register(container: AppContainer): void {
-  const adapter = new MyAdapter()
-  register<Category>Adapter(adapter)
-  // For gateways with versioning:
-  // registerGatewayAdapter(adapter, { version: '2025-01-01' })
-}
+export const integration: IntegrationDefinition = { ... }
+export const adapter = new MyAdapter()
+// Or for versioned adapters:
+// export const adapters = [{ adapter: new MyAdapter(), version: '2025-01-01' }]
 ```
+
+The platform auto-discovers exported `adapter`/`adapters` and registers them with the appropriate hub. No manual `register*Adapter()` call in `di.ts` is needed.

@@ -47,7 +47,7 @@ Problems:
 1. A `defineHub<T>()` factory that creates typed, `Symbol.for`-backed registries
 2. Providers export `adapter` (or `adapters` for versioned) from `integration.ts`
 3. Generator extracts adapter exports; bootstrap auto-registers them into hubs
-4. Existing `registerDataSyncAdapter()` becomes a deprecated bridge delegating to the same backing Map
+4. Legacy `registerDataSyncAdapter()` / `getDataSyncAdapter()` / `getAllDataSyncAdapters()` removed — all callers use `dataSyncHub` directly
 
 ### Design Decisions
 
@@ -167,19 +167,20 @@ export function defineHub<T extends Record<string, unknown>>(options: HubOptions
 | Duplicate key | Dev-mode `console.warn` (HMR-safe — warns but doesn't throw) |
 | Clear | Empties the entire Map. Does not remove the Symbol from globalThis. |
 
-### TypeScript API — Deprecated Bridges (data_sync)
+### TypeScript API — Deprecated Bridges (data_sync) — REMOVED
+
+The deprecated bridge functions (`registerDataSyncAdapter`, `getDataSyncAdapter`, `getAllDataSyncAdapters`) were removed. All callers now use `dataSyncHub` directly:
 
 ```typescript
 // packages/core/src/modules/data_sync/lib/adapter-registry.ts
 
-/** @deprecated Use dataSyncHub.register() */
-export function registerDataSyncAdapter(adapter: DataSyncAdapter): () => void
+import { defineHub } from '@open-mercato/shared/lib/hub'
+import type { DataSyncAdapter } from './adapter'
 
-/** @deprecated Use dataSyncHub.get() */
-export function getDataSyncAdapter(providerKey: string): DataSyncAdapter | undefined
-
-/** @deprecated Use dataSyncHub.list() */
-export function getAllDataSyncAdapters(): DataSyncAdapter[]
+export const dataSyncHub = defineHub<DataSyncAdapter>({
+  id: 'data_sync',
+  adapterKeyField: 'providerKey',
+})
 ```
 
 ### Module Type Extension
@@ -216,17 +217,13 @@ Both exports are optional. Existing `integration.ts` files without them work unc
 | Add `defineHub()` | New API | None | Purely additive |
 | Add optional `adapter`/`adapters` to `integration.ts` convention | Surface 1 (conventions) | None | Optional export, existing files unchanged |
 | Add `hubAdapters` to `Module` type | Surface 2 (types) | None | Optional field, additive |
-| `registerDataSyncAdapter()` return type `void` → `() => void` | Surface 3 (functions) | Low | Additive — callers ignoring return unaffected |
-| `getAllDataSyncAdapters()` delegates to `dataSyncHub.list()` | Surface 3 (functions) | None | Same behavior, same backing store |
+| `registerDataSyncAdapter()` removed | Surface 3 (functions) | None | Replaced by `dataSyncHub.register()` — bridges were removed after deprecation period |
+| `getDataSyncAdapter()` / `getAllDataSyncAdapters()` removed | Surface 3 (functions) | None | Replaced by `dataSyncHub.get()` / `dataSyncHub.list()` |
 | Add `clear()` via `dataSyncHub.clear()` | New API | None | New capability, no existing function to conflict |
 
-**Critical invariant:** Deprecated bridges and bootstrap auto-registration both write to the same `Symbol.for`-backed Map. A provider using old `registerDataSyncAdapter()` in `setup.ts` and a provider using new `adapter` export in `integration.ts` coexist without conflict — both paths resolve to the same registry.
+**Critical invariant:** Bootstrap auto-registration and direct `dataSyncHub.register()` calls both write to the same `Symbol.for`-backed Map. Providers using `adapter` export in `integration.ts` and those calling `dataSyncHub.register()` in `di.ts` coexist without conflict.
 
-**Deprecation protocol:**
-1. Add `@deprecated` JSDoc on `registerDataSyncAdapter`, `getDataSyncAdapter`, `getAllDataSyncAdapters`
-2. Bridges delegate to `dataSyncHub` (same backing Map)
-3. Document in RELEASE_NOTES.md with migration examples
-4. Remove deprecated functions in next minor version
+**Deprecation completed:** The deprecated bridge functions (`registerDataSyncAdapter`, `getDataSyncAdapter`, `getAllDataSyncAdapters`) have been removed. All callers now use `dataSyncHub` directly.
 
 ## Implementation Plan
 
@@ -256,7 +253,7 @@ Both exports are optional. Existing `integration.ts` files without them work unc
 
 ### Phase 2: Migrate `data_sync` Registry
 
-**Goal:** Replace the 15-line module-scoped Map with `defineHub()`. Deprecated bridges maintain BC.
+**Goal:** Replace the 15-line module-scoped Map with `defineHub()`. All consumers use `dataSyncHub` directly.
 
 **Steps:**
 
@@ -269,31 +266,16 @@ Both exports are optional. Existing `integration.ts` files without them work unc
      id: 'data_sync',
      adapterKeyField: 'providerKey',
    })
-
-   /** @deprecated Use dataSyncHub.register() */
-   export function registerDataSyncAdapter(adapter: DataSyncAdapter): () => void {
-     return dataSyncHub.register(adapter)
-   }
-
-   /** @deprecated Use dataSyncHub.get() */
-   export function getDataSyncAdapter(providerKey: string): DataSyncAdapter | undefined {
-     return dataSyncHub.get(providerKey)
-   }
-
-   /** @deprecated Use dataSyncHub.list() */
-   export function getAllDataSyncAdapters(): DataSyncAdapter[] {
-     return dataSyncHub.list()
-   }
    ```
 
-2. Verify all consumers still work (no code changes needed — same function signatures):
-   - `packages/core/src/modules/data_sync/api/options.ts` — uses `getDataSyncAdapter`
-   - `packages/core/src/modules/data_sync/api/run.ts` — uses `getDataSyncAdapter`
-   - `packages/core/src/modules/data_sync/api/validate.ts` — uses `getDataSyncAdapter`
-   - `packages/core/src/modules/data_sync/lib/sync-engine.ts` — uses `getDataSyncAdapter`
-   - `packages/core/src/modules/data_sync/lib/__tests__/sync-engine-import-failures.test.ts` — mocks `getDataSyncAdapter`
+2. Verify all consumers use `dataSyncHub` directly:
+   - `packages/core/src/modules/data_sync/api/options.ts` — uses `dataSyncHub.get()`
+   - `packages/core/src/modules/data_sync/api/run.ts` — uses `dataSyncHub.get()`
+   - `packages/core/src/modules/data_sync/api/validate.ts` — uses `dataSyncHub.get()`
+   - `packages/core/src/modules/data_sync/lib/sync-engine.ts` — uses `dataSyncHub.get()`
+   - `packages/core/src/modules/data_sync/lib/__tests__/sync-engine-import-failures.test.ts` — mocks `dataSyncHub: { get: mockFn }`
 
-3. Update test mock to also clear hub state via `dataSyncHub.clear()` in teardown.
+3. Update test mock to mock `dataSyncHub: { get: mockFn }` instead of `getDataSyncAdapter`. Clear hub state via `dataSyncHub.clear()` in teardown.
 
 ### Phase 3: `integration.ts` Adapter Export Convention
 
@@ -573,7 +555,7 @@ No registry code. No `globalThis`. No `registerXxxAdapter()`. No generator plugi
 | Phase | Status | Date | Notes |
 |-------|--------|------|-------|
 | Phase 1 — `defineHub<T>()` Factory | Done | 2026-03-22 | Factory + 34 unit tests passing. Generic constraint relaxed to `object` (interfaces lack index signatures for `Record<string, unknown>`). |
-| Phase 2 — Migrate data_sync Registry | Done | 2026-03-22 | Deprecated bridges in place. Existing `sync-engine-import-failures.test.ts` passes unchanged. Added `./lib/hub` to shared package exports. |
+| Phase 2 — Migrate data_sync Registry | Done | 2026-03-22 | All consumers migrated to dataSyncHub directly. No deprecated bridges. Existing `sync-engine-import-failures.test.ts` passes unchanged. Added `./lib/hub` to shared package exports. |
 | Phase 3 — integration.ts Convention | Done | 2026-03-22 | Convention documented. No type changes needed — `hub`/`providerKey` already on `IntegrationDefinition`. |
 | Phase 4 — Generator + Bootstrap | Done | 2026-03-22 | `hubAdapters` on Module, generator IIFE extraction, bootstrap clear-before-register. Both packages typecheck clean. |
 | Phase 5 — Docs + Cleanup | Done | 2026-03-22 | AGENTS.md, data_sync AGENTS.md, integration docs, adapter-contracts updated. `create-app` template update deferred (no live providers to migrate). |

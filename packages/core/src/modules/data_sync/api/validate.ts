@@ -4,7 +4,7 @@ import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
 import { getIntegration } from '@open-mercato/shared/modules/integrations/types'
 import type { CredentialsService } from '../../integrations/lib/credentials-service'
 import { validateConnectionSchema } from '../data/validators'
-import { getDataSyncAdapter } from '../lib/adapter-registry'
+import { dataSyncHub } from '../lib/adapter-registry'
 
 export const metadata = {
   POST: { requireAuth: true, requireFeatures: ['data_sync.configure'] },
@@ -31,7 +31,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: 'Integration or providerKey not found' }, { status: 404 })
   }
 
-  const adapter = getDataSyncAdapter(integration.providerKey)
+  const adapter = dataSyncHub.get(integration.providerKey)
   if (!adapter) {
     return NextResponse.json({ ok: false, message: 'No registered sync adapter for provider' }, { status: 404 })
   }

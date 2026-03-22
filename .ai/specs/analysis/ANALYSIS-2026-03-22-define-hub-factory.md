@@ -33,12 +33,9 @@ None.
 
 ### Return Type Change Detail (Surface 3)
 
-`registerDataSyncAdapter` changes from `void` to `() => void`. Technically a return-type change, but:
-- TypeScript allows `void`-returning function types to be assigned to variables expecting `void` return (the return value is simply ignored)
-- No existing caller assigns the return value (all 0 external callers — registration calls are all in docs/specs, not live code)
-- This is strictly additive per `BACKWARD_COMPATIBILITY.md` rules: "new return information is additive if callers ignoring it are unaffected"
+`registerDataSyncAdapter` and its deprecated bridges have been removed. `dataSyncHub` is now the sole API for adapter registration. The original return-type widening (`void` to `() => void`) is moot — no callers remain.
 
-**Verdict**: Safe. No deprecation bridge needed for the return type itself.
+**Verdict**: Removal complete. No bridge in place.
 
 ### Missing BC Section
 

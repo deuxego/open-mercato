@@ -5,13 +5,13 @@ import type { ProgressService } from '../../../progress/lib/progressService'
 import type { DataSyncAdapter } from '../adapter'
 import type { SyncRunService } from '../sync-run-service'
 
-const mockGetDataSyncAdapter = jest.fn()
+const mockDataSyncHubGet = jest.fn()
 const mockGetIntegration = jest.fn()
 const mockEmitDataSyncEvent = jest.fn(async () => undefined)
 const mockRefreshCoverageSnapshot = jest.fn(async () => undefined)
 
 jest.mock('../adapter-registry', () => ({
-  getDataSyncAdapter: (...args: unknown[]) => mockGetDataSyncAdapter(...args),
+  dataSyncHub: { get: (...args: unknown[]) => mockDataSyncHubGet(...args) },
 }))
 
 jest.mock('@open-mercato/shared/modules/integrations/types', () => ({
@@ -64,7 +64,7 @@ describe('data sync engine import item failures', () => {
     }
 
     mockGetIntegration.mockReturnValue({ providerKey: 'test_provider' })
-    mockGetDataSyncAdapter.mockReturnValue(adapter)
+    mockDataSyncHubGet.mockReturnValue(adapter)
 
     const syncRunService = {
       getRun: jest.fn(async () => ({
@@ -199,7 +199,7 @@ describe('data sync engine import item failures', () => {
     }
 
     mockGetIntegration.mockReturnValue({ providerKey: 'test_provider' })
-    mockGetDataSyncAdapter.mockReturnValue(adapter)
+    mockDataSyncHubGet.mockReturnValue(adapter)
 
     const syncRunService = {
       getRun: jest.fn(async () => ({

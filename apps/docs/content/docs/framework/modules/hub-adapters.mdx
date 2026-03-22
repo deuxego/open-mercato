@@ -37,7 +37,7 @@ export interface PaymentAdapter {
 
 One line. Export it so providers and consumers can import it.
 
-```ts title="src/modules/payments/lib/hub.ts"
+```ts title="src/modules/payments/lib/adapter-registry.ts"
 import { defineHub } from '@open-mercato/shared/lib/hub'
 import type { PaymentAdapter } from './adapter'
 
@@ -54,7 +54,7 @@ Options:
 ### Use the hub in your API routes
 
 ```ts title="src/modules/payments/api/post/charge.ts"
-import { paymentHub } from '../../lib/hub'
+import { paymentHub } from '../../lib/adapter-registry'
 
 export default async function handler(req, res) {
   const adapter = paymentHub.get(req.body.provider)
@@ -68,38 +68,65 @@ export default async function handler(req, res) {
 
 ## Registering Providers
 
+### File structure rule
+
+| File | Exports | Purpose |
+|------|---------|---------|
+| `lib/adapter.ts` | Adapter **class** | Implementation lives here |
+| `integration.ts` | Adapter **instance** (`export const adapter = new MyAdapter()`) | Generator reads this — auto-registered at bootstrap |
+
+Never put business logic in `integration.ts`. It only imports the class from `lib/` and exports the instance.
+
 ### Preferred: Export from `integration.ts`
 
 The generator reads `adapter` (or `adapters`) exports from every module's `integration.ts` and wires them into the bootstrap sequence. No manual registration code needed.
 
-```ts title="packages/provider-stripe/src/integration.ts"
+```ts title="packages/provider-stripe/src/modules/gateway_stripe/lib/adapter.ts"
 import type { PaymentAdapter } from '@open-mercato/core/modules/payments/lib/adapter'
 
-export const adapter: PaymentAdapter = {
-  providerKey: 'stripe',
-  async charge(amount, currency) { /* ... */ },
-  async refund(transactionId) { /* ... */ },
-}
+export class StripePaymentAdapter implements PaymentAdapter {
+  readonly providerKey = 'stripe'
 
-// The generator detects integration.hub or the hub field on
-// the integration definition to route this adapter to the correct hub.
-export const integration = {
-  id: 'stripe_payments',
-  hub: 'payments',
-  // ...
+  async charge(amount: number, currency: string) {
+    // Stripe API call — credentials injected at call-time by the hub service
+    return { transactionId: '...' }
+  }
+
+  async refund(transactionId: string) {
+    // ...
+  }
 }
 ```
 
-At bootstrap, the platform calls `paymentHub.register(adapter)` automatically.
+```ts title="packages/provider-stripe/src/modules/gateway_stripe/integration.ts"
+import { StripePaymentAdapter } from './lib/adapter'
+
+export const integration = {
+  id: 'gateway_stripe',
+  hub: 'payments',
+  providerKey: 'stripe',
+  title: 'Stripe',
+  credentials: { fields: [/* ... */] },
+  healthCheck: { service: 'stripeHealthCheck' },
+}
+
+// Import from lib, export here — generator picks it up automatically
+export const adapter = new StripePaymentAdapter()
+```
+
+At bootstrap, the platform calls `paymentHub.register(adapter)` automatically. The adapter implementation stays in `lib/adapter.ts` — `integration.ts` only re-exports the instance.
 
 ### Versioned adapters
 
-Export an `adapters` array when shipping multiple versions:
+Export an `adapters` array when shipping multiple API versions:
 
-```ts title="packages/provider-stripe/src/integration.ts"
+```ts title="packages/provider-stripe/src/modules/gateway_stripe/integration.ts"
+import { StripeAdapterV2025 } from './lib/adapters/v2025'
+import { StripeAdapterV2024 } from './lib/adapters/v2024'
+
 export const adapters = [
-  { adapter: stripeV1Adapter, version: '1.0' },
-  { adapter: stripeV2Adapter, version: '2.0' },
+  { adapter: new StripeAdapterV2025(), version: '2025-02-24' },
+  { adapter: new StripeAdapterV2024(), version: '2024-12-18' },
 ]
 ```
 
@@ -110,7 +137,7 @@ The first-registered version becomes the default when `hub.get('stripe')` is cal
 For adapters that depend on DI services, register from `di.ts` or `setup.ts`:
 
 ```ts title="src/modules/my_provider/di.ts"
-import { paymentHub } from '@open-mercato/core/modules/payments/lib/hub'
+import { paymentHub } from '@open-mercato/core/modules/payments/lib/adapter-registry'
 
 export function register(container) {
   const adapter = {
@@ -135,7 +162,7 @@ export function register(container) {
 Never call `hub.get()` directly from API routes. Wrap it in a service that handles credentials, logging, and errors. This is the standard pattern for every hub.
 
 ```ts title="src/modules/payments/lib/payment-service.ts"
-import { paymentHub } from './hub'
+import { paymentHub } from './adapter-registry'
 import type { CredentialsService } from '../../integrations/lib/credentials-service'
 import type { IntegrationLogService } from '../../integrations/lib/log-service'
 
@@ -343,7 +370,7 @@ hub.list()                  // returns [adapterV1] (deduped, one per key)
 Use `hub.clear()` in `afterEach` to prevent state leaking between tests:
 
 ```ts
-import { paymentHub } from '../lib/hub'
+import { paymentHub } from '../lib/adapter-registry'
 
 afterEach(() => {
   paymentHub.clear()

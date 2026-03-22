@@ -119,25 +119,13 @@ export const adapter: DataSyncAdapter = {
 
 The platform auto-discovers the `adapter` export and registers it with the `dataSyncHub`.
 
-<Callout type="warn">
-`registerDataSyncAdapter()` is deprecated. Use the `integration.ts` export pattern above, or call `dataSyncHub.register()` from `@open-mercato/shared/lib/hub` directly.
-</Callout>
-
-Legacy `setup.ts` registration (deprecated):
+For programmatic registration (e.g. when the adapter depends on DI services), call `dataSyncHub.register()` directly:
 
 ```ts
-import type { ModuleSetupConfig } from '@open-mercato/shared/modules/setup'
-import { registerDataSyncAdapter } from '../data_sync/lib/adapter-registry'
-import { productsAdapter, ordersAdapter } from './lib/adapters'
+import { dataSyncHub } from '@open-mercato/core/modules/data_sync/lib/adapter-registry'
 
-export const setup: ModuleSetupConfig = {
-  async onTenantCreated() {
-    registerDataSyncAdapter(productsAdapter)
-    registerDataSyncAdapter(ordersAdapter)
-  },
-}
-
-export default setup
+dataSyncHub.register(productsAdapter)
+dataSyncHub.register(ordersAdapter)
 ```
 
 Adapter contract (`data_sync/lib/adapter.ts`) requires:

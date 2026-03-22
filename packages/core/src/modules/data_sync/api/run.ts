@@ -8,7 +8,7 @@ import type { IntegrationStateService } from '../../integrations/lib/state-servi
 import type { SyncRunService } from '../lib/sync-run-service'
 import { runSyncSchema } from '../data/validators'
 import { startDataSyncRun } from '../lib/start-run'
-import { getDataSyncAdapter } from '../lib/adapter-registry'
+import { dataSyncHub } from '../lib/adapter-registry'
 
 export const metadata = {
   POST: { requireAuth: true, requireFeatures: ['data_sync.run'] },
@@ -46,7 +46,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'Integration not found' }, { status: 404 })
   }
 
-  const adapter = getDataSyncAdapter(integration.providerKey)
+  const adapter = dataSyncHub.get(integration.providerKey)
   if (!adapter) {
     return NextResponse.json({ error: 'No registered sync adapter for provider' }, { status: 404 })
   }

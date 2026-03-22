@@ -6,7 +6,7 @@ import type { ProgressService } from '../../progress/lib/progressService'
 import { refreshCoverageSnapshot } from '../../query_index/lib/coverage'
 import { emitDataSyncEvent } from '../events'
 import type { DataSyncAdapter, DataMapping, ExportBatch, ImportBatch } from './adapter'
-import { getDataSyncAdapter } from './adapter-registry'
+import { dataSyncHub } from './adapter-registry'
 import type { SyncRunService } from './sync-run-service'
 
 type SyncScope = {
@@ -248,7 +248,7 @@ export function createSyncEngine(deps: EngineDeps) {
       }
 
       const providerKey = resolveProviderKey(run.integrationId)
-      const adapter = getDataSyncAdapter(providerKey)
+      const adapter = dataSyncHub.get(providerKey)
       if (!adapter?.streamImport) {
         throw new Error(`No import adapter registered for provider ${providerKey}`)
       }
@@ -377,7 +377,7 @@ export function createSyncEngine(deps: EngineDeps) {
       }
 
       const providerKey = resolveProviderKey(run.integrationId)
-      const adapter = getDataSyncAdapter(providerKey)
+      const adapter = dataSyncHub.get(providerKey)
       if (!adapter?.streamExport) {
         throw new Error(`No export adapter registered for provider ${providerKey}`)
       }

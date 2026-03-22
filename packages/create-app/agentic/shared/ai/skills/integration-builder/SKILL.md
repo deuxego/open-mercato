@@ -305,14 +305,19 @@ export class MyGatewayAdapter implements GatewayAdapter {
 }
 ```
 
-**DI registration** (in `di.ts`):
+**Adapter registration** -- export from `integration.ts` (preferred):
 ```typescript
-import { registerGatewayAdapter, registerWebhookHandler } from '@open-mercato/shared/modules/payment_gateways/types'
-import { MyGatewayAdapter } from './lib/adapters/v2025'
+// In integration.ts, alongside the integration definition:
+export const adapter = new MyGatewayAdapter()
+// Or for versioned adapters:
+// export const adapters = [{ adapter: new MyGatewayAdapter(), version: '2025-01-01' }]
+```
 
+The platform auto-registers the exported adapter with the hub at bootstrap. No `registerGatewayAdapter()` call in `di.ts` is needed.
+
+**Webhook handler** (still registered in `di.ts`):
+```typescript
 export function register(container: AppContainer): void {
-  const adapter = new MyGatewayAdapter()
-  registerGatewayAdapter(adapter, { version: '2025-01-01' })
   registerWebhookHandler('<provider>', (input) => adapter.verifyWebhook(input), { queue: '<provider>-webhook' })
 }
 ```

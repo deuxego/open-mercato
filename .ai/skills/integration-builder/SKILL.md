@@ -196,13 +196,18 @@ export const integration: IntegrationDefinition = {
   healthCheck: { service: '<providerKey>HealthCheck' },
 }
 
-// Optional: export adapter for automatic hub registration (preferred over di.ts registration)
-// The platform auto-registers adapters exported here at bootstrap via the hub system.
+// Import the adapter CLASS from lib, instantiate here — generator picks up the instance.
+// The adapter implementation stays in lib/adapters/; integration.ts only creates and exports the instance.
+import { MyGatewayAdapter } from './lib/adapters/v<version>'
+
 export const adapter = new MyGatewayAdapter()
 
-// Optional: export versioned adapters array instead of a single adapter
+// For versioned adapters, export an array instead of a single adapter:
+// import { MyGatewayAdapterV2025 } from './lib/adapters/v2025'
+// import { MyGatewayAdapterV2024 } from './lib/adapters/v2024'
 // export const adapters = [
-//   { adapter: new MyGatewayAdapter(), version: '2025-01-01' },
+//   { adapter: new MyGatewayAdapterV2025(), version: '2025-01-01' },
+//   { adapter: new MyGatewayAdapterV2024(), version: '2024-01-01' },
 // ]
 ```
 
@@ -362,7 +367,9 @@ export class MyGatewayAdapter implements GatewayAdapter {
 
 **Adapter registration** — export from `integration.ts` (preferred):
 ```typescript
-// In integration.ts, alongside the integration definition:
+// In integration.ts — import the class from lib, instantiate and export the instance:
+import { MyGatewayAdapter } from './lib/adapters/v<version>'
+
 export const adapter = new MyGatewayAdapter()
 // Or for versioned adapters:
 // export const adapters = [{ adapter: new MyGatewayAdapter(), version: '2025-01-01' }]

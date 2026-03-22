@@ -81,11 +81,21 @@ interface DataSyncAdapter {
 
 **Preferred — auto-registration via `integration.ts`:**
 
-Export `adapter` (single instance) or `adapters` (array of `{ adapter, version }`) from your provider module's `integration.ts`. The platform auto-registers them with the hub at startup.
+The adapter **class** lives in `lib/adapter.ts`. The provider module's `integration.ts` imports the class, instantiates it, and exports the instance as `adapter`. The platform auto-registers it with the hub at startup.
 
 ```typescript
-// provider module integration.ts
-export const adapter: DataSyncAdapter = { providerKey: 'my-provider', ... }
+// provider module lib/adapter.ts — exports the CLASS
+export class MyProviderSyncAdapter implements DataSyncAdapter {
+  readonly providerKey = 'my-provider'
+  readonly direction = 'import'
+  readonly supportedEntities = ['products']
+  async *streamImport(...) { /* ... */ }
+}
+
+// provider module integration.ts — imports class, exports INSTANCE
+import { MyProviderSyncAdapter } from './lib/adapter'
+
+export const adapter = new MyProviderSyncAdapter()
 ```
 
 **Programmatic — hub API:**
@@ -96,14 +106,6 @@ import { dataSyncHub } from '@open-mercato/core/modules/data_sync/lib/adapter-re
 dataSyncHub.register(myAdapter)
 dataSyncHub.get('my-provider')   // retrieve by providerKey
 dataSyncHub.list()               // all registered adapters
-```
-
-**Deprecated — legacy helper:**
-
-`registerDataSyncAdapter()` still works but delegates to the hub internally. Prefer the approaches above for new code.
-
-```typescript
-registerDataSyncAdapter(myAdapter)
 ```
 
 If the sync provider needs bootstrap credentials, mappings, locales, channels, or other default sync settings after a fresh install, implement a provider-owned env preset flow:

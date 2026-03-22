@@ -196,7 +196,7 @@ packages/core/src/modules/data_sync/
 ├── setup.ts
 ├── lib/
 │   ├── adapter.ts               # DataSyncAdapter interface + types
-│   ├── adapter-registry.ts      # registerDataSyncAdapter / getAdapter
+│   ├── adapter-registry.ts      # dataSyncHub (defineHub-based registry)
 │   ├── sync-engine.ts           # Orchestrates streaming, batching, cursor persistence
 │   ├── sync-run-service.ts      # CRUD for SyncRun entity
 │   ├── sync-schedule-service.ts # SyncSchedule CRUD + schedulerService.register() sync
@@ -567,7 +567,7 @@ export default async function handler(job: Job, ctx: WorkerContext) {
     organizationId: job.data.organizationId,
   })
 
-  const adapter = getDataSyncAdapter(syncRun.integrationId)
+  const adapter = dataSyncHub.get(syncRun.integrationId)
   if (!adapter?.streamImport) {
     throw new Error(`Adapter ${syncRun.integrationId} does not support import`)
   }
@@ -1403,10 +1403,10 @@ export const setup: ModuleSetupConfig = {
 
   async onTenantCreated() {
     // Batch sync adapters
-    registerDataSyncAdapter(medusaProductsAdapter)
-    registerDataSyncAdapter(medusaCustomersAdapter)
-    registerDataSyncAdapter(medusaOrdersAdapter)
-    registerDataSyncAdapter(medusaInventoryAdapter)
+    dataSyncHub.register(medusaProductsAdapter)
+    dataSyncHub.register(medusaCustomersAdapter)
+    dataSyncHub.register(medusaOrdersAdapter)
+    dataSyncHub.register(medusaInventoryAdapter)
 
     // Inbound webhook adapter
     registerWebhookEndpointAdapter(medusaWebhookAdapter)

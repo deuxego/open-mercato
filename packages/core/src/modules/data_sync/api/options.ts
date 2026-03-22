@@ -4,7 +4,7 @@ import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
 import { getAllIntegrations } from '@open-mercato/shared/modules/integrations/types'
 import type { CredentialsService } from '../../integrations/lib/credentials-service'
 import type { IntegrationStateService } from '../../integrations/lib/state-service'
-import { getDataSyncAdapter } from '../lib/adapter-registry'
+import { dataSyncHub } from '../lib/adapter-registry'
 
 export const metadata = {
   GET: { requireAuth: true, requireFeatures: ['data_sync.view'] },
@@ -30,7 +30,7 @@ export async function GET(req: Request) {
     getAllIntegrations()
       .filter((integration) => integration.hub === 'data_sync' && integration.providerKey)
       .map(async (integration) => {
-        const adapter = getDataSyncAdapter(integration.providerKey as string)
+        const adapter = dataSyncHub.get(integration.providerKey as string)
         if (!adapter) return null
 
         const [credentials, state] = await Promise.all([
