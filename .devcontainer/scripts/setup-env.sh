@@ -38,7 +38,9 @@ sed -i 's|VAULT_ADDR=http://localhost:8200|VAULT_ADDR=http://host.docker.interna
 sed -i 's|^JWT_SECRET=change-me-dev-secret|JWT_SECRET=devcontainer-jwt-secret-do-not-use-in-prod|' "$ENV_FILE"
 
 # Inngest: point to container (no-op if INNGEST_BASE_URL not in .env.example)
-sed -i 's|INNGEST_BASE_URL=http://localhost:8288|INNGEST_BASE_URL=http://inngest:8288|' "$ENV_FILE"
+# Rewrite server-side INNGEST_BASE_URL to container hostname (^anchor avoids matching NEXT_PUBLIC_ variant)
+sed -i 's|^INNGEST_BASE_URL=http://localhost:8288|INNGEST_BASE_URL=http://inngest:8288|' "$ENV_FILE"
+# NEXT_PUBLIC_INNGEST_BASE_URL stays as localhost — it's browser-facing, resolved via port mapping
 
 # --- Verify critical rewrites were applied ---
 # The sed patterns above are tightly coupled to .env.example format.

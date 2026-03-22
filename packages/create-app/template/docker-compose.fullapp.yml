@@ -52,12 +52,16 @@ services:
       INNGEST_BASE_URL: 'http://mercato-inngest-${DEPLOY_ENV:-local}:8288'
       INNGEST_EVENT_KEY: '${INNGEST_EVENT_KEY:-deadbeef00000000}'
       INNGEST_SIGNING_KEY: '${INNGEST_SIGNING_KEY:-e76da2be0b99bf81154903496abd262509c982cefa3763f934aab974f9938827}'
+      NEXT_PUBLIC_INNGEST_BASE_URL: 'http://localhost:${INNGEST_PORT:-8288}'
+      INNGEST_SERVE_ORIGIN: 'http://mercato-app-${DEPLOY_ENV:-local}:${CONTAINER_PORT:-3000}'
     depends_on:
       postgres:
         condition: service_healthy
       redis:
         condition: service_healthy
       meilisearch:
+        condition: service_healthy
+      inngest:
         condition: service_healthy
     networks:
       - mercato-network-fullapp
@@ -101,6 +105,8 @@ services:
     container_name: mercato-inngest-${DEPLOY_ENV:-local}
     restart: unless-stopped
     command: ["inngest", "start", "--host", "0.0.0.0", "--poll-interval", "5", "--sdk-url", "http://mercato-app-${DEPLOY_ENV:-local}:${CONTAINER_PORT:-3000}/api/inngest"]
+    ports:
+      - "${INNGEST_PORT:-8288}:8288"
     environment:
       INNGEST_EVENT_KEY: '${INNGEST_EVENT_KEY:-deadbeef00000000}'
       INNGEST_SIGNING_KEY: '${INNGEST_SIGNING_KEY:-e76da2be0b99bf81154903496abd262509c982cefa3763f934aab974f9938827}'

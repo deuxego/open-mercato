@@ -13,8 +13,6 @@ export type IntegrationCategory =
   | 'other'
 
 export type IntegrationHubId =
-  | 'payment_gateways'
-  | 'shipping_carriers'
   | 'data_sync'
   | 'communication_channels'
   | 'webhook_endpoints'

@@ -24,7 +24,7 @@ const testModules: Module[] = [
   { id: 'data_sync', setup: { defaultRoleFeatures: { superadmin: ['data_sync.view', 'data_sync.run', 'data_sync.configure'], admin: ['data_sync.view', 'data_sync.run', 'data_sync.configure'], employee: ['data_sync.view'] } } },
   { id: 'messages', setup: { defaultRoleFeatures: { superadmin: ['messages.*'], admin: ['messages.*'], employee: ['messages.*'] } } },
   { id: 'progress', setup: { defaultRoleFeatures: { admin: ['progress.*'], employee: ['progress.view'] } } },
-  { id: 'example', setup: { defaultRoleFeatures: { superadmin: ['example.*', 'payment_gateways.*', 'shipping_carriers.*'], admin: ['example.*', 'payment_gateways.*', 'shipping_carriers.*'], employee: ['example.*', 'example.widgets.*', 'payment_gateways.view', 'shipping_carriers.view'] } } },
+  { id: 'example', setup: { defaultRoleFeatures: { superadmin: ['example.*'], admin: ['example.*'], employee: ['example.*', 'example.widgets.*'] } } },
 ]
 registerModules(testModules)
 registerCliModules(testModules)
