@@ -22,8 +22,6 @@ const adapter = paymentHub.get('stripe')
 
 ## Creating a Hub
 
-<Steps>
-<Step>
 ### Define the adapter interface
 
 Every adapter must carry a string key so the hub can index it. By default the field is `providerKey`, but you can customize it.
@@ -35,9 +33,6 @@ export interface PaymentAdapter {
   refund(transactionId: string): Promise<void>
 }
 ```
-</Step>
-
-<Step>
 ### Create the hub
 
 One line. Export it so providers and consumers can import it.
@@ -56,9 +51,6 @@ Options:
 | `id` | *(required)* | Unique hub identifier. Same id = same backing store across packages. |
 | `adapterKeyField` | `'providerKey'` | The property name used to extract the adapter's lookup key. |
 | `versioned` | `false` | Enable versioned registration (multiple versions per key). |
-</Step>
-
-<Step>
 ### Use the hub in your API routes
 
 ```ts title="src/modules/payments/api/post/charge.ts"
@@ -73,8 +65,6 @@ export default async function handler(req, res) {
   return res.json(result)
 }
 ```
-</Step>
-</Steps>
 
 ## Registering Providers
 
@@ -321,9 +311,7 @@ Returns a frozen `Hub<T>` object with these methods:
 
 The `id` property is also exposed as a readonly string.
 
-<Callout type="info">
-`register()` returns a **dispose function**. Call it to remove a single adapter without clearing the entire hub.
-</Callout>
+> **Note:** `register()` returns a **dispose function**. Call it to remove a single adapter without clearing the entire hub.
 
 ### Custom key field
 
