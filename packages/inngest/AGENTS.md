@@ -1,6 +1,6 @@
 # Inngest Package — Agent Guidelines
 
-Optional Inngest workflow orchestration layer for durable multi-step workflows.
+Inngest workflow orchestration layer for durable multi-step workflows.
 
 ## Quick Start
 
