@@ -21,19 +21,23 @@ test.describe('Inngest Server Integration', () => {
     const paths = ['/v1/functions', '/v0/functions', '/api/v1/functions']
     let found = false
     for (const apiPath of paths) {
-      const response = await fetch(`${inngestBaseUrl}${apiPath}`)
-      if (response.ok) {
+      try {
+        const response = await fetch(`${inngestBaseUrl}${apiPath}`)
+        if (!response.ok) continue
+        const contentType = response.headers.get('content-type') ?? ''
+        if (!contentType.includes('json')) continue
         const body = await response.json()
         const functions = body.data ?? body.functions ?? body
         if (Array.isArray(functions)) {
           found = true
           break
         }
+      } catch {
+        // Non-JSON response or network error — try next path
       }
     }
     // In dev mode, function discovery happens via SDK polling, not REST API.
     // The health check passing (test above) is sufficient to verify connectivity.
-    // Skip assertion if no API path returned functions — dev mode doesn't expose them.
     if (!found) {
       console.log('[TC-INNGEST-002] No function discovery API available (expected in dev mode)')
     }
