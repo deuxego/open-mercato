@@ -25,7 +25,7 @@ services:
       TENANT_DATA_ENCRYPTION: ${TENANT_DATA_ENCRYPTION:-true}
       TENANT_DATA_ENCRYPTION_DEBUG: ${TENANT_DATA_ENCRYPTION_DEBUG:-false}
       TENANT_DATA_ENCRYPTION_FALLBACK_KEY: ${TENANT_DATA_ENCRYPTION_FALLBACK_KEY:-dev-tenant-encryption-fallback-key-32chars}
-      NODE_ENV: development
+      NODE_ENV: ${NODE_ENV:-production}
       DEPLOY_ENV: ${DEPLOY_ENV:-local}
       PORT: ${CONTAINER_PORT:-3000}
       DATABASE_URL: postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@mercato-postgres-${DEPLOY_ENV:-local}:5432/${POSTGRES_DB:-open-mercato}
@@ -105,8 +105,7 @@ services:
     container_name: mercato-inngest-${DEPLOY_ENV:-local}
     restart: unless-stopped
     command: ["inngest", "start", "--host", "0.0.0.0", "--poll-interval", "5", "--sdk-url", "http://mercato-app-${DEPLOY_ENV:-local}:${CONTAINER_PORT:-3000}/api/inngest"]
-    ports:
-      - "${INNGEST_PORT:-8288}:8288"
+    # ports not exposed - access Inngest dashboard via SSH tunnel if needed
     environment:
       INNGEST_EVENT_KEY: '${INNGEST_EVENT_KEY:-deadbeef00000000}'
       INNGEST_SIGNING_KEY: '${INNGEST_SIGNING_KEY:-e76da2be0b99bf81154903496abd262509c982cefa3763f934aab974f9938827}'

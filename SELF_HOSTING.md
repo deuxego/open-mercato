@@ -199,9 +199,10 @@ docker compose -f docker-compose.fullapp.yml up -d
 - [ ] Set strong `POSTGRES_PASSWORD`
 - [ ] Set random `JWT_SECRET` (32+ hex chars)
 - [ ] Set `TENANT_DATA_ENCRYPTION_KEY` and fallback
+- [ ] Set random `INNGEST_EVENT_KEY` and `INNGEST_SIGNING_KEY`
 - [ ] Set `DEMO_MODE=false`
 - [ ] Set `NODE_ENV=production`
 - [ ] Use HTTPS (reverse proxy: nginx, Caddy, or cloud LB)
 - [ ] Set `OM_INIT_SUPERADMIN_PASSWORD` to a strong password
-- [ ] Restrict Inngest dashboard access (no exposed port by default)
+- [ ] Inngest dashboard not exposed (access via SSH tunnel only)
 - [ ] Configure email delivery for password resets
