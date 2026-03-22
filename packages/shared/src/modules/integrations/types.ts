@@ -4,13 +4,12 @@ export type IntegrationScope = {
 }
 
 export type IntegrationCategory =
-  | 'payment'
-  | 'shipping'
   | 'data_sync'
   | 'communication'
   | 'webhook'
   | 'storage'
   | 'other'
+  | string
 
 export type IntegrationHubId =
   | 'data_sync'

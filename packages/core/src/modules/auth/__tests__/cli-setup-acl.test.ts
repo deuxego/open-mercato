@@ -125,8 +125,6 @@ describe('auth CLI setup seeds ACLs', () => {
       'progress.*',
       'feature_toggles.*',
       'business_rules.*',
-      'payment_gateways.*',
-      'shipping_carriers.*',
     ]))
     // admin should NOT get superadmin-only wildcard features
     expect(adminAcl?.featuresJson).not.toContain('directory.tenants.*')
@@ -149,8 +147,6 @@ describe('auth CLI setup seeds ACLs', () => {
       'data_sync.view',
       'messages.*',
       'progress.view',
-      'payment_gateways.view',
-      'shipping_carriers.view',
     ]))
   }, 20000)
 })
