@@ -1080,17 +1080,6 @@ export async function run(argv = process.argv) {
           const { generateModulePackageSources } = await import('./lib/generators')
           await generateModulePackageSources({ resolver: createResolverForSources(), quiet: true })
 
-          // Clear Turbopack dev cache to prevent stale module resolution after yarn generate.
-          // Without this, Turbopack may fail to resolve regenerated entity field files.
-          // Only targets dev/ and cache/ — preserves production build artifacts and manifests.
-          const nextDir = path.join(appDir, '.mercato', 'next')
-          for (const sub of ['dev', 'cache']) {
-            const target = path.join(nextDir, sub)
-            if (fs.existsSync(target)) {
-              fs.rmSync(target, { recursive: true, force: true })
-            }
-          }
-
           const nextBin = resolveInstalledBinary(nodeModulesBases, 'next/dist/bin/next')
           const mercatoBin = resolveInstalledBinary(nodeModulesBases, '@open-mercato/cli/bin/mercato')
 

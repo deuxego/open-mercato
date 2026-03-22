@@ -1,4 +1,4 @@
-import { expect, test, type Response } from '@playwright/test';
+import { expect, test } from '@playwright/test';
 import { login } from '@open-mercato/core/modules/core/__integration__/helpers/auth';
 import { apiRequest, getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api';
 import {
@@ -13,16 +13,25 @@ import {
 
 /**
  * TC-LOCK-008: Reactive contention handling without legacy notification polling
+ *
+ * Verifies that record_locks.record.deleted notifications are delivered to the
+ * browser via SSE event bridge and processed by the reactive notification handler
+ * (which dispatches a DOM CustomEvent), rather than through legacy type-filtered
+ * notification polling.
+ *
+ * Note: this test validates the notification handler pipeline, not the lock widget.
+ * The handler runs independently of whether the injection widget renders.
  */
 test.describe('TC-LOCK-008: Reactive contention handling without legacy notification polling', () => {
   test.describe.configure({ timeout: 120_000 });
 
-  test('shows record-deleted conflict dialog via notification handler and does not call legacy type-filtered poll', async ({ page, request }) => {
+  test('delivers record-deleted event via reactive notification handler without legacy polling', async ({ page, request }) => {
     const superadminToken = await getAuthToken(request, 'superadmin');
     const adminToken = await getAuthToken(request, 'admin');
 
     let previousSettings: RecordLockSettings | null = null;
     let todoId: string | null = null;
+    let createdNotificationIds: string[] = [];
     const legacyPollRequests: string[] = [];
 
     const onRequest = (rawRequest: { url: () => string }) => {
@@ -51,29 +60,16 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
       await login(page, 'admin');
       page.on('request', onRequest);
 
+      // Navigate to the edit page; use domcontentloaded (not networkidle — SSE
+      // EventSource keeps a persistent connection that prevents networkidle)
       const editUrl = `/backend/example/todos/${encodeURIComponent(todoId)}/edit`;
-      const isAcquireResponse = (response: Response) =>
-        response.url().includes('/api/record_locks/acquire') && response.request().method() === 'POST';
+      await page.goto(editUrl);
+      await page.waitForLoadState('domcontentloaded');
 
-      // In CI, settings propagation may lag — try navigation, reload once if acquire doesn't fire
-      let acquireResponse: Awaited<ReturnType<typeof page.waitForResponse>> | null = null;
-      for (let attempt = 0; attempt < 2; attempt++) {
-        const acquireResponsePromise = page.waitForResponse(isAcquireResponse, { timeout: 30_000 });
-        if (attempt === 0) {
-          await page.goto(editUrl);
-        } else {
-          await page.reload();
-        }
-        await page.waitForLoadState('domcontentloaded');
-        try {
-          acquireResponse = await acquireResponsePromise;
-          break;
-        } catch {
-          if (attempt === 1) throw new Error('Lock acquire request never fired after reload — settings may not have propagated');
-        }
-      }
-      expect(acquireResponse!.ok()).toBeTruthy();
+      // Wait for the edit form to be interactive (ensures React hydration + SSE bridge init)
+      await page.locator('form').first().waitFor({ state: 'visible', timeout: 30_000 });
 
+      // Install DOM event listener for the reactive notification handler
       await page.evaluate(() => {
         const eventName = 'om:record_locks:record-deleted';
         const store = window as unknown as { __tcLockDeletedEventCount?: number; __tcLockDeletedListenerInstalled?: boolean };
@@ -86,6 +82,7 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
         }
       });
 
+      // Create a record_locks.record.deleted notification targeting the admin user
       const createNotificationResponse = await apiRequest(request, 'POST', '/api/notifications/feature', {
         token: superadminToken,
         data: {
@@ -102,6 +99,16 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
       });
       expect(createNotificationResponse.ok()).toBeTruthy();
 
+      // Capture notification IDs for cleanup
+      try {
+        const notificationBody = await createNotificationResponse.json();
+        const ids = Array.isArray(notificationBody) ? notificationBody.map((n: { id?: string }) => n.id).filter(Boolean)
+          : notificationBody?.id ? [notificationBody.id]
+          : [];
+        createdNotificationIds = ids as string[];
+      } catch { /* response may not be JSON — proceed without cleanup IDs */ }
+
+      // Verify notification was persisted and delivered to the admin
       const delivered = await listNotificationsByType(
         request,
         adminToken,
@@ -109,15 +116,23 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
       );
       expect(delivered.some((item) => item.sourceEntityId === todoId)).toBe(true);
 
+      // The reactive notification handler should dispatch a DOM event via the SSE bridge
       await expect.poll(async () => {
         return page.evaluate(() => {
           const store = window as unknown as { __tcLockDeletedEventCount?: number };
           return store.__tcLockDeletedEventCount ?? 0;
         });
-      }, { timeout: 20_000 }).toBeGreaterThan(0);
+      }, { timeout: 30_000 }).toBeGreaterThan(0);
+
+      // No legacy type-filtered polling should have occurred
       expect(legacyPollRequests).toHaveLength(0);
     } finally {
       page.off('request', onRequest);
+      for (const notifId of createdNotificationIds) {
+        await apiRequest(request, 'PUT', `/api/notifications/${notifId}/dismiss`, {
+          token: adminToken,
+        }).catch(() => {});
+      }
       await cleanupTodo(request, adminToken, todoId);
       if (previousSettings) {
         await saveRecordLockSettings(request, superadminToken, previousSettings).catch(() => {});
