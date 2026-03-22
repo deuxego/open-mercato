@@ -66,27 +66,6 @@ describe('encryption/indexDoc', () => {
     )
   })
 
-  test('decryptIndexDocForSearch decrypts customer entity when indexing customer profiles', async () => {
-    const service = {
-      isEnabled: () => true,
-      decryptEntityPayload: jest.fn(async (entityId: string) => (entityId === 'customers:customer_entity' ? { display_name: 'Plain' } : {})),
-    }
-
-    const out = await decryptIndexDocForSearch(
-      'customers:customer_person_profile',
-      { id: '1', display_name: 'Encrypted' },
-      { tenantId: 't1', organizationId: 'org1' },
-      service as any,
-    )
-
-    expect(out.display_name).toBe('Plain')
-    expect(service.decryptEntityPayload).toHaveBeenCalledWith(
-      'customers:customer_entity',
-      expect.any(Object),
-      't1',
-      'org1',
-    )
-  })
 
   test('encryptIndexDocForStorage encrypts entity fields using the configured map', async () => {
     const service = {

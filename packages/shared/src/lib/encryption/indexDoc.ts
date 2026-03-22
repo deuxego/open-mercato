@@ -68,9 +68,6 @@ export async function decryptIndexDocForSearch(
   }
 
   await decryptEntity(entityId)
-  if (entityId === 'customers:customer_person_profile' || entityId === 'customers:customer_company_profile') {
-    await decryptEntity('customers:customer_entity')
-  }
 
   return decryptIndexDocCustomFields(working, scope, service, cache)
 }
@@ -96,9 +93,6 @@ export async function encryptIndexDocForStorage(
   }
 
   await encryptEntity(entityId)
-  if (entityId === 'customers:customer_person_profile' || entityId === 'customers:customer_company_profile') {
-    await encryptEntity('customers:customer_entity')
-  }
 
   return working
 }
