@@ -2572,8 +2572,14 @@ export async function startEphemeralEnvironment(options: EphemeralRuntimeOptions
       .start()
 
     // Start Inngest dev server container for workflow integration tests
+    const inngestEventKey = 'test-ephemeral-event-key'
+    const inngestSigningKey = 'signkey-test-ephemeral-000000000000000000000000000000000000000000000000'
     const inngestContainer = await new GenericContainer('inngest/inngest:latest')
       .withCommand(['inngest', 'start', '--host', '0.0.0.0', '--poll-interval', '5'])
+      .withEnvironment({
+        INNGEST_EVENT_KEY: inngestEventKey,
+        INNGEST_SIGNING_KEY: inngestSigningKey,
+      })
       .withExposedPorts(8288)
       .withStartupTimeout(30_000)
       .start()
@@ -2588,6 +2594,8 @@ export async function startEphemeralEnvironment(options: EphemeralRuntimeOptions
     const commandEnvironment = buildEnvironment({
       DATABASE_URL: databaseUrl,
       INNGEST_DEV: '1',
+      INNGEST_EVENT_KEY: inngestEventKey,
+      INNGEST_SIGNING_KEY: inngestSigningKey,
       INNGEST_BASE_URL: inngestBaseUrl,
       NEXT_PUBLIC_INNGEST_BASE_URL: inngestBaseUrl,
       BASE_URL: applicationBaseUrl,
