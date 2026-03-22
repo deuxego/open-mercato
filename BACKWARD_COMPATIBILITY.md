@@ -40,6 +40,7 @@ The following file names, their expected export names, and their role in module 
 | `widgets/injection-table.ts` | `ModuleInjectionTable` | MUST NOT change table type or spot ID resolution |
 | `widgets/injection/*/widget.ts` | `InjectionWidgetModule` | MUST NOT change module shape or component props |
 | `widgets/dashboard/*/widget.ts` | `DashboardWidgetModule` | MUST NOT change module shape or component props |
+| `inngest.workflows.ts` | `workflows` + `default` | FROZEN — convention file name and export names MUST NOT change |
 
 **Auto-discovery directory conventions** (FROZEN):
 

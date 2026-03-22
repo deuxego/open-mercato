@@ -36,7 +36,7 @@ export type SearchResultLink = {
  * A single search result returned by a strategy.
  */
 export type SearchResult = {
-  /** Entity type identifier, e.g., 'customers:customer_person_profile' */
+  /** Entity type identifier, e.g., 'auth:user' */
   entityId: EntityId
   /** Record primary key */
   recordId: string
@@ -248,7 +248,7 @@ export type SearchFieldPolicy = {
  * Configuration for a single searchable entity within a module.
  */
 export type SearchEntityConfig = {
-  /** Entity identifier, e.g., 'customers:customer_person_profile' */
+  /** Entity identifier, e.g., 'example:todo' */
   entityId: EntityId
   /** Enable/disable search for this entity (default: true) */
   enabled?: boolean

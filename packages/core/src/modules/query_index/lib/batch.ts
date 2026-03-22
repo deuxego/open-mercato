@@ -54,25 +54,6 @@ export async function upsertIndexBatch(
   if (!rows.length) return
   const recordIds = rows.map((row) => normalizeId(row.id))
 
-  const shouldMergeCustomerEntity =
-    entityType === 'customers:customer_person_profile' || entityType === 'customers:customer_company_profile'
-
-  let customerEntitiesById: Map<string, AnyRow> | null = null
-  if (shouldMergeCustomerEntity) {
-    const entityIds = Array.from(
-      new Set(
-        rows
-          .map((row) => (row as AnyRow).entity_id || (row as AnyRow).entityId)
-          .filter((value): value is string | number => value !== undefined && value !== null && `${value}` !== '')
-          .map((value) => normalizeId(value)),
-      ),
-    )
-    if (entityIds.length) {
-      const entityRows = await knex<AnyRow>('customer_entities').whereIn('id', entityIds)
-      customerEntitiesById = new Map(entityRows.map((row) => [normalizeId(row.id), row]))
-    }
-  }
-
   const customFieldRows = await knex<CustomFieldRow>('custom_field_values')
     .select([
       'record_id',
@@ -135,15 +116,7 @@ export async function upsertIndexBatch(
       organizationId: normalizeScopedValue(fieldRow.organization_id),
       tenantId: normalizeScopedValue(fieldRow.tenant_id),
     }))
-    const mergedRow = (() => {
-      if (!shouldMergeCustomerEntity || !customerEntitiesById) return row
-      const entityId = (row as AnyRow).entity_id || (row as AnyRow).entityId
-      if (!entityId) return row
-      const entityRow = customerEntitiesById.get(normalizeId(entityId))
-      if (!entityRow) return row
-      return { ...entityRow, ...row }
-    })()
-    let doc = buildIndexDocument(mergedRow, values, {
+    let doc = buildIndexDocument(row, values, {
       organizationId: scopeOrg ?? null,
       tenantId: scopeTenant ?? null,
     })

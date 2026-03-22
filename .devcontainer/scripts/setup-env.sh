@@ -37,6 +37,9 @@ sed -i 's|VAULT_ADDR=http://localhost:8200|VAULT_ADDR=http://host.docker.interna
 # JWT: ensure a dev secret is set
 sed -i 's|^JWT_SECRET=change-me-dev-secret|JWT_SECRET=devcontainer-jwt-secret-do-not-use-in-prod|' "$ENV_FILE"
 
+# Inngest: point to container (no-op if INNGEST_BASE_URL not in .env.example)
+sed -i 's|INNGEST_BASE_URL=http://localhost:8288|INNGEST_BASE_URL=http://inngest:8288|' "$ENV_FILE"
+
 # --- Verify critical rewrites were applied ---
 # The sed patterns above are tightly coupled to .env.example format.
 # If .env.example changes comment style or whitespace, these checks catch silent failures.
@@ -47,6 +50,10 @@ if ! grep -q 'postgres:5432' "$ENV_FILE"; then
 fi
 if ! grep -q 'REDIS_URL=redis://redis:6379' "$ENV_FILE"; then
   echo "WARNING: REDIS_URL was not rewritten to use redis:6379"
+  errors=$((errors + 1))
+fi
+if grep -q 'INNGEST_BASE_URL' "$ENV_FILE" && ! grep -q 'inngest:8288' "$ENV_FILE"; then
+  echo "WARNING: INNGEST_BASE_URL was not rewritten to use inngest:8288"
   errors=$((errors + 1))
 fi
 if [ $errors -gt 0 ]; then

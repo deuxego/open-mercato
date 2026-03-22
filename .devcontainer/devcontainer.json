@@ -9,11 +9,12 @@
   "postCreateCommand": "bash .devcontainer/scripts/post-create.sh",
   "postStartCommand": "bash .devcontainer/scripts/post-start.sh",
 
-  "forwardPorts": [3000, "postgres:5432", "redis:6379"],
+  "forwardPorts": [3000, "postgres:5432", "redis:6379", "inngest:8288"],
   "portsAttributes": {
     "3000": { "label": "App", "onAutoForward": "notify" },
     "5432": { "label": "PostgreSQL", "onAutoForward": "silent" },
-    "6379": { "label": "Redis", "onAutoForward": "silent" }
+    "6379": { "label": "Redis", "onAutoForward": "silent" },
+    "8288": { "label": "Inngest", "onAutoForward": "notify" }
   },
 
   "remoteEnv": {

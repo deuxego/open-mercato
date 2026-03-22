@@ -55,6 +55,7 @@ IMPORTANT: Before any research or coding, match the task to the root `AGENTS.md`
 | Adding onboarding wizard steps, tenant setup hooks (`onTenantCreated`/`seedDefaults`), welcome/invitation emails | `packages/onboarding/AGENTS.md` |
 | Adding static content pages (privacy policies, terms, legal pages) | `packages/content/AGENTS.md` |
 | Testing standalone apps with Verdaccio, publishing packages, canary releases, template scaffolding | `packages/create-app/AGENTS.md` |
+| Inngest workflow authoring, durable multi-step workflows, `WorkflowTools` API, triggering workflows via `inngest.send()` | `packages/inngest/AGENTS.md` |
 | **Testing** | |
 | Integration testing, creating/running Playwright tests, converting markdown test cases to TypeScript, CI test pipeline | `.ai/qa/AGENTS.md` + `.ai/skills/integration-tests/SKILL.md` |
 | **Spec Lifecycle** | |
@@ -111,6 +112,7 @@ All packages use the `@open-mercato/<package>` naming convention:
 | **events** | `@open-mercato/events` | When adding event-driven side effects between modules |
 | **content** | `@open-mercato/content` | When adding static content pages (privacy, terms, legal) |
 | **onboarding** | `@open-mercato/onboarding` | When modifying setup wizards or tenant provisioning flows |
+| **inngest** | `@open-mercato/inngest` | When adding durable multi-step workflows (sleep, wait, fan-out, step-level retry) |
 | **enterprise** | `@open-mercato/enterprise` | When working on commercial enterprise-only modules and overlays |
 
 ### Where to Put Code
@@ -153,6 +155,9 @@ All packages use the `@open-mercato/<package>` naming convention:
 | Portal app event hook | `import { usePortalAppEvent } from '@open-mercato/ui/portal/hooks/usePortalAppEvent'` |
 | Customer auth types | `import type { CustomerAuthContext } from '@open-mercato/shared/modules/customer-auth'` |
 | Customer auth server (cookies) | `import { getCustomerAuthFromCookies } from '@open-mercato/core/modules/customer_accounts/lib/customerAuthServer'` |
+| Inngest workflow types | `import type { WorkflowMeta, WorkflowTools } from '@open-mercato/inngest'` |
+| Inngest client (DI) | `ctx.resolve('inngestClient') as Inngest` |
+| Inngest send event | `(ctx.resolve('inngestClient') as Inngest).send({ name: workflowId, data })` |
 
 Import strategy:
 - Prefer package-level imports (`@open-mercato/<package>/...`) over deep relative imports (`../../../...`) when crossing module boundaries, referencing shared module internals, or importing from deeply nested files.
@@ -182,6 +187,7 @@ All paths use `src/modules/<module>/` as shorthand. See `packages/core/AGENTS.md
 - API routes: `api/<method>/<path>.ts` → `/api/<path>` (dispatched by method)
 - Subscribers: `subscribers/*.ts` — export default handler + `metadata` with `{ event, persistent?, id? }`
 - Workers: `workers/*.ts` — export default handler + `metadata` with `{ queue, id?, concurrency? }`
+- Workflows: `workflows/*.ts` — export default handler + `metadata: WorkflowMeta` (Inngest durable workflows, aggregated via `inngest.workflows.ts`)
 
 ### Optional Module Files
 
@@ -200,6 +206,7 @@ All paths use `src/modules/<module>/` as shorthand. See `packages/core/AGENTS.md
 | `notifications.client.ts` | — | Client-side notification renderers |
 | `generators.ts` | `generatorPlugins` | Generator plugin declarations for additional aggregated output files |
 | `ai-tools.ts` | `aiTools` | MCP AI tool definitions |
+| `inngest.workflows.ts` | `workflows` + `default` | Inngest workflow aggregation (MUST export both named and default) |
 | `api/interceptors.ts` | `interceptors` | API route interception hooks (before/after) |
 | `data/entities.ts` | — | MikroORM entities |
 | `data/validators.ts` | — | Zod validation schemas |

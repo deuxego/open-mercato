@@ -48,6 +48,10 @@ services:
       ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
       OM_INIT_SUPERADMIN_EMAIL: ${OM_INIT_SUPERADMIN_EMAIL:-}
       OM_INIT_SUPERADMIN_PASSWORD: ${OM_INIT_SUPERADMIN_PASSWORD:-password}
+      INNGEST_DEV: '0'
+      INNGEST_BASE_URL: 'http://mercato-inngest-${DEPLOY_ENV:-local}:8288'
+      INNGEST_EVENT_KEY: '${INNGEST_EVENT_KEY}'
+      INNGEST_SIGNING_KEY: '${INNGEST_SIGNING_KEY}'
     depends_on:
       postgres:
         condition: service_healthy
@@ -75,6 +79,46 @@ services:
       retries: 5
     networks:
       - mercato-network-fullapp
+
+  inngest-init:
+    image: pgvector/pgvector:pg17-trixie
+    container_name: mercato-inngest-init-${DEPLOY_ENV:-local}
+    restart: "no"
+    environment:
+      PGPASSWORD: '${POSTGRES_PASSWORD:-postgres}'
+    command: >
+      sh -c "psql -h mercato-postgres-${DEPLOY_ENV:-local} -U ${POSTGRES_USER:-postgres} -tc
+      \"SELECT 1 FROM pg_database WHERE datname = 'inngest'\" | grep -q 1 ||
+      psql -h mercato-postgres-${DEPLOY_ENV:-local} -U ${POSTGRES_USER:-postgres} -c 'CREATE DATABASE inngest'"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mercato-network-fullapp
+
+  inngest:
+    image: inngest/inngest:latest
+    container_name: mercato-inngest-${DEPLOY_ENV:-local}
+    restart: unless-stopped
+    command: ["inngest", "start", "--host", "0.0.0.0", "--poll-interval", "5"]
+    environment:
+      INNGEST_EVENT_KEY: '${INNGEST_EVENT_KEY}'
+      INNGEST_SIGNING_KEY: '${INNGEST_SIGNING_KEY}'
+      INNGEST_POSTGRES_URI: 'postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@mercato-postgres-${DEPLOY_ENV:-local}:5432/inngest'
+      INNGEST_REDIS_URI: 'redis://mercato-redis-${DEPLOY_ENV:-local}:6379'
+    depends_on:
+      inngest-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    networks:
+      - mercato-network-fullapp
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:8288/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   redis:
     image: redis:7-alpine

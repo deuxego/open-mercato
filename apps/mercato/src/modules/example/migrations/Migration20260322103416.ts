@@ -1,0 +1,13 @@
+import { Migration } from '@mikro-orm/migrations';
+
+export class Migration20260322103416 extends Migration {
+
+  override async up(): Promise<void> {
+    this.addSql(`create table "example_customer_priorities" ("id" uuid not null default gen_random_uuid(), "customer_id" uuid not null, "priority" text not null default 'normal', "tenant_id" uuid not null, "organization_id" uuid not null, "created_at" timestamptz not null, "updated_at" timestamptz not null, "deleted_at" timestamptz null, constraint "example_customer_priorities_pkey" primary key ("id"));`);
+
+    this.addSql(`create table "example_items" ("id" uuid not null default gen_random_uuid(), "title" text not null, "created_at" timestamptz not null, "deleted_at" timestamptz null, constraint "example_items_pkey" primary key ("id"));`);
+
+    this.addSql(`create table "todos" ("id" uuid not null default gen_random_uuid(), "title" text not null, "tenant_id" uuid null, "organization_id" uuid null, "is_done" boolean not null default false, "created_at" timestamptz not null, "updated_at" timestamptz not null, "deleted_at" timestamptz null, constraint "todos_pkey" primary key ("id"));`);
+  }
+
+}

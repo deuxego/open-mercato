@@ -16,10 +16,16 @@ services:
       DATABASE_URL: postgresql://postgres:postgres@postgres:5432/open-mercato
       WATCHPACK_POLLING: "true"
       CHOKIDAR_USEPOLLING: "true"
+      INNGEST_DEV: '1'
+      INNGEST_BASE_URL: 'http://inngest:8288'
+      INNGEST_EVENT_KEY: 'deadbeef00000000'
+      INNGEST_SIGNING_KEY: 'e76da2be0b99bf81154903496abd262509c982cefa3763f934aab974f9938827'
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      inngest:
         condition: service_healthy
     networks:
       - devcontainer
@@ -54,6 +60,46 @@ services:
       retries: 5
     networks:
       - devcontainer
+
+  inngest-init:
+    image: pgvector/pgvector:pg17-trixie
+    restart: "no"
+    environment:
+      PGPASSWORD: 'postgres'
+    command: >
+      sh -c "psql -h postgres -U postgres -tc
+      \"SELECT 1 FROM pg_database WHERE datname = 'inngest'\" | grep -q 1 ||
+      psql -h postgres -U postgres -c 'CREATE DATABASE inngest'"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - devcontainer
+
+  inngest:
+    image: inngest/inngest:latest
+    restart: unless-stopped
+    command: ["inngest", "start", "--host", "0.0.0.0", "--poll-interval", "5"]
+    ports:
+      - '8288:8288'
+    environment:
+      INNGEST_EVENT_KEY: 'deadbeef00000000'
+      INNGEST_SIGNING_KEY: 'e76da2be0b99bf81154903496abd262509c982cefa3763f934aab974f9938827'
+      INNGEST_POSTGRES_URI: 'postgres://postgres:postgres@postgres:5432/inngest'
+      INNGEST_REDIS_URI: 'redis://redis:6379'
+    depends_on:
+      inngest-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    networks:
+      - devcontainer
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:8288/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
 volumes:
   postgres_data:

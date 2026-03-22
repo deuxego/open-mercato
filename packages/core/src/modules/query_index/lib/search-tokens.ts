@@ -68,8 +68,6 @@ export function buildSearchTokenRows(params: BuildTokenOptions): SearchTokenRow[
   if (!config.enabled) return []
   if (!params.doc) return []
   const tokens: SearchTokenRow[] = []
-  const capturePairs = isSearchDebugEnabled() && params.entityType === 'customers:customer_deal'
-  const debugPairs: Array<{ field: string; token: string; hash: string }> = []
   const scope = {
     organizationId: params.organizationId ?? DEFAULT_SCOPE.organizationId,
     tenantId: params.tenantId ?? DEFAULT_SCOPE.tenantId,
@@ -97,19 +95,8 @@ export function buildSearchTokenRows(params: BuildTokenOptions): SearchTokenRow[
           token_hash: hash,
           token: config.storeRawTokens ? token : null,
         })
-        if (capturePairs) {
-          debugPairs.push({ field, token, hash })
-        }
       }
     }
-  }
-  if (capturePairs) {
-    debug('deal.tokens', {
-      entityType: params.entityType,
-      recordId: params.recordId,
-      title: params.doc?.title ?? null,
-      tokens: debugPairs,
-    })
   }
   debug('doc.completed', { entityType: params.entityType, recordId: params.recordId, tokenCount: tokens.length })
 

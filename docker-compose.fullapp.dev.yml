@@ -64,10 +64,17 @@ services:
       SSO_DEV_CLIENT_ID: ${SSO_DEV_CLIENT_ID:-open-mercato-app}
       SSO_DEV_CLIENT_SECRET: ${SSO_DEV_CLIENT_SECRET:-}
       SSO_DEV_ALLOWED_DOMAINS: ${SSO_DEV_ALLOWED_DOMAINS:-example.com}
+      INNGEST_DEV: '1'
+      INNGEST_BASE_URL: 'http://mercato-inngest-${DEPLOY_ENV:-local}:8288'
+      INNGEST_EVENT_KEY: '${INNGEST_EVENT_KEY:-deadbeef00000000}'
+      INNGEST_SIGNING_KEY: '${INNGEST_SIGNING_KEY:-e76da2be0b99bf81154903496abd262509c982cefa3763f934aab974f9938827}'
+      INNGEST_SERVE_ORIGIN: 'http://localhost:${APP_PORT:-3000}'
     depends_on:
       postgres:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      inngest:
         condition: service_healthy
     networks:
       - mercato-network-fullapp
@@ -83,6 +90,7 @@ services:
     # ports not exposed - only accessible within docker network
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./docker/postgres-init.sh:/docker-entrypoint-initdb.d/postgres-init.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-postgres}"]
       interval: 10s
@@ -104,6 +112,48 @@ services:
       retries: 5
     networks:
       - mercato-network-fullapp
+
+  inngest-init:
+    image: pgvector/pgvector:pg17-trixie
+    container_name: mercato-inngest-init-${DEPLOY_ENV:-local}
+    restart: "no"
+    environment:
+      PGPASSWORD: '${POSTGRES_PASSWORD:-postgres}'
+    command: >
+      sh -c "psql -h mercato-postgres-${DEPLOY_ENV:-local} -U ${POSTGRES_USER:-postgres} -tc
+      \"SELECT 1 FROM pg_database WHERE datname = 'inngest'\" | grep -q 1 ||
+      psql -h mercato-postgres-${DEPLOY_ENV:-local} -U ${POSTGRES_USER:-postgres} -c 'CREATE DATABASE inngest'"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - mercato-network-fullapp
+
+  inngest:
+    image: inngest/inngest:latest
+    container_name: mercato-inngest-${DEPLOY_ENV:-local}
+    restart: unless-stopped
+    command: ["inngest", "start", "--host", "0.0.0.0", "--poll-interval", "5"]
+    ports:
+      - '${INNGEST_PORT:-8288}:8288'
+    environment:
+      INNGEST_EVENT_KEY: '${INNGEST_EVENT_KEY:-deadbeef00000000}'
+      INNGEST_SIGNING_KEY: '${INNGEST_SIGNING_KEY:-e76da2be0b99bf81154903496abd262509c982cefa3763f934aab974f9938827}'
+      INNGEST_POSTGRES_URI: 'postgres://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@mercato-postgres-${DEPLOY_ENV:-local}:5432/inngest'
+      INNGEST_REDIS_URI: 'redis://mercato-redis-${DEPLOY_ENV:-local}:6379'
+    depends_on:
+      inngest-init:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+    networks:
+      - mercato-network-fullapp
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://127.0.0.1:8288/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   keycloak:
     image: quay.io/keycloak/keycloak:26.1

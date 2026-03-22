@@ -138,6 +138,7 @@ type EphemeralEnvironmentState = {
   source: string
   captureScreenshots: boolean
   startedAt: string
+  inngestBaseUrl?: string
 }
 
 type PlaywrightRunOptions = Pick<InteractiveIntegrationOptions, 'verbose' | 'captureScreenshots' | 'workers' | 'retries'>
@@ -1086,6 +1087,7 @@ export async function writeEphemeralEnvironmentState(input: {
   port: number
   logPrefix: string
   captureScreenshots: boolean
+  inngestBaseUrl?: string
 }): Promise<void> {
   const content: EphemeralEnvironmentState = {
     status: 'running',
@@ -1094,6 +1096,7 @@ export async function writeEphemeralEnvironmentState(input: {
     source: input.logPrefix,
     captureScreenshots: input.captureScreenshots,
     startedAt: new Date().toISOString(),
+    ...(input.inngestBaseUrl && { inngestBaseUrl: input.inngestBaseUrl }),
   }
   await writeFile(EPHEMERAL_ENV_FILE_PATH, `${JSON.stringify(content, null, 2)}\n`, 'utf8')
 }
@@ -1152,6 +1155,7 @@ export async function readEphemeralEnvironmentState(): Promise<EphemeralEnvironm
     source: record.source,
     captureScreenshots: record.captureScreenshots,
     startedAt: record.startedAt,
+    ...(typeof record.inngestBaseUrl === 'string' && record.inngestBaseUrl.length > 0 && { inngestBaseUrl: record.inngestBaseUrl }),
   }
 }
 
@@ -1352,7 +1356,7 @@ async function clearStaleEphemeralEnvironmentLock(logPrefix: string): Promise<bo
   return true
 }
 
-function buildReusableEnvironment(baseUrl: string, captureScreenshots: boolean): NodeJS.ProcessEnv {
+function buildReusableEnvironment(baseUrl: string, captureScreenshots: boolean, inngestBaseUrl?: string): NodeJS.ProcessEnv {
   return buildEnvironment({
     BASE_URL: baseUrl,
     NODE_ENV: 'production',
@@ -1361,6 +1365,9 @@ function buildReusableEnvironment(baseUrl: string, captureScreenshots: boolean):
     OM_ENABLE_ENTERPRISE_MODULES: process.env.OM_ENABLE_ENTERPRISE_MODULES ?? 'false',
     OM_ENABLE_ENTERPRISE_MODULES_SSO: process.env.OM_ENABLE_ENTERPRISE_MODULES_SSO ?? 'false',
     OM_ENABLE_ENTERPRISE_MODULES_SECURITY: process.env.OM_ENABLE_ENTERPRISE_MODULES_SECURITY ?? 'false',
+    INNGEST_DEV: process.env.INNGEST_DEV ?? '1',
+    INNGEST_BASE_URL: inngestBaseUrl ?? process.env.INNGEST_BASE_URL ?? '',
+    NEXT_PUBLIC_INNGEST_BASE_URL: inngestBaseUrl ?? process.env.NEXT_PUBLIC_INNGEST_BASE_URL ?? '',
     OM_TEST_MODE: '1',
     ENABLE_CRUD_API_CACHE: 'true',
     NEXT_PUBLIC_OM_EXAMPLE_INJECTION_WIDGETS_ENABLED: 'true',
@@ -1425,7 +1432,7 @@ export async function tryReuseExistingEnvironment(options: EphemeralRuntimeOptio
     baseUrl: state.baseUrl,
     port: state.port,
     databaseUrl: '',
-    commandEnvironment: buildReusableEnvironment(state.baseUrl, state.captureScreenshots),
+    commandEnvironment: buildReusableEnvironment(state.baseUrl, state.captureScreenshots, state.inngestBaseUrl),
     ownedByCurrentProcess: false,
     stop: async () => {},
   }
@@ -2564,11 +2571,25 @@ export async function startEphemeralEnvironment(options: EphemeralRuntimeOptions
       .withExposedPorts(5432)
       .start()
 
+    // Start Inngest dev server container for workflow integration tests
+    const inngestContainer = await new GenericContainer('inngest/inngest:latest')
+      .withCommand(['inngest', 'start', '--host', '0.0.0.0', '--poll-interval', '5'])
+      .withExposedPorts(8288)
+      .withStartupTimeout(30_000)
+      .start()
+
+    const inngestHost = inngestContainer.getHost()
+    const inngestPort = inngestContainer.getMappedPort(8288)
+    const inngestBaseUrl = `http://${inngestHost}:${inngestPort}`
+
     const databaseHost = databaseContainer.getHost()
     const databasePort = databaseContainer.getMappedPort(5432)
     const databaseUrl = `postgres://${databaseUser}:${databasePassword}@${databaseHost}:${databasePort}/${databaseName}`
     const commandEnvironment = buildEnvironment({
       DATABASE_URL: databaseUrl,
+      INNGEST_DEV: '1',
+      INNGEST_BASE_URL: inngestBaseUrl,
+      NEXT_PUBLIC_INNGEST_BASE_URL: inngestBaseUrl,
       BASE_URL: applicationBaseUrl,
       JWT_SECRET: process.env.JWT_SECRET ?? 'om-ephemeral-integration-jwt-secret',
       OM_SECURITY_MFA_SETUP_SECRET: process.env.OM_SECURITY_MFA_SETUP_SECRET ?? 'om-ephemeral-integration-mfa-setup-secret',
@@ -2608,7 +2629,10 @@ export async function startEphemeralEnvironment(options: EphemeralRuntimeOptions
       if (applicationProcess && !applicationProcess.killed) {
         applicationProcess.kill('SIGTERM')
       }
-      await databaseContainer.stop()
+      await Promise.all([
+        databaseContainer.stop(),
+        inngestContainer.stop(),
+      ])
       await clearEphemeralEnvironmentState()
     }
 
@@ -2712,6 +2736,7 @@ export async function startEphemeralEnvironment(options: EphemeralRuntimeOptions
         port: applicationPort,
         logPrefix: options.logPrefix,
         captureScreenshots: options.captureScreenshots,
+        inngestBaseUrl,
       })
       return {
         baseUrl: applicationBaseUrl,

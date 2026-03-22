@@ -14,3 +14,10 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "template1" <<-EOSQ
 EOSQL
 
 echo "pgvector extension enabled in template1 (all new databases will inherit it)"
+
+# Create Inngest database (separate from app DB to avoid table name collisions)
+psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" <<-EOSQL
+    SELECT 'CREATE DATABASE inngest' WHERE NOT EXISTS (SELECT FROM pg_database WHERE datname = 'inngest')\gexec
+EOSQL
+
+echo "Inngest database created (if not exists)"

@@ -1,8 +1,8 @@
-# Pre-Implementation Analysis: SPEC-069 — Inngest Integration
+# Pre-Implementation Analysis: SPEC-069 — Inngest Integration (v0.9)
 
 ## Executive Summary
 
-SPEC-069 is well-architected with clean module isolation, proper tenant scoping, and zero-residue removability. **No backward compatibility violations** — all changes are additive. However, **3 critical implementation gaps** block Phase 2 (Event Bridge): `matchEventPattern` is not exported, the persistent worker doesn't pass `eventName` to subscriber context, and `process.exit(1)` in the serve route is unsafe. Overall readiness is high — fix the gaps and this is ready to implement.
+SPEC-069 v0.9 is **ready to implement**. Zero backward compatibility violations — all changes are additive. The architecture is clean: standalone package, inferred types from SDK, flat handler args, proper widget injection pattern, tenant-scoped DI. Two minor gaps remain (missing spec template sections, `injection-table.ts` export format), neither blocks implementation.
 
 ---
 
@@ -14,35 +14,27 @@ SPEC-069 is well-architected with clean module isolation, proper tenant scoping,
 |---|---------|-------|----------|-------------|
 | — | — | No violations found | — | — |
 
-All changes are **additive**:
-- New package (`packages/inngest/`) — no existing code modified
-- New convention file (`inngest.workflows.ts`) — new discovery path, doesn't alter existing ones
-- New DI service names (`inngestClient`, `inngestRegisteredEvents`) — additions
-- New generated file (`inngest-workflows.generated.ts`) — addition
-- New API route (`/api/inngest`) — addition
-- Events worker wildcard fix — **behavioral change** but non-breaking (no existing persistent subscriber uses wildcards; ephemeral already supports them)
+All 13 contract surfaces pass — purely additive changes:
 
-### BC Surface Audit (All 13 Categories)
-
-| # | Surface | Status | Notes |
-|---|---------|--------|-------|
-| 1 | Auto-discovery file conventions | Clean | New `workflows/*.ts` + `inngest.workflows.ts` — additive; doesn't modify existing convention files |
-| 2 | Type definitions & interfaces | Clean | New types only (`WorkflowMeta`, `WorkflowHandler`, `WorkflowContext`) |
-| 3 | Function signatures | Clean | New functions only (`wrapWorkflow`, `createScopedWorkflowContainer`) |
-| 4 | Import paths | Clean | New package `@open-mercato/inngest` — no moved modules |
-| 5 | Event IDs | Clean | No event IDs created, renamed, or removed; bridge forwards existing events |
-| 6 | Widget injection spot IDs | N/A | No UI widgets |
-| 7 | API route URLs | Clean | New `/api/inngest` endpoint — addition only |
-| 8 | Database schema | N/A | No Mercato database changes (Inngest uses its own DB) |
-| 9 | DI service names | Clean | New names only: `inngestClient`, `inngestRegisteredEvents` |
-| 10 | ACL feature IDs | N/A | No new features/permissions |
-| 11 | Notification type IDs | N/A | No notifications |
-| 12 | CLI commands | N/A | No CLI changes |
-| 13 | Generated file contracts | Clean | New `inngest-workflows.generated.ts` with new exports `functions`, `registeredEvents` |
+| # | Surface | Status |
+|---|---------|--------|
+| 1 | Auto-discovery conventions | PASS — new `workflows/*.ts` + `inngest.workflows.ts` |
+| 2 | Type definitions | PASS — new types only (`WorkflowMeta`, `WorkflowTools`, `WorkflowHandler`) |
+| 3 | Function signatures | PASS — new functions only (`wrapWorkflow`, `buildDIRun`) |
+| 4 | Import paths | PASS — new `@open-mercato/inngest` package |
+| 5 | Event IDs | PASS — no events created or modified |
+| 6 | Widget injection spot IDs | PASS — uses existing `menu:sidebar:settings` |
+| 7 | API route URLs | PASS — new `/api/inngest` endpoint |
+| 8 | Database schema | PASS — no Mercato schema changes |
+| 9 | DI service names | PASS — new `inngestClient` |
+| 10 | ACL feature IDs | N/A |
+| 11 | Notification type IDs | N/A |
+| 12 | CLI commands | N/A |
+| 13 | Generated file contracts | PASS — new `inngest-workflows.generated.ts` |
 
 ### Missing BC Section
 
-The spec does not include a "Migration & Backward Compatibility" section. Not strictly needed since all changes are additive, but the events worker wildcard fix should be documented as a behavioral change (even though it's non-breaking).
+Not strictly needed — all changes are additive. The `inngest.workflows.ts` convention file is correctly marked as FROZEN once shipped.
 
 ---
 
@@ -50,38 +42,35 @@ The spec does not include a "Migration & Backward Compatibility" section. Not st
 
 ### Present Sections
 
-| Section | Status |
-|---------|--------|
-| TLDR & Overview | Present |
-| Problem Statement | Present |
-| Proposed Solution + Architecture | Present — with design decision analysis |
-| Types | Present |
-| Risks & Impact Review | Present — 7 risks with mitigations |
-| Phasing | Present — 5 phases |
-| Implementation Plan | Present — steps per phase |
-| Integration Test Coverage | Present — 7 test scenarios |
-| Removability | Present — 7-step removal plan |
-| Constraints | Present — 11 documented constraints |
-| Changelog | Present |
+- [x] TLDR & Overview
+- [x] Problem Statement
+- [x] Proposed Solution + Architecture + Design Decisions
+- [x] Package Structure
+- [x] Implementation details (Client, Container, Tools, Adapter, Triggering, Discovery)
+- [x] Docker Infrastructure
+- [x] Types
+- [x] Constraints
+- [x] Removability
+- [x] Risks & Impact Review
+- [x] Phasing (4 phases, each results in working app)
+- [x] Integration Test Coverage
+- [x] Changelog
 
 ### Missing Sections
 
 | Section | Impact | Recommendation |
 |---------|--------|---------------|
-| Data Models | Low | N/A — no Mercato entities. Inngest manages its own state. Note this explicitly. |
-| API Contracts | Low | Only `/api/inngest` (Inngest SDK-managed). Add a brief note: "API contract owned by Inngest SDK; no custom endpoints." |
-| UI/UX | Low | N/A for Phase 1-5. Future phases may add Inngest dashboard link in admin. |
-| Final Compliance Report | Medium | Required by spec-writing skill. Add compliance matrix (can reuse the architectural review from earlier). |
+| Data Models | None | Add one-liner: "N/A — no Mercato entities. Inngest manages workflow state in its own PostgreSQL database." |
+| API Contracts | Low | Add brief note: "/api/inngest — SDK-managed, exports GET/POST/PUT via `serve()`. Does not export `openApi` (consumed by Inngest, not app's OpenAPI spec)." |
+| Final Compliance Report | Low | Can be derived from this analysis. Add reference to ANALYSIS-069. |
 
 ### Incomplete Sections
 
 | Section | Gap | Recommendation |
 |---------|-----|---------------|
-| Phase 1 steps | Missing `registry.ts` creation (defined in 10.4 but not listed in Phase 1 steps) | Add step: "Create `registry.ts` with `registerInngestBridge`, `getInngestClient`, `getRegisteredEvents`" |
-| Phase 2 steps | Missing `matchEventPattern` export step | Add step: "Export `matchEventPattern` from `packages/events/src/bus.ts`" |
-| Phase 2 steps | Missing worker `eventName` propagation fix | Add step: "Pass `eventName` to subscriber context in events worker" |
-| Docker (11.1) | `inngest` service needs `command` — Inngest image default entrypoint may not start dev server correctly | Add pre-verification step result and explicit `command` if needed |
-| Section 10.4 | Duplicate section number (two "10.4" subsections) | Renumber serve route to 10.5 |
+| §10.5 Widget | `injection-table.ts` uses named re-export, but real examples use `ModuleInjectionTable` type with spot→widgetId mapping | Verify during implementation which pattern the scanner expects — the current approach may work if the scanner handles both |
+| §9.3 Example | Contains `import { referenceFunction }` inside a function body (invalid TS) | Move import to top of file in the example |
+| §3.1 Architecture diagram | References `ctx.run()` and `ctx.step.sleep()` — stale from v0.8 class-based approach | Update to `run()` and `step.sleep()` (no `ctx.` prefix) |
 
 ---
 
@@ -89,27 +78,23 @@ The spec does not include a "Migration & Backward Compatibility" section. Not st
 
 ### Violations
 
-| Rule | Source | Location | Fix |
-|------|--------|----------|-----|
-| `matchEventPattern` is private to `bus.ts` | Events AGENTS.md | Spec §9.1 — worker fix references it but doesn't address export | Export from `bus.ts` or extract to `packages/events/src/lib/match-event-pattern.ts` |
-| Worker doesn't pass `eventName` to subscriber handlers | Events AGENTS.md / `SubscriberContext` type | Spec §9.2 — bridge uses `ctx.eventName` but worker doesn't provide it | Fix worker to pass `eventName` in context: `{ resolve: ctx.resolve, eventName: event }` |
-| Docker changes must use `dev-container-maintenance` skill | Dev Container AGENTS.md | Spec §11 | Note in implementation plan: "Use `dev-container-maintenance` skill for Phase 3" |
-| Integration packages must be dedicated npm packages | Root AGENTS.md | Spec §4 | Compliant — `packages/inngest/` is a standalone package |
-| Persistent subscribers must be idempotent | Events AGENTS.md | Spec §9.2 | Compliant — `inngest.send()` is idempotent (Inngest deduplicates) |
-| Use `findWithDecryption` for entity reads | Core AGENTS.md | Spec §7 constraints | Compliant — documented as constraint |
-| `process.exit(1)` is unsafe | Lessons.md (spirit of) | Spec §10.4 serve route | Replace with `throw new Error(...)` — Next.js handles startup errors gracefully |
+| Rule | Location | Fix |
+|------|----------|-----|
+| Widget injection: map via `injection-table.ts` | §10.5 | The spec's `injection-table.ts` uses a named re-export pattern. Verify against the integrations module's `ModuleInjectionTable` pattern during implementation. Both patterns may be valid — the scanner may support both. |
+| No hardcoded user-facing strings | §10.5 widget | `'Inngest Dashboard'` is hardcoded. Acceptable: "Inngest" is a brand name, widget is dev-only. Add i18n key if the widget becomes user-facing in future. |
 
 ### Compliant Items
 
 | Rule | Status |
 |------|--------|
-| Module placement in `packages/<name>/` | Compliant |
+| Package placement in `packages/<name>/` | Compliant |
 | DI via Awilix, not direct `new` | Compliant |
-| Tenant scoping via `organization_id` filters | Compliant |
-| Convention file follows `<module>.<concept>.ts` pattern | Compliant |
-| GeneratorPlugin matches existing interface | Compliant |
-| No cross-module ORM relationships | Compliant (N/A — no entities) |
-| Subscriber exports `metadata` with `{ event, persistent, id }` | Compliant |
+| Tenant scoping via queryEngine/findWithDecryption | Compliant |
+| Convention file follows `<module>.<concept>.ts` | Compliant |
+| GeneratorPlugin uses `Record<string, unknown>` casts (not `any`) | Compliant |
+| Subscriber exports `metadata` with `{ event, persistent, id }` | Compliant (§9.2 example) |
+| No cross-module ORM relationships | N/A — no entities |
+| Serve route placement justified | Compliant — comment explains why |
 
 ---
 
@@ -119,25 +104,21 @@ The spec does not include a "Migration & Backward Compatibility" section. Not st
 
 | Risk | Impact | Mitigation |
 |------|--------|-----------|
-| Worker doesn't pass `eventName` to subscriber context | Bridge subscriber uses `ctx.eventName` — will be `undefined`, causing silent no-op (all events skipped) | Fix worker dispatch to include `eventName` in context object |
-| `matchEventPattern` not exported | Worker fix in §9.1 will fail to compile — blocks Phase 2 entirely | Export from `bus.ts` or extract to shared utility |
+| Inngest SDK v4 type inference may not work as specced | Types like `Parameters<typeof inngest.createFunction>[0]` could resolve to `any` or over-broad unions depending on SDK overloads | Phase 1 Step 1 explicitly verifies type exports before building on them |
 
 ### Medium Risks
 
 | Risk | Impact | Mitigation |
 |------|--------|-----------|
-| `process.exit(1)` kills Next.js process | Misconfiguration crashes prod instead of surfacing error | Replace with `throw new Error(...)` |
-| Inngest SDK version not pinned | Breaking changes between Inngest SDK majors could break build | Pin to `^3.x.x` (or whatever verified version) in `package.json` |
-| Bootstrap registrations currently empty | `runBootstrapRegistrations()` exists but has no calls — need to verify generator correctly appends to it | Verify with `yarn generate` after Phase 1; inspect generated `bootstrap-registrations.generated.ts` |
-| Burst recovery after Inngest outage | Events queue in BullMQ during downtime, all fire simultaneously on recovery | Document expected behavior; consider adding jitter or rate-limited drain |
+| Inngest server down — `inngest.send()` fails | Events lost unless caller handles retry | Documented in R1. Persistent subscribers provide BullMQ retry. API routes return error to client. |
+| `run()` vs `step.run()` confusion | Developer uses wrong one, gets runtime error | Decision tree in §9.5. AGENTS.md for the package (Phase 4) should include common mistakes section. |
 
 ### Low Risks
 
 | Risk | Impact | Mitigation |
 |------|--------|-----------|
-| Wildcard iteration O(n) in persistent worker | Performance impact negligible with <100 subscriber patterns | Monitor; optimize to pre-filter exact matches before pattern iteration if needed |
-| Convention file BC burden | `inngest.workflows.ts` is FROZEN once shipped | Matches existing precedent (`security.mfa-providers.ts`) — acceptable |
-| Docker image `inngest/inngest:latest` unpinned | Build reproducibility | Pin to specific verified tag after Phase 3 pre-verification step |
+| Docker profile activation unfamiliar to developers | First profile-gated service — developers may not know how to enable | §11.1 documents activation methods |
+| Workflow ID naming collision with domain events | A workflow ID without hyphens could match a domain event | §14 constraint: "Workflow IDs MUST contain hyphens" — convention-enforced |
 
 ---
 
@@ -145,31 +126,18 @@ The spec does not include a "Migration & Backward Compatibility" section. Not st
 
 ### Critical Gaps (Block Implementation)
 
-1. **`matchEventPattern` not exported from `bus.ts`**: The events worker fix (§9.1) uses this function but it's private. Must export it or extract to a shared location. Without this, Phase 2 cannot compile.
-
-2. **Worker doesn't propagate `eventName` to subscriber context**: The `SubscriberContext` type includes `eventName?: string` but the worker currently constructs context as `{ resolve: ctx.resolve }` only. The bridge subscriber checks `ctx.eventName` — it will always be `undefined`, silently skipping all events. Must fix worker to pass `{ resolve: ctx.resolve, eventName: event }`.
-
-3. **`process.exit(1)` in serve route**: Replace with `throw new Error(...)` to let Next.js handle the error without killing the process.
+None.
 
 ### Important Gaps (Should Address)
 
-4. **Inngest SDK version not specified**: `package.json` in spec lists `inngest` as dependency without version range. Pin to verified semver range.
-
-5. **`registry.ts` not in Phase 1 implementation steps**: The file is defined in §10.4 but not listed as a Phase 1 deliverable. Add it.
-
-6. **Duplicate section numbering**: Two "10.4" subsections (Bridge Registration Function and Serve Route). Renumber.
-
-7. **No unit test plan**: Integration tests are listed but no unit tests for `WorkflowContext`, `wrapWorkflow`, `assertJsonSerializable`, or the bridge subscriber. These are critical correctness paths.
-
-8. **`_inngestOrigin` as reserved field not documented in events system**: Should be documented as a reserved payload field in events AGENTS.md or types to prevent accidental use/stripping by other modules.
+1. **§3.1 architecture diagram uses `ctx.` prefix** — stale from v0.8 class-based approach. Update to match v0.9 flat pattern (`run()`, `step.sleep()`).
+2. **§9.3 example has invalid `import` inside function body** — move `import { referenceFunction }` to top-level.
+3. **Verify `injection-table.ts` export format** during Phase 1 — the spec uses named re-export but the integrations module uses `ModuleInjectionTable` type. Both may work.
 
 ### Nice-to-Have Gaps
 
-9. **Inngest Docker image `command` not specified**: Default entrypoint may or may not start the dev server on port 8288. Pre-verification step (§11.6) should resolve this, but result should be captured in spec.
-
-10. **No `INNGEST_DEV` in `fullapp.dev.yml`**: Dev container sets it but fullapp.dev doesn't. Document intentional choice or add it.
-
-11. **No monitoring/observability section**: How to view Inngest dashboard, check workflow status, debug failed steps. Add to Phase 5 docs.
+4. Add "Data Models: N/A" and "API Contracts: /api/inngest (SDK-managed)" one-liners for spec template completeness.
+5. Consider adding `assertJsonSerializable` as a lightweight prod check (currently dev-only) — low priority, documented as acceptable tradeoff.
 
 ---
 
@@ -177,38 +145,21 @@ The spec does not include a "Migration & Backward Compatibility" section. Not st
 
 ### Before Implementation (Must Do)
 
-1. **Export `matchEventPattern`**: Either add `export` to the function in `packages/events/src/bus.ts`, or extract to `packages/events/src/lib/match-event-pattern.ts` and import in both `bus.ts` and `events.worker.ts`.
+1. **Fix §3.1 diagram** — replace `ctx.run()` / `ctx.step.sleep()` with `run()` / `step.sleep()`
+2. **Fix §9.3 import** — move `import { referenceFunction }` to top-level of example
 
-2. **Fix worker `eventName` propagation**: In `events.worker.ts`, change the subscriber invocation from `sub.handler(payload, { resolve: ctx.resolve })` to `sub.handler(payload, { resolve: ctx.resolve, eventName: event })`.
+### During Implementation (Verify)
 
-3. **Replace `process.exit(1)` with `throw`**: In the serve route, use `throw new Error('INNGEST_DEV=1 is not allowed outside development')`.
-
-4. **Add `registry.ts` to Phase 1 steps**: Include it as step 1b after creating the core files.
-
-5. **Pin Inngest SDK version**: Specify `"inngest": "^3.0.0"` (or verified version) in spec.
-
-6. **Fix duplicate section numbering**: Renumber §10.4 (Serve Route) to §10.5.
-
-### During Implementation (Add to Spec)
-
-7. **Add unit test plan**: Test `WorkflowContext.resolve()` outside step (error), `assertJsonSerializable` with MikroORM-like objects, bridge subscriber with/without `_inngestOrigin`, bridge subscriber with unregistered events.
-
-8. **Document `_inngestOrigin` as reserved field**: Add note to events package AGENTS.md.
-
-9. **Use `dev-container-maintenance` skill for Phase 3**: All Docker/devcontainer changes must go through that skill.
-
-10. **Capture Docker pre-verification results**: After running §11.6 commands, update spec with pinned image tag and confirmed entrypoint/command.
+3. **Phase 1 Step 1** — verify `Parameters<typeof inngest.createFunction>` resolves correctly with Inngest SDK v4.0.4
+4. **Phase 1 Step 4** — verify `injection-table.ts` format works with the module scanner
 
 ### Post-Implementation (Follow Up)
 
-11. **Add Task Router row**: Root AGENTS.md should get "Inngest workflow authoring" → `packages/inngest/AGENTS.md`.
-
-12. **Add observability docs**: How to access Inngest dashboard, debug workflows, view step history.
-
-13. **Consider `assertJsonSerializable` in production**: Currently dev-only — evaluate adding a lightweight check in prod (warn, don't throw).
+5. Add Task Router row to root AGENTS.md: "Inngest workflow authoring" → `packages/inngest/AGENTS.md`
+6. Update ANALYSIS-069 with implementation results
 
 ---
 
 ## Recommendation
 
-**Ready to implement after 6 pre-implementation fixes** (items 1-6 above). None require architectural changes — they are targeted code fixes and spec corrections. The core design is sound, well-isolated, and follows established patterns. Estimated fix time: <30 minutes of spec updates.
+**Ready to implement.** Two trivial spec fixes (stale `ctx.` prefix in diagram, invalid import in example) can be addressed inline during implementation. No architectural changes needed. The v0.9 rewrite to flat `WorkflowTools` and inferred SDK types is clean and well-aligned with codebase patterns.
