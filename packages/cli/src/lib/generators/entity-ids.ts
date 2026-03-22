@@ -102,7 +102,7 @@ function parseEntityFieldsFromFile(filePath: string, exportedClassNames: string[
     return undefined
   }
 
-  function normalizeDbName(propertyName: string, _decoratorName?: string, nameOverride?: string): string {
+  function normalizeDbName(propertyName: string, nameOverride?: string): string {
     if (nameOverride) return nameOverride
     return toSnake(propertyName)
   }
@@ -131,7 +131,7 @@ function parseEntityFieldsFromFile(filePath: string, exportedClassNames: string[
       if (decorators && decorators.length) {
         for (const d of decorators) {
           const nameOverride = getDecoratorArgNameLiteral(d)
-          dbName = normalizeDbName(name, undefined, nameOverride)
+          dbName = normalizeDbName(name, nameOverride)
           if (dbName) break
         }
       }
@@ -182,7 +182,7 @@ function parseEntityFieldsFromFile(filePath: string, exportedClassNames: string[
           }
         }
       }
-      const dbName = normalizeDbName(propName, undefined, nameOverride)
+      const dbName = normalizeDbName(propName, nameOverride)
       fieldsByClass[className] = fieldsByClass[className] || []
       fieldsByClass[className].push(dbName)
     })

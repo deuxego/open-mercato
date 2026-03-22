@@ -2,15 +2,10 @@ import fs from 'node:fs'
 import path from 'node:path'
 import ts from 'typescript'
 
+import { toSnake } from '../../utils'
+
 // Re-implement the parsers locally to test them in isolation.
 // These mirror the private functions in entity-ids.ts.
-
-function toSnake(s: string): string {
-  return s
-    .replace(/([a-z0-9])([A-Z])/g, '$1_$2')
-    .replace(/([A-Z])([A-Z][a-z])/g, '$1_$2')
-    .toLowerCase()
-}
 
 function parseExportedClassNamesFromFile(source: string, isJs: boolean): string[] {
   const sf = ts.createSourceFile('test.ts', source, ts.ScriptTarget.ES2020, true, isJs ? ts.ScriptKind.JS : ts.ScriptKind.TS)
@@ -64,7 +59,11 @@ function parseEntityFieldsFromFile(source: string, exportedClassNames: string[],
     const fields: string[] = []
     for (const member of node.members) {
       if (!ts.isPropertyDeclaration(member) || !member.name) continue
-      const name = ts.isIdentifier(member.name) ? member.name.text : undefined
+      const name = ts.isIdentifier(member.name)
+        ? member.name.text
+        : ts.isStringLiteral(member.name)
+          ? member.name.text
+          : undefined
       if (!name) continue
       if (member.modifiers?.some((m) => m.kind === ts.SyntaxKind.StaticKeyword)) continue
       const decorators = ts.canHaveDecorators(member) ? ts.getDecorators(member) ?? [] : []
@@ -184,6 +183,69 @@ describe('parseExportedClassNamesFromFile', () => {
 
   it('handles empty file', () => {
     expect(parseExportedClassNamesFromFile('', false)).toEqual([])
+  })
+})
+
+describe('parseEntityFieldsFromFile — TS source', () => {
+  it('extracts fields with Property name override', () => {
+    const src = `
+      @Entity({ tableName: 'users' })
+      export class User {
+        @PrimaryKey({ type: 'uuid' })
+        id!: string
+        @Property({ name: 'user_name', type: 'text' })
+        userName!: string
+      }
+    `
+    const result = parseEntityFieldsFromFile(src, ['User'], false)
+    expect(result).toEqual({ user: ['id', 'user_name'] })
+  })
+
+  it('falls back to toSnake when no name override', () => {
+    const src = `
+      @Entity({ tableName: 'items' })
+      export class ExampleItem {
+        @PrimaryKey({ type: 'uuid' })
+        id!: string
+        @Property({ type: 'text' })
+        itemName!: string
+      }
+    `
+    const result = parseEntityFieldsFromFile(src, ['ExampleItem'], false)
+    expect(result).toEqual({ example_item: ['id', 'item_name'] })
+  })
+
+  it('handles ManyToOne decorator (arrow function arg)', () => {
+    const src = `
+      @Entity({ tableName: 'prefs' })
+      export class UserPref {
+        @PrimaryKey({ type: 'uuid' })
+        id!: string
+        @ManyToOne(() => User)
+        user!: any
+      }
+    `
+    const result = parseEntityFieldsFromFile(src, ['UserPref'], false)
+    expect(result).toEqual({ user_pref: ['id', 'user'] })
+  })
+
+  it('skips static properties', () => {
+    const src = `
+      @Entity({ tableName: 'items' })
+      export class Item {
+        static TABLE = 'items'
+        @PrimaryKey({ type: 'uuid' })
+        id!: string
+      }
+    `
+    const result = parseEntityFieldsFromFile(src, ['Item'], false)
+    expect(result).toEqual({ item: ['id'] })
+  })
+
+  it('handles class with no properties', () => {
+    const src = `export class EmptyEntity {}`
+    const result = parseEntityFieldsFromFile(src, ['EmptyEntity'], false)
+    expect(result).toEqual({ empty_entity: [] })
   })
 })
 
