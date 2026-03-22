@@ -21,8 +21,8 @@ try {
   }
 }
 
-if (process.env.INNGEST_DEV === '1' && process.env.NODE_ENV !== 'development') {
-  throw new Error('INNGEST_DEV=1 is not allowed outside development')
+if (process.env.INNGEST_DEV === '1' && process.env.NODE_ENV !== 'development' && process.env.NODE_ENV !== 'test' && !process.env.OM_TEST_MODE) {
+  throw new Error('INNGEST_DEV=1 is not allowed outside development/test')
 }
 
 export const { GET, POST, PUT } = serve({ client: inngest, functions })
