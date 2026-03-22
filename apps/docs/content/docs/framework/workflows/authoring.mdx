@@ -1,0 +1,152 @@
+---
+title: Authoring Workflows
+description: Create durable Inngest workflows with typed payloads, DI-aware steps, and convention-file registration.
+---
+
+# Authoring Workflows
+
+## File Structure
+
+Workflows follow the module convention pattern:
+
+```
+modules/<module>/
+├── workflows/
+│   └── my-workflow.ts          # metadata + typed handler
+└── inngest.workflows.ts        # convention file (aggregates workflows)
+```
+
+## Step 1: Create the Workflow
+
+```typescript
+// modules/orders/workflows/invoice-followup.ts
+import type { WorkflowMeta, WorkflowHandler, BaseWorkflowPayload } from '@open-mercato/inngest'
+import type { EntityManager } from '@mikro-orm/postgresql'
+import { findOneWithDecryption } from '@open-mercato/shared/lib/encryption/find'
+import { Invoice } from '../data/entities'
+
+// Typed payload — BaseWorkflowPayload enforces organizationId + tenantId
+type InvoiceFollowupPayload = BaseWorkflowPayload & {
+  invoiceId: string
+}
+
+// Metadata — any Inngest createFunction option works
+export const metadata: WorkflowMeta = {
+  id: 'orders.invoice-followup',     // dots between segments, hyphens within action
+  concurrency: [{ limit: 5, key: 'event.data.organizationId' }],
+  cancelOn: [{ event: 'orders.invoice.paid', match: 'data.invoiceId' }],
+}
+
+// Typed handler
+const handler: WorkflowHandler<InvoiceFollowupPayload> = async (
+  payload,
+  { step, run, resolve, logger }
+) => {
+  // Inngest SDK — durable sleep (survives server restarts)
+  await step.sleep('wait-3-days', '3d')
+
+  // DI-aware step — resolve<T>() works inside run()
+  const invoice = await run('check-payment', async () => {
+    const em = resolve<EntityManager>('em')
+    const result = await findOneWithDecryption(em, Invoice, {
+      id: payload.invoiceId,
+      organizationId: payload.organizationId,
+    })
+    // MUST return JSON-serializable plain object
+    return { found: Boolean(result), paid: result?.status === 'paid' }
+  })
+
+  if (!invoice.found || invoice.paid) return
+
+  await run('send-reminder', async () => {
+    logger.info({ invoiceId: payload.invoiceId }, 'Payment reminder sent')
+    return { reminded: true }
+  })
+}
+
+export default handler
+```
+
+## Step 2: Register in Convention File
+
+```typescript
+// modules/orders/inngest.workflows.ts
+import * as invoiceFollowup from './workflows/invoice-followup'
+
+export const workflows = [invoiceFollowup]
+export default workflows  // REQUIRED — Turbopack needs default export
+```
+
+:::danger Convention file name is FROZEN
+The file name `inngest.workflows.ts` must never be renamed. It is part of the backward compatibility contract.
+:::
+
+## Step 3: Generate
+
+```bash
+yarn generate
+```
+
+This produces `apps/mercato/.mercato/generated/inngest-workflows.generated.ts` which the serve route imports.
+
+## `run()` vs `step.run()` vs `step.*`
+
+| Need | Use | Why |
+|------|-----|-----|
+| DI services (em, queryEngine) | `run()` | Sets up AsyncLocalStorage so `resolve<T>()` works |
+| Pure Inngest (sleep, waitForEvent) | `step.*` | No DI needed, direct SDK access |
+| Network call without DI | `step.run()` | Lighter, no DI overhead |
+| Emit to Mercato event bus | `emitToEventBus()` | Wraps `run()` internally |
+| Trigger another workflow | `step.sendEvent()` or `step.invoke()` | Saga coordination |
+
+## Step Return Values
+
+Inngest memoizes step results. Return values **must be JSON-serializable**:
+
+```typescript
+// ❌ BAD — MikroORM entity has methods and circular refs
+await run('fetch', async () => {
+  return await findOneWithDecryption(em, Invoice, { id })
+})
+
+// ✅ GOOD — plain object
+await run('fetch', async () => {
+  const entity = await findOneWithDecryption(em, Invoice, { id })
+  return { id: entity?.id, status: entity?.status }
+})
+```
+
+A dev-mode guard (`assertJsonSerializable`) catches this at runtime during development.
+
+## Metadata Options
+
+`WorkflowMeta` extends the full Inngest `createFunction` config. Common options:
+
+| Option | Type | Description |
+|--------|------|-------------|
+| `id` | `string` | **Required.** Unique workflow identifier. Contains hyphens. |
+| `retries` | `number` | Retries per step (default: 3) |
+| `concurrency` | `ConcurrencyOption[]` | Max concurrent runs (default: 1 per org, max 2 entries) |
+| `cancelOn` | `Cancellation[]` | Cancel when matching event arrives |
+| `debounce` | `{ period, key? }` | Debounce triggers |
+| `rateLimit` | `{ limit, period, key? }` | Rate limit execution |
+| `idempotency` | `string` | CEL expression for dedup key |
+
+## Error Handling
+
+```typescript
+import { NonRetriableError, RetryAfterError } from '@open-mercato/inngest'
+
+// Permanent failure — stops retrying
+throw new NonRetriableError('Invoice not found')
+
+// Rate limited — retry after delay
+throw new RetryAfterError('API rate limited', '30s')
+```
+
+## Function Limits
+
+- **Max 1,000 steps** per function run
+- **Max 4MB** per step return value
+- **Max 32MB** combined run state
+- **Max 2 entries** in concurrency array

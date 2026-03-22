@@ -12,6 +12,7 @@
     "dashboard",
     "api",
     "events",
+    "workflows",
     "webhooks",
     "rbac",
     "feature-toggles",

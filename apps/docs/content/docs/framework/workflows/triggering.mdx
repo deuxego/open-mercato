@@ -1,0 +1,118 @@
+---
+title: Triggering Workflows
+description: Send events to trigger Inngest workflows from subscribers, API routes, and other workflows.
+---
+
+# Triggering Workflows
+
+Workflows are triggered by sending an event via `inngest.send()`. The event name matches the workflow ID.
+
+## From a Subscriber
+
+The most common pattern — a domain event triggers a durable workflow:
+
+```typescript
+// modules/orders/subscribers/on-invoice-created-trigger-followup.ts
+import type { Inngest } from '@open-mercato/inngest'
+
+export const metadata = {
+  event: 'orders.invoice.created',
+  persistent: true,
+  id: 'orders.invoice.trigger-followup',
+}
+
+// Dedup guard — persistent subscribers fire both in-memory and via BullMQ worker
+const recentlySent = new Set<string>()
+
+export default async function handler(
+  payload: Record<string, unknown>,
+  ctx: { resolve: (name: string) => unknown; eventName?: string }
+) {
+  const recordId = payload.id as string | undefined
+  if (!recordId) return
+
+  if (recentlySent.has(recordId)) {
+    recentlySent.delete(recordId)
+    return
+  }
+  recentlySent.add(recordId)
+  setTimeout(() => recentlySent.delete(recordId), 10_000)
+
+  let inngest: Inngest
+  try { inngest = ctx.resolve('inngestClient') as Inngest } catch { return }
+
+  try {
+    await inngest.send({
+      name: 'orders.invoice-followup',  // = workflow ID
+      data: payload,                     // forward full event payload
+      id: `followup-${recordId}`,        // idempotency key (24h dedup)
+    })
+  } catch (e) {
+    console.error('[inngest] Failed to trigger workflow:', e)
+  }
+}
+```
+
+:::tip Why the dedup guard?
+Persistent subscribers (`persistent: true`) fire **twice** in the default queue strategy — once in-memory and once via the BullMQ worker. The `Set`-based guard ensures `inngest.send()` is only called once per event. The `id` field on `send()` provides a second dedup layer via Inngest's 24-hour idempotency window.
+:::
+
+## From Any Code with DI Access
+
+```typescript
+const inngest = ctx.resolve('inngestClient') as Inngest
+await inngest.send({
+  name: 'orders.invoice-followup',
+  data: { id: invoiceId, organizationId, tenantId },
+  id: `followup-${invoiceId}`,
+})
+```
+
+## From Within a Workflow
+
+```typescript
+// Trigger another workflow (saga pattern)
+await step.sendEvent('trigger-shipping', {
+  name: 'orders.shipping-request',
+  data: { orderId: payload.orderId, organizationId: payload.organizationId, tenantId: payload.tenantId },
+})
+
+// Or invoke directly with type safety
+import { referenceFunction } from '@open-mercato/inngest'
+const shippingRef = referenceFunction({ functionId: 'orders.shipping-request' })
+await step.invoke('invoke-shipping', { function: shippingRef, data: payload })
+```
+
+## Emit Back to Event Bus
+
+From within a workflow, emit to the Mercato event bus (triggers subscribers, SSE, persistent handlers):
+
+```typescript
+await emitToEventBus('orders.order.fulfilled', {
+  orderId: payload.orderId,
+  organizationId: payload.organizationId,
+  tenantId: payload.tenantId,
+})
+```
+
+## Naming Convention
+
+| Context | Pattern | Example |
+|---------|---------|---------|
+| Domain event | `module.entity.action` (dots) | `orders.invoice.created` |
+| Workflow ID / trigger | `module.entity-action` (hyphens) | `orders.invoice-followup` |
+
+## Idempotency
+
+**Event-level:** Add `id` to `inngest.send()` — 24-hour dedup window:
+```typescript
+await inngest.send({ name: 'orders.invoice-followup', data, id: `followup-${invoiceId}` })
+```
+
+**Function-level:** Add `idempotency` to workflow metadata:
+```typescript
+export const metadata: WorkflowMeta = {
+  id: 'orders.checkout-process',
+  idempotency: 'event.data.cartId',
+}
+```

@@ -1,0 +1,97 @@
+---
+title: Durable Workflows
+description: Build fault-tolerant, long-running workflows with Inngest — durable sleep, step-level retry, fan-out, and cancellation.
+---
+
+# Durable Workflows
+
+Open Mercato integrates [Inngest](https://www.inngest.com) as a durable workflow engine for multi-step background processes that need to survive server restarts, sleep for days, retry individual steps, or cancel on external events.
+
+:::tip When to use workflows vs workers vs subscribers
+| Need | Use |
+|------|-----|
+| Fire-and-forget job (email, index) | **Worker** (`workers/*.ts`) |
+| React to event with quick side effect | **Subscriber** (`subscribers/*.ts`) |
+| Multi-step process with sleep/retry/cancel | **Workflow** (`workflows/*.ts`) |
+
+Use workflows when you need **durable execution** — the ability to pause for hours/days, retry a single failed step without re-running the entire job, or cancel an in-flight process when a compensating event arrives.
+:::
+
+## How It Works
+
+Inngest runs as a self-hosted server alongside your application. The architecture:
+
+```
+Your app ←→ /api/inngest serve route ←→ Inngest server (Docker)
+                                            ├── Durable state (PostgreSQL)
+                                            ├── Queue (Redis)
+                                            └── Dashboard (localhost:8288)
+```
+
+1. Your code calls `inngest.send()` to trigger a workflow
+2. Inngest server receives the event and starts executing steps
+3. Each step is an HTTP callback to your app's `/api/inngest` endpoint
+4. Steps are **memoized** — if step 3 fails, steps 1-2 aren't re-executed
+5. Workflows can `sleep` for days, `waitForEvent` for correlation, or `cancelOn` external events
+
+## Package
+
+The `@open-mercato/inngest` package provides a thin wrapper over the Inngest SDK with:
+
+- **`WorkflowHandler<T>`** — typed payload with mandatory `organizationId` + `tenantId`
+- **`run()`** — DI-aware step execution (resolves tenant-scoped services)
+- **`resolve<T>()`** — typed dependency injection inside steps
+- **`emitToEventBus()`** — bridge back to the Mercato event bus
+
+The module is enabled by default in `modules.ts`. The Inngest server starts with `docker compose up`.
+
+## Dashboard
+
+Open **http://localhost:8288** to view:
+
+- Registered functions and their configuration
+- Live workflow runs with step-by-step execution timeline
+- Event history
+- Failed runs with error details and retry controls
+
+A sidebar link to the dashboard is injected in the admin settings menu.
+
+## Quick Example
+
+```typescript
+import type { WorkflowMeta, WorkflowHandler, BaseWorkflowPayload } from '@open-mercato/inngest'
+
+type InvoicePayload = BaseWorkflowPayload & { invoiceId: string }
+
+export const metadata: WorkflowMeta = {
+  id: 'orders.invoice-followup',
+  cancelOn: [{ event: 'orders.invoice.paid', match: 'data.invoiceId' }],
+}
+
+const handler: WorkflowHandler<InvoicePayload> = async (payload, { step, run, resolve, logger }) => {
+  await step.sleep('wait-3-days', '3d')
+
+  const invoice = await run('check-payment', async () => {
+    const em = resolve<EntityManager>('em')
+    const result = await findOneWithDecryption(em, Invoice, { id: payload.invoiceId })
+    return { paid: result?.status === 'paid' }
+  })
+
+  if (invoice.paid) return
+
+  await run('send-reminder', async () => {
+    logger.info({ invoiceId: payload.invoiceId }, 'Sending payment reminder')
+    // send email...
+    return { sent: true }
+  })
+}
+
+export default handler
+```
+
+## Next Steps
+
+- [Authoring Workflows](./authoring) — file structure, convention files, typed payloads
+- [Triggering Workflows](./triggering) — from subscribers, API routes, and other workflows
+- [Events & Subscribers](../events/overview) — the reactive event system (complements workflows)
+- [Queue & Workers](../events/queue-workers) — simple background jobs

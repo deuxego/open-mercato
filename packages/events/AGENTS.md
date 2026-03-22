@@ -33,6 +33,8 @@ export default eventsConfig
 | Ephemeral | Use for real-time UI updates, cache invalidation | In-memory only — lost on restart | No retry |
 | Persistent | Use for notifications, indexing, audit logging | Stored in queue — survives restarts | Retried on failure |
 
+> **For durable multi-step workflows** (sleep for days, step-level retry, cancellation, fan-out), use Inngest workflows instead of persistent subscribers. See `packages/inngest/AGENTS.md`.
+
 ## Adding an Event Subscriber
 
 1. Create subscriber file in `src/modules/<module>/subscribers/<event-name>.ts`

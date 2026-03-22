@@ -9,6 +9,8 @@ Use `@open-mercato/queue` for all background job processing. MUST NOT implement 
 | Local | Use for development — jobs process from `.mercato/queue/` (or `QUEUE_BASE_DIR`) | `QUEUE_STRATEGY=local` |
 | BullMQ | Use for production — Redis-backed with retries and concurrency | `QUEUE_STRATEGY=async` |
 
+> **For durable multi-step workflows** with sleep, step-level retry, cancellation, and fan-out, use Inngest workflows (`packages/inngest/AGENTS.md`) instead of workers. Workers are best for simple fire-and-forget jobs.
+
 ## MUST Rules
 
 1. **MUST make workers idempotent** — jobs may be retried on failure; duplicate execution MUST NOT corrupt data
