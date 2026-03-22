@@ -113,7 +113,7 @@ Windows users who develop through Docker can run any monorepo command using the 
 | Native command | Docker equivalent | Notes |
 |---------------|------------------|-------|
 | `yarn dev` | `yarn docker:dev` | Dev profile: restarts existing `app` service and tails main process logs (prevents duplicate port-3000 servers). Use `yarn docker:dev --skip-rebuilt` to skip install/build/generate for that restart only. |
-| `yarn build:packages` | `yarn docker:build:packages` | Builds all packages inside container |
+| `yarn build` | `yarn docker:build` | Builds all packages inside container |
 | `yarn generate` | `yarn docker:generate` | Dev profile only; fullapp fails fast because monorepo tooling is unsupported there |
 | `yarn initialize` | `yarn docker:initialize` | Dev profile only; fullapp fails fast because monorepo tooling is unsupported there |
 | `yarn reinstall` | `yarn docker:reinstall` | Dev profile only; fullapp fails fast because monorepo tooling is unsupported there |
@@ -143,7 +143,7 @@ yarn docker:mercato test:integration
 | `dev` | works | `yarn docker:dev` | — | |
 | `dev:greenfield` | works | unsupported-by-design | unsupported-by-design | Not available as a Docker exec command — use `yarn docker:dev:up` instead (entrypoint handles the full init sequence automatically) |
 | `dev:ephemeral` | works | `yarn docker:ephemeral` | unsupported-by-design | Uses `docker-compose.preview.yaml`; fresh DB, port 5000 |
-| `build:packages` | works | `yarn docker:build:packages` | unsupported-by-design | |
+| `build` | works | `yarn docker:build` | unsupported-by-design | |
 | `generate` | works | `yarn docker:generate` | unsupported-by-design | Monorepo-only; not in runtime image |
 | `initialize` | works | `yarn docker:initialize` | unsupported-by-design | Monorepo-only |
 | `reinstall` | works | `yarn docker:reinstall` | unsupported-by-design | Monorepo-only |

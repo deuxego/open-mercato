@@ -1023,8 +1023,8 @@ export async function generateModuleRegistry(options: ModuleRegistryOptions): Pr
       ${customEntitiesImportName ? `customEntities: ((${customEntitiesImportName}.default ?? ${customEntitiesImportName}.entities) as any) || [],` : ''}
       ${dashboardWidgets.length ? `dashboardWidgets: [${dashboardWidgets.join(', ')}],` : ''}
       ${setupImportName ? `setup: (${setupImportName}.default ?? ${setupImportName}.setup) || undefined,` : ''}
-      ${integrationImportName ? `integrations: (( (${integrationImportName} as Record<string, any>).integrations ?? ((${integrationImportName} as Record<string, any>).integration ? [(${integrationImportName} as Record<string, any>).integration] : []) ) as import('@open-mercato/shared/modules/integrations/types').IntegrationDefinition[]),` : ''}
-      ${integrationImportName ? `bundles: (( (${integrationImportName} as Record<string, any>).bundles ?? ((${integrationImportName} as Record<string, any>).bundle ? [(${integrationImportName} as Record<string, any>).bundle] : []) ) as import('@open-mercato/shared/modules/integrations/types').IntegrationBundle[]),` : ''}
+      ${integrationImportName ? `integrations: (() => { const _m = ${integrationImportName} as Record<string, any>; return (_m.integrations ?? (_m.integration ? [_m.integration] : [])) as import('@open-mercato/shared/modules/integrations/types').IntegrationDefinition[]; })(),` : ''}
+      ${integrationImportName ? `bundles: (() => { const _m = ${integrationImportName} as Record<string, any>; return (_m.bundles ?? (_m.bundle ? [_m.bundle] : [])) as import('@open-mercato/shared/modules/integrations/types').IntegrationBundle[]; })(),` : ''}
       ${integrationImportName ? `hubAdapters: (() => { const _int = ${integrationImportName} as Record<string, any>; const _hub = (_int.integration?.hub ?? _int.integrations?.[0]?.hub) || undefined; const _pk = (_int.integration?.providerKey ?? _int.integrations?.[0]?.providerKey) || undefined; if (!_hub || !_pk) return []; if (_int.adapters) return _int.adapters.map((e: { adapter: unknown; version?: string }) => ({ hub: _hub, providerKey: _pk, adapter: e.adapter, version: e.version })); if (_int.adapter) return [{ hub: _hub, providerKey: _pk, adapter: _int.adapter }]; return [] })(),` : ''}
     }`)
   }
@@ -1870,8 +1870,8 @@ export async function generateModuleRegistryCli(options: ModuleRegistryOptions):
       ${dashboardWidgets.length ? `dashboardWidgets: [${dashboardWidgets.join(', ')}],` : ''}
       ${vectorImportName ? `vector: (${vectorImportName}.default ?? ${vectorImportName}.vectorConfig ?? ${vectorImportName}.config ?? undefined),` : ''}
       ${setupImportName ? `setup: (${setupImportName}.default ?? ${setupImportName}.setup) || undefined,` : ''}
-      ${integrationImportName ? `integrations: (( (${integrationImportName} as Record<string, any>).integrations ?? ((${integrationImportName} as Record<string, any>).integration ? [(${integrationImportName} as Record<string, any>).integration] : []) ) as import('@open-mercato/shared/modules/integrations/types').IntegrationDefinition[]),` : ''}
-      ${integrationImportName ? `bundles: (( (${integrationImportName} as Record<string, any>).bundles ?? ((${integrationImportName} as Record<string, any>).bundle ? [(${integrationImportName} as Record<string, any>).bundle] : []) ) as import('@open-mercato/shared/modules/integrations/types').IntegrationBundle[]),` : ''}
+      ${integrationImportName ? `integrations: (() => { const _m = ${integrationImportName} as Record<string, any>; return (_m.integrations ?? (_m.integration ? [_m.integration] : [])) as import('@open-mercato/shared/modules/integrations/types').IntegrationDefinition[]; })(),` : ''}
+      ${integrationImportName ? `bundles: (() => { const _m = ${integrationImportName} as Record<string, any>; return (_m.bundles ?? (_m.bundle ? [_m.bundle] : [])) as import('@open-mercato/shared/modules/integrations/types').IntegrationBundle[]; })(),` : ''}
     }`)
   }
 

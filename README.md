@@ -217,7 +217,7 @@ docker compose -f docker-compose.fullapp.dev.yml up --build
 Once the dev stack is running, you can use the Docker wrapper scripts from the repo root instead of typing `docker compose exec` manually:
 
 ```bash
-yarn docker:build:packages
+yarn docker:build
 yarn docker:generate
 yarn docker:initialize
 yarn docker:initialize -- --reinstall

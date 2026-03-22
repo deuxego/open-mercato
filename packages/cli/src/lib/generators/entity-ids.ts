@@ -24,16 +24,25 @@ export interface EntityIdsOptions {
 }
 
 /**
- * Extract exported class names from a TypeScript source file without dynamic import.
- * This is used for @app modules since Node.js can't import TypeScript files directly.
+ * Extract exported class names from a TypeScript source or compiled JS file.
+ *
+ * Handles two formats:
+ * - TS source: `export class Foo { ... }`
+ * - Compiled JS (esbuild): `let Foo = class { ... }; export { Foo, Bar }`
  */
 function parseExportedClassNamesFromFile(filePath: string): string[] {
   const src = fs.readFileSync(filePath, 'utf8')
-  const sf = ts.createSourceFile(filePath, src, ts.ScriptTarget.ES2020, true, ts.ScriptKind.TS)
+  const isJs = filePath.endsWith('.js')
+  const sf = ts.createSourceFile(filePath, src, ts.ScriptTarget.ES2020, true, isJs ? ts.ScriptKind.JS : ts.ScriptKind.TS)
   const classNames: string[] = []
 
+  // Track class-like variable declarations for compiled JS: `let Foo = class { ... }`
+  const classVarNames = new Set<string>()
+  // Track names in `export { Foo, Bar }` declarations
+  const namedExports = new Set<string>()
+
   sf.forEachChild((node) => {
-    // Check for exported class declarations
+    // TS source: `export class Foo { ... }`
     if (ts.isClassDeclaration(node) && node.name) {
       const hasExport = node.modifiers?.some(
         (m) => m.kind === ts.SyntaxKind.ExportKeyword
@@ -42,14 +51,38 @@ function parseExportedClassNamesFromFile(filePath: string): string[] {
         classNames.push(node.name.text)
       }
     }
+
+    // Compiled JS: `let Foo = class { ... }`
+    if (ts.isVariableStatement(node)) {
+      for (const decl of node.declarationList.declarations) {
+        if (ts.isIdentifier(decl.name) && decl.initializer && ts.isClassExpression(decl.initializer)) {
+          classVarNames.add(decl.name.text)
+        }
+      }
+    }
+
+    // Compiled JS: `export { Foo, Bar }`
+    if (ts.isExportDeclaration(node) && node.exportClause && ts.isNamedExports(node.exportClause)) {
+      for (const el of node.exportClause.elements) {
+        namedExports.add(el.name.text)
+      }
+    }
   })
+
+  // Merge: always include exported class variable names (handles compiled JS and mixed files)
+  for (const name of classVarNames) {
+    if (namedExports.has(name) && !classNames.includes(name)) {
+      classNames.push(name)
+    }
+  }
 
   return classNames
 }
 
 function parseEntityFieldsFromFile(filePath: string, exportedClassNames: string[]): EntityFieldMap {
   const src = fs.readFileSync(filePath, 'utf8')
-  const sf = ts.createSourceFile(filePath, src, ts.ScriptTarget.ES2020, true, ts.ScriptKind.TS)
+  const isJs = filePath.endsWith('.js')
+  const sf = ts.createSourceFile(filePath, src, ts.ScriptTarget.ES2020, true, isJs ? ts.ScriptKind.JS : ts.ScriptKind.TS)
 
   const exported = new Set(exportedClassNames)
   const result: EntityFieldMap = {}
@@ -74,6 +107,7 @@ function parseEntityFieldsFromFile(filePath: string, exportedClassNames: string[
     return toSnake(propertyName)
   }
 
+  // TS source: parse class declarations with decorated properties
   sf.forEachChild((node) => {
     if (!ts.isClassDeclaration(node) || !node.name) return
     const clsName = node.name.text
@@ -107,19 +141,87 @@ function parseEntityFieldsFromFile(filePath: string, exportedClassNames: string[
     result[entityKey] = Array.from(new Set(fields))
   })
 
+  // Compiled JS fallback: parse __decorateClass calls
+  // Pattern: __decorateClass([Property({ name: 'col_name' })], ClassName.prototype, "propName", 2)
+  if (Object.keys(result).length === 0 && exported.size > 0) {
+    const fieldsByClass: Record<string, string[]> = {}
+    sf.forEachChild((node) => {
+      if (!ts.isExpressionStatement(node)) return
+      const expr = node.expression
+      // Match: __decorateClass([...], ClassName.prototype, "propName", ...)
+      // or: ClassName = __decorateClass([...], ClassName) (class-level decorator, skip)
+      if (!ts.isCallExpression(expr)) return
+      const callee = expr.expression
+      if (!ts.isIdentifier(callee) || callee.text !== '__decorateClass') return
+      if (expr.arguments.length < 3) return
+      const target = expr.arguments[1]
+      // Property decorator: __decorateClass([...], Cls.prototype, "prop", 2)
+      if (!ts.isPropertyAccessExpression(target)) return
+      if (!ts.isIdentifier(target.name) || target.name.text !== 'prototype') return
+      if (!ts.isIdentifier(target.expression)) return
+      const className = target.expression.text
+      if (!exported.has(className)) return
+      const propArg = expr.arguments[2]
+      if (!ts.isStringLiteral(propArg)) return
+      const propName = propArg.text
+      // Extract name override from decorator args: Property({ name: 'col_name' })
+      const decoratorArray = expr.arguments[0]
+      let nameOverride: string | undefined
+      if (ts.isArrayLiteralExpression(decoratorArray)) {
+        for (const el of decoratorArray.elements) {
+          if (nameOverride) break
+          if (ts.isCallExpression(el) && el.arguments.length > 0) {
+            const arg = el.arguments[0]
+            if (ts.isObjectLiteralExpression(arg)) {
+              for (const prop of arg.properties) {
+                if (ts.isPropertyAssignment(prop) && ts.isIdentifier(prop.name) && prop.name.text === 'name') {
+                  if (ts.isStringLiteral(prop.initializer)) nameOverride = prop.initializer.text
+                }
+              }
+            }
+          }
+        }
+      }
+      const dbName = normalizeDbName(propName, undefined, nameOverride)
+      fieldsByClass[className] = fieldsByClass[className] || []
+      fieldsByClass[className].push(dbName)
+    })
+    for (const [className, fields] of Object.entries(fieldsByClass)) {
+      const entityKey = toSnake(className)
+      result[entityKey] = Array.from(new Set(fields))
+    }
+  }
+
   return result
 }
 
-function writePerEntityFieldFiles(outRoot: string, fieldsByEntity: EntityFieldMap): void {
+/**
+ * Write entity field files, skipping unchanged files to avoid triggering Turbopack recompilation.
+ * Returns the set of desired entity names for later cleanup.
+ */
+function writeEntityFieldFiles(outRoot: string, fieldsByEntity: EntityFieldMap): Set<string> {
   fs.mkdirSync(outRoot, { recursive: true })
   const desiredEntities = new Set(Object.keys(fieldsByEntity))
   for (const [entity, fields] of Object.entries(fieldsByEntity)) {
     const entDir = path.join(outRoot, entity)
     fs.mkdirSync(entDir, { recursive: true })
-    const idx = fields.map((f) => `export const ${toVar(f)} = '${f}'`).join('\n') + '\n'
-    fs.writeFileSync(path.join(entDir, 'index.ts'), idx)
+    const content = fields.map((f) => `export const ${toVar(f)} = '${f}'`).join('\n') + '\n'
+    const filePath = path.join(entDir, 'index.ts')
+    let existing: string | null = null
+    try { existing = fs.readFileSync(filePath, 'utf8') } catch {}
+    if (existing !== content) {
+      fs.writeFileSync(filePath, content)
+    }
   }
+  return desiredEntities
+}
 
+/**
+ * Remove entity directories that are no longer needed.
+ * MUST be called AFTER writeEntityFieldsRegistry to avoid Turbopack resolving
+ * a stale registry against deleted directories.
+ */
+function cleanupStaleEntityDirs(outRoot: string, desiredEntities: Set<string>): void {
   const existingEntries = fs.existsSync(outRoot) ? fs.readdirSync(outRoot, { withFileTypes: true }) : []
   for (const entry of existingEntries) {
     if (!entry.isDirectory()) continue
@@ -128,10 +230,12 @@ function writePerEntityFieldFiles(outRoot: string, fieldsByEntity: EntityFieldMa
   }
 }
 
+/**
+ * Write the entity-fields-registry.ts file, skipping if content hasn't changed.
+ */
 function writeEntityFieldsRegistry(generatedRoot: string, fieldsByEntity: EntityFieldMap): void {
   const entities = Object.keys(fieldsByEntity).sort((a, b) => a.localeCompare(b))
 
-  // Always write the file, even if empty, to prevent TypeScript import errors
   const imports = entities.length > 0
     ? entities.map((e) => `import * as ${toVar(e)} from './entities/${e}/index'`).join('\n')
     : ''
@@ -153,7 +257,11 @@ export function getEntityFields(slug: string): Record<string, string> | undefine
 `
   const outPath = path.join(generatedRoot, 'entity-fields-registry.ts')
   ensureDir(outPath)
-  fs.writeFileSync(outPath, src)
+  let existing: string | null = null
+  try { existing = fs.readFileSync(outPath, 'utf8') } catch {}
+  if (existing !== src) {
+    fs.writeFileSync(outPath, src)
+  }
 }
 
 export async function generateEntityIds(options: EntityIdsOptions): Promise<GeneratorResult> {
@@ -178,7 +286,6 @@ export async function generateEntityIds(options: EntityIdsOptions): Promise<Gene
     const roots = resolver.getModulePaths(entry)
     const imps = resolver.getModuleImportBase(entry)
     const group: GroupKey = (entry.from as GroupKey) || '@open-mercato/core'
-    const isAppModule = entry.from === '@app'
 
     // Locate entities definition file (prefer app override)
     const appData = path.join(roots.appBase, 'data')
@@ -186,7 +293,7 @@ export async function generateEntityIds(options: EntityIdsOptions): Promise<Gene
     const appDb = path.join(roots.appBase, 'db')
     const pkgDb = path.join(roots.pkgBase, 'db')
     const bases = [appData, pkgData, appDb, pkgDb]
-    const candidates = ['entities.override.ts', 'entities.ts', 'schema.ts']
+    const candidates = ['entities.override.ts', 'entities.ts', 'schema.ts', 'entities.override.js', 'entities.js', 'schema.js']
     let importPath: string | null = null
     let filePath: string | null = null
 
@@ -196,7 +303,7 @@ export async function generateEntityIds(options: EntityIdsOptions): Promise<Gene
         if (fs.existsSync(p)) {
           const fromApp = base.startsWith(roots.appBase)
           const sub = path.basename(base) // 'data' | 'db'
-          importPath = `${fromApp ? imps.appBase : imps.pkgBase}/${sub}/${f.replace(/\.ts$/, '')}`
+          importPath = `${fromApp ? imps.appBase : imps.pkgBase}/${sub}/${f.replace(/\.(ts|js)$/, '')}`
           filePath = p
           break
         }
@@ -286,8 +393,14 @@ export type KnownModuleId = keyof typeof M
 export type KnownEntities = typeof E
 `
     ensureDir(out)
-    fs.writeFileSync(out, src)
-    result.filesWritten.push(out)
+    let existingGroupSrc: string | null = null
+    try { existingGroupSrc = fs.readFileSync(out, 'utf8') } catch {}
+    if (existingGroupSrc !== src) {
+      fs.writeFileSync(out, src)
+      result.filesWritten.push(out)
+    } else {
+      result.filesUnchanged.push(out)
+    }
 
     const fieldsRoot = path.join(pkgOutputDir, 'entities')
     const fieldsByModule = fieldsByGroup[g] || {}
@@ -298,10 +411,11 @@ export type KnownEntities = typeof E
         combined[entity] = Array.from(new Set([...(combined[entity] || []), ...fields]))
       }
     }
-    writePerEntityFieldFiles(fieldsRoot, combined)
-
-    // Generate static entity fields registry for Turbopack compatibility
+    // Write order matters: dirs first, then registry, then cleanup stale dirs.
+    // This prevents Turbopack from resolving a stale registry against deleted directories.
+    const desiredGroupEntities = writeEntityFieldFiles(fieldsRoot, combined)
     writeEntityFieldsRegistry(pkgOutputDir, combined)
+    cleanupStaleEntityDirs(fieldsRoot, desiredGroupEntities)
   }
 
   // Write combined entity fields to root generated/ folder
@@ -313,8 +427,11 @@ export type KnownEntities = typeof E
       }
     }
   }
-  writePerEntityFieldFiles(path.join(outputDir, 'entities'), combinedAll)
+  // Write order matters: dirs first, then registry, then cleanup stale dirs.
+  const entitiesRoot = path.join(outputDir, 'entities')
+  const desiredAllEntities = writeEntityFieldFiles(entitiesRoot, combinedAll)
   writeEntityFieldsRegistry(outputDir, combinedAll)
+  cleanupStaleEntityDirs(entitiesRoot, desiredAllEntities)
 
   return result
 }

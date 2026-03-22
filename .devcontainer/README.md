@@ -52,7 +52,7 @@ Package `dist/` volumes are **auto-generated** by `scripts/generate-compose-volu
 1. Generates `.env` from `.env.example` (rewrites hostnames for container networking)
 2. `yarn install`
 3. Symlinks Claude Code / Codex skills
-4. `yarn build:packages` → `yarn generate` → `yarn build:packages`
+4. `yarn build` → `yarn generate` → `yarn build`
 5. `yarn mercato init` (first run) or `yarn db:migrate` (subsequent)
 
 **`postStartCommand`** — runs on each container start:

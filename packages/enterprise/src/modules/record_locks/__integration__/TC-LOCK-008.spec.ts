@@ -1,4 +1,4 @@
-import { expect, test } from '@playwright/test';
+import { expect, test, type Response } from '@playwright/test';
 import { login } from '@open-mercato/core/modules/core/__integration__/helpers/auth';
 import { apiRequest, getAuthToken } from '@open-mercato/core/modules/core/__integration__/helpers/api';
 import {
@@ -50,14 +50,29 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
 
       await login(page, 'admin');
       page.on('request', onRequest);
-      const acquireResponsePromise = page.waitForResponse(
-        (response) => response.url().includes('/api/record_locks/acquire') && response.request().method() === 'POST',
-        { timeout: 30_000 },
-      );
-      await page.goto(`/backend/example/todos/${encodeURIComponent(todoId)}/edit`);
-      await page.waitForLoadState('domcontentloaded');
-      const acquireResponse = await acquireResponsePromise;
-      expect(acquireResponse.ok()).toBeTruthy();
+
+      const editUrl = `/backend/example/todos/${encodeURIComponent(todoId)}/edit`;
+      const isAcquireResponse = (response: Response) =>
+        response.url().includes('/api/record_locks/acquire') && response.request().method() === 'POST';
+
+      // In CI, settings propagation may lag — try navigation, reload once if acquire doesn't fire
+      let acquireResponse: Awaited<ReturnType<typeof page.waitForResponse>> | null = null;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        const acquireResponsePromise = page.waitForResponse(isAcquireResponse, { timeout: 30_000 });
+        if (attempt === 0) {
+          await page.goto(editUrl);
+        } else {
+          await page.reload();
+        }
+        await page.waitForLoadState('domcontentloaded');
+        try {
+          acquireResponse = await acquireResponsePromise;
+          break;
+        } catch {
+          if (attempt === 1) throw new Error('Lock acquire request never fired after reload — settings may not have propagated');
+        }
+      }
+      expect(acquireResponse!.ok()).toBeTruthy();
 
       await page.evaluate(() => {
         const eventName = 'om:record_locks:record-deleted';
