@@ -14,7 +14,7 @@ export { wrapWorkflow } from './adapter.js'
 export { buildDITools } from './context.js'
 export { createScopedWorkflowContainer } from './container.js'
 export { assertJsonSerializable } from './guards.js'
-export type { WorkflowMeta, WorkflowHandler, WorkflowTools, StepTools } from './types.js'
+export type { WorkflowMeta, WorkflowHandler, WorkflowTools, StepTools, BaseWorkflowPayload } from './types.js'
 
 // Re-export Inngest SDK essentials — single import source for workflow authors
 export {

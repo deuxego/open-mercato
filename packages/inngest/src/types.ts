@@ -27,8 +27,17 @@ type DITools = ReturnType<typeof buildDITools>
 /** Full Inngest handler args + our DI additions — what the workflow handler receives */
 export type WorkflowTools = InngestHandlerArgs & DITools
 
-/** Workflow handler signature */
-export type WorkflowHandler = (
-  payload: Record<string, unknown>,
+/**
+ * Base payload fields required by every workflow.
+ * Workflows should extend this with their own fields.
+ */
+export type BaseWorkflowPayload = {
+  organizationId: string
+  tenantId: string
+}
+
+/** Workflow handler — generic over payload type for full type safety */
+export type WorkflowHandler<TPayload extends BaseWorkflowPayload = BaseWorkflowPayload> = (
+  payload: TPayload,
   tools: WorkflowTools
 ) => Promise<unknown>

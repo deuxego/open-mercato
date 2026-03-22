@@ -55,7 +55,7 @@ services:
     image: inngest/inngest:latest
     container_name: mercato-inngest
     restart: unless-stopped
-    command: ["inngest", "start", "--host", "0.0.0.0", "--poll-interval", "5"]
+    command: ["inngest", "start", "--host", "0.0.0.0", "--poll-interval", "5", "--sdk-url", "http://host.docker.internal:3000/api/inngest"]
     ports:
       - "${INNGEST_PORT:-8288}:8288"
     environment:

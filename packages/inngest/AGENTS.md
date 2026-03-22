@@ -38,28 +38,35 @@ export default workflows  // REQUIRED for Turbopack
 ### Workflow File Pattern
 
 ```typescript
-import type { WorkflowMeta, WorkflowTools } from '@open-mercato/inngest'
+import type { WorkflowMeta, WorkflowHandler, BaseWorkflowPayload } from '@open-mercato/inngest'
+import type { EntityManager } from '@mikro-orm/core'
 
+// 1. Define a typed payload — extends BaseWorkflowPayload (which has organizationId + tenantId)
+type MyPayload = BaseWorkflowPayload & {
+  orderId: string
+}
+
+// 2. Metadata — any Inngest createFunction option works here
 export const metadata: WorkflowMeta = {
   id: 'module.entity-action',     // MUST contain hyphens (distinguishes from domain events)
-  // Any Inngest createFunction option works here:
   // concurrency, cancelOn, debounce, rateLimit, retries, singleton, etc.
 }
 
-export default async function handler(
-  payload: Record<string, unknown>,
-  { step, run, resolve }: WorkflowTools
-) {
+// 3. Typed handler — payload is fully typed, no `as` casts needed
+const handler: WorkflowHandler<MyPayload> = async (payload, { step, run, resolve }) => {
   // Full Inngest SDK via `step.*`
   await step.sleep('wait', '1h')
 
-  // DI-aware step via `run()` — resolve() works inside
+  // DI-aware step — resolve<T>() gives typed services
   const result = await run('my-step', async () => {
-    const em = resolve('em') as EntityManager
-    // ...
+    const em = resolve<EntityManager>('em')
+    // payload.orderId — typed as string, no cast
+    // payload.organizationId — typed from BaseWorkflowPayload
     return { serializable: true }
   })
 }
+
+export default handler
 ```
 
 ### Triggering Workflows
@@ -89,7 +96,7 @@ Event name = workflow ID. MUST include `organizationId` and `tenantId` in `data`
 |---------|-----|
 | Using `step.run()` then calling `resolve()` | Use `run()` instead — only `run()` sets up DI context |
 | Returning MikroORM entity from `run()` | Return `wrap(entity).toObject()` or destructure to plain object |
-| Using `resolve<T>('name')` with type generic | Generic doesn't survive type inference — use `resolve('name') as T` |
+| Forgetting `organizationId`/`tenantId` in payload type | Extend `BaseWorkflowPayload` which includes both |
 | Missing `default` export in convention file | Add `export default workflows` |
 | Calling `inngest.send()` without `organizationId` | Always include `organizationId` + `tenantId` in event data |
 

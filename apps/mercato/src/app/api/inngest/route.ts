@@ -1,8 +1,13 @@
 // NOTE: This route lives in apps/mercato/src/ because Inngest's serve() requires
 // exporting named HTTP method handlers (GET/POST/PUT) in Next.js App Router format,
 // which is incompatible with the module API auto-discovery dispatch layer.
+import { bootstrap } from '@/bootstrap'
 import { serve } from 'inngest/next'
 import { inngest } from '@open-mercato/inngest'
+
+// Ensure ORM entities, DI registrars, and modules are initialized before serving.
+// Without this, createRequestContainer() fails with "ORM entities not registered".
+bootstrap()
 
 // The generated file may not exist yet (before first yarn generate with workflows).
 // Import conditionally to allow the app to build without any workflows registered.

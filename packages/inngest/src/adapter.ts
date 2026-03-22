@@ -2,13 +2,16 @@ import { NonRetriableError } from 'inngest'
 import { inngest } from './client.js'
 import { createScopedWorkflowContainer } from './container.js'
 import { buildDITools } from './context.js'
-import type { WorkflowMeta, WorkflowHandler, CreateFnConfig } from './types.js'
+import type { WorkflowMeta, WorkflowHandler, CreateFnConfig, BaseWorkflowPayload } from './types.js'
 
 /**
  * Wraps a workflow handler with tenant-scoped DI and Inngest defaults.
  * Uses the v4 two-argument createFunction signature (triggers inside options).
  */
-export function wrapWorkflow(metadata: WorkflowMeta, handler: WorkflowHandler) {
+export function wrapWorkflow<TPayload extends BaseWorkflowPayload = BaseWorkflowPayload>(
+  metadata: WorkflowMeta,
+  handler: WorkflowHandler<TPayload>
+) {
   const { event: triggerEvent, ...config } = metadata
 
   return inngest.createFunction(
@@ -38,7 +41,7 @@ export function wrapWorkflow(metadata: WorkflowMeta, handler: WorkflowHandler) {
       const container = await createScopedWorkflowContainer(organizationId, tenantId)
       try {
         const { run, resolve, emitToEventBus } = buildDITools(step, container)
-        return await handler(event.data as Record<string, unknown>, { ...inngestArgs, run, resolve, emitToEventBus })
+        return await handler(event.data as TPayload, { ...inngestArgs, run, resolve, emitToEventBus })
       } finally {
         await container.dispose()
       }

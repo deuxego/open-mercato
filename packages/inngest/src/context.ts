@@ -12,14 +12,16 @@ const stepScopeStorage = new AsyncLocalStorage<AwilixContainer>()
 export function buildDITools(step: StepTools, container: AwilixContainer) {
   let emitCounter = 0
 
-  const resolve = (name: string): unknown => {
+  /** Resolve a service from the tenant-scoped DI container. Only callable inside run(). */
+  const resolve = <T = unknown>(name: string): T => {
     const scope = stepScopeStorage.getStore()
     if (!scope) {
       throw new Error('resolve() called outside a run() step.')
     }
-    return scope.resolve(name)
+    return scope.resolve<T>(name)
   }
 
+  /** Execute a step with DI context — resolve() works inside the callback. */
   const run = async <T>(id: string, fn: () => Promise<T>) => {
     return step.run(id, async () => {
       return stepScopeStorage.run(container, async () => {
@@ -32,10 +34,11 @@ export function buildDITools(step: StepTools, container: AwilixContainer) {
     })
   }
 
+  /** Emit an event to the Mercato event bus (subscribers, SSE, persistent handlers). */
   const emitToEventBus = async (name: string, data: Record<string, unknown>): Promise<void> => {
     const stepId = `emit-${name}-${emitCounter++}`
     await run(stepId, async () => {
-      const eventBus = resolve('eventBus') as { emit: (name: string, data: Record<string, unknown>) => Promise<void> }
+      const eventBus = resolve<{ emit: (name: string, data: Record<string, unknown>) => Promise<void> }>('eventBus')
       await eventBus.emit(name, data)
       return { _emitted: true }
     })
