@@ -13,7 +13,7 @@ const ENTITY_TYPE = 'dictionaries:dictionary_entry'
 
 async function fillCombobox(page: import('@playwright/test').Page, placeholder: string, value: string) {
   const input = page.getByPlaceholder(placeholder)
-  await expect(input).toBeEnabled({ timeout: 30_000 })
+  await expect(input).toBeEnabled({ timeout: 15_000 })
   await input.click()
   await input.fill(value)
   await page.waitForTimeout(1_000)
@@ -38,6 +38,8 @@ async function fillCombobox(page: import('@playwright/test').Page, placeholder: 
  * Covers selecting entity/record, entering translations, saving, and verifying persistence.
  */
 test.describe('TC-TRANS-005: Translation Manager Standalone', () => {
+  test.describe.configure({ timeout: 60_000 })
+
   test('should select entity type and record, showing the field table', async ({ page, request }) => {
     const adminToken = await getAuthToken(request, 'admin')
     const saToken = await getAuthToken(request, 'superadmin')

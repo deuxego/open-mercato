@@ -1,61 +1,44 @@
 import { test, expect } from '@playwright/test'
+import { getInngestConfig, sendEvent, listRegisteredFunctions } from './helpers/inngest'
 
 /**
  * TC-INNGEST-002: Inngest dev server connectivity and function discovery
  *
- * Requires Inngest dev server (provided automatically by ephemeral test environment).
- * Verifies the server is reachable, functions are discovered, and events can be sent.
+ * Verifies the dev server is healthy, functions are registered via GET /dev,
+ * and the event API (POST /e/{key}) accepts events.
  */
 test.describe('Inngest Server Integration', () => {
-  const inngestBaseUrl = process.env.INNGEST_BASE_URL
+  const { baseUrl } = getInngestConfig()
 
-  test.skip(!inngestBaseUrl, 'Requires INNGEST_BASE_URL (Inngest dev server)')
+  test.skip(!baseUrl, 'Requires INNGEST_BASE_URL (Inngest dev server)')
 
-  test('Inngest dev server health check passes', async () => {
-    const response = await fetch(`${inngestBaseUrl}/health`)
+  test('dev server health check passes', async () => {
+    const response = await fetch(`${baseUrl}/health`)
     expect(response.ok).toBe(true)
   })
 
-  test('Inngest server discovers registered functions', async () => {
-    // Try multiple API paths — Inngest dev vs start have different APIs
-    const paths = ['/v1/functions', '/v0/functions', '/api/v1/functions']
-    let found = false
-    for (const apiPath of paths) {
-      try {
-        const response = await fetch(`${inngestBaseUrl}${apiPath}`)
-        if (!response.ok) continue
-        const contentType = response.headers.get('content-type') ?? ''
-        if (!contentType.includes('json')) continue
-        const body = await response.json()
-        const functions = body.data ?? body.functions ?? body
-        if (Array.isArray(functions)) {
-          found = true
-          break
-        }
-      } catch {
-        // Non-JSON response or network error — try next path
-      }
+  test('dev server has registered functions', async () => {
+    const functions = await listRegisteredFunctions()
+    if (!functions) {
+      console.log('[TC-INNGEST-002] GET /dev not available — skipping function discovery')
+      return
     }
-    // In dev mode, function discovery happens via SDK polling, not REST API.
-    // The health check passing (test above) is sufficient to verify connectivity.
-    if (!found) {
-      console.log('[TC-INNGEST-002] No function discovery API available (expected in dev mode)')
+    expect(functions.length).toBeGreaterThanOrEqual(1)
+    const hasExampleWorkflow = functions.some(
+      (fn) => JSON.stringify(fn).includes('todo-followup'),
+    )
+    if (!hasExampleWorkflow) {
+      console.log('[TC-INNGEST-002] example.todo-followup not found among', functions.length, 'functions')
     }
   })
 
-  test('Inngest server accepts events via event API', async () => {
-    const eventKey = process.env.INNGEST_EVENT_KEY ?? 'deadbeef00000000'
-    const response = await fetch(`${inngestBaseUrl}/e/${eventKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: 'test/integration.ping',
-        data: { testRun: true, timestamp: Date.now() },
-      }),
+  test('event API accepts events', async () => {
+    const result = await sendEvent('test/integration.ping', {
+      testRun: true,
+      timestamp: Date.now(),
     })
-    // Event API should accept the event (200/201) or reject with auth error (401/403)
-    // Should not be 404 or 500
-    expect(response.status).toBeLessThan(500)
-    expect(response.status).not.toBe(404)
+    // The event should be accepted (HTTP 200). The dev server response body
+    // format varies by version — we only assert on acceptance, not IDs.
+    expect(result.accepted).toBe(true)
   })
 })
