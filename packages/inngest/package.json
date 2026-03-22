@@ -1,7 +1,7 @@
 {
   "name": "@open-mercato/inngest",
   "version": "0.1.0",
-  "description": "Optional Inngest workflow orchestration layer for durable multi-step workflows",
+  "description": "Inngest workflow orchestration layer for durable multi-step workflows",
   "type": "module",
   "main": "./dist/index.js",
   "scripts": {
