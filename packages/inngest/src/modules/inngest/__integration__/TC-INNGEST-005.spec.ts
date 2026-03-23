@@ -31,14 +31,14 @@ test.describe('Inngest Tenant Validation', () => {
       sentAfter,
     })
     if (!event) {
-      console.log('[TC-INNGEST-005] Event not found via /v1/events — dev server may not expose events API')
+      test.skip(true, 'Event not found via /v1/events — dev server may not expose events API')
       return
     }
 
     // Wait for the workflow run to reach a terminal state
     const runs = await waitForEventRuns(event.id, { timeoutMs: 15_000 })
     if (runs.length === 0) {
-      console.log('[TC-INNGEST-005] No runs found for event', event.id, '— workflow may not be registered')
+      test.skip(true, `No runs found for event ${event.id} — workflow may not be registered`)
       return
     }
 
