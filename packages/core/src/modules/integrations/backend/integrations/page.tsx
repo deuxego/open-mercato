@@ -214,7 +214,7 @@ export default function IntegrationsMarketplacePage() {
                   onClick={() => setFilterValues(normalizeIntegrationMarketplaceFilterValues({ category }))}
                 >
                   {Icon ? <Icon className="mr-1.5 h-3.5 w-3.5" /> : null}
-                  {t(`integrations.marketplace.categories.${category}`)}
+                  {t(`integrations.marketplace.categories.${category}`, '') || category.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase())}
                 </Button>
               )
             })}
