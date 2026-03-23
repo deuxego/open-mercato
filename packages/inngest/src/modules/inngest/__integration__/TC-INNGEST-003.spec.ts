@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test'
-import { getInngestConfig, fetchDevServerJson, waitForEventRuns } from './helpers/inngest'
+import { getInngestConfig, findRecentEventByName, waitForEventRuns } from './helpers/inngest'
 
 /**
  * TC-INNGEST-003: End-to-end workflow trigger via API
@@ -26,50 +26,35 @@ test.describe('Inngest Workflow Trigger E2E', () => {
       return
     }
 
+    const sentAfter = Date.now()
+
     // Step 2: Create a todo to trigger the event chain
-    const todoTitle = `Inngest E2E Test ${Date.now()}`
     const todoResponse = await request.post('/api/example/todos', {
-      data: { title: todoTitle },
+      data: { title: `Inngest E2E Test ${sentAfter}` },
     })
     if (todoResponse.status() !== 200 && todoResponse.status() !== 201) {
       test.skip(true, 'Todo API not available — skipping E2E workflow test')
       return
     }
 
-    // Step 3: Wait for the subscriber to call inngest.send() and the event to appear
-    // Poll /v1/events for the workflow trigger event
-    const deadline = Date.now() + 15_000
-    let workflowEventId: string | null = null
-
-    while (Date.now() < deadline) {
-      const body = await fetchDevServerJson(`${baseUrl}/v1/events?name=example.todo-followup&limit=5`)
-      if (body && typeof body === 'object') {
-        const events = (body as { data?: Array<{ id?: string; name?: string }> }).data
-          ?? (Array.isArray(body) ? body as Array<{ id?: string; name?: string }> : [])
-        // Find the most recent event matching our workflow trigger
-        const match = events.find((e) => e.name === 'example.todo-followup')
-        if (match?.id) {
-          workflowEventId = match.id
-          break
-        }
-      }
-      await new Promise((resolve) => setTimeout(resolve, 1_000))
-    }
-
-    if (!workflowEventId) {
-      // The event chain may not have fired (subscriber timing, module config, etc.)
-      console.log('[TC-INNGEST-003] Workflow event not found in dev server — chain may not be wired')
+    // Step 3: Find the workflow trigger event sent by the subscriber
+    const event = await findRecentEventByName('example.todo-followup', {
+      timeoutMs: 15_000,
+      sentAfter,
+    })
+    if (!event) {
+      test.skip(true, 'Workflow event not found — subscriber chain may not be wired in this environment')
       return
     }
 
-    // Step 4: Verify the workflow run completed (or is at least running)
-    const runs = await waitForEventRuns(workflowEventId, { timeoutMs: 15_000 })
+    // Step 4: Verify the workflow run was created
+    const runs = await waitForEventRuns(event.id, { timeoutMs: 15_000 })
     expect(runs.length).toBeGreaterThanOrEqual(1)
 
-    const run = runs[0]
     // The workflow sleeps for 1 minute, so in CI it will still be Running.
-    // Accept Running, Completed, or Failed (the key assertion is that a run was created).
-    const validStatuses = ['Running', 'Completed', 'Failed', 'Queued']
+    // Accept Running, Completed, or Queued — but NOT Failed (that would mean a bug).
+    const run = runs[0]
+    const validStatuses = ['Running', 'Completed', 'Queued']
     expect(validStatuses).toContain(run.status)
   })
 })

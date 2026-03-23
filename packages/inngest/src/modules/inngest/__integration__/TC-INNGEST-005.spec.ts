@@ -17,14 +17,19 @@ test.describe('Inngest Tenant Validation', () => {
   test.skip(!baseUrl, 'Requires INNGEST_BASE_URL (Inngest dev server)')
 
   test('workflow fails with NonRetriableError when organizationId is missing', async () => {
+    const sentAfter = Date.now()
+
     // Send event WITHOUT organizationId/tenantId
     const result = await sendEvent('example.todo-followup', {
-      id: `test-missing-tenant-${Date.now()}`,
+      id: `test-missing-tenant-${sentAfter}`,
     })
     expect(result.accepted).toBe(true)
 
-    // Find the event in the dev server by name (response body may not contain IDs)
-    const event = await findRecentEventByName('example.todo-followup', { timeoutMs: 10_000 })
+    // Find the event sent in THIS test run (sentAfter prevents stale matches)
+    const event = await findRecentEventByName('example.todo-followup', {
+      timeoutMs: 10_000,
+      sentAfter,
+    })
     if (!event) {
       console.log('[TC-INNGEST-005] Event not found via /v1/events — dev server may not expose events API')
       return

@@ -26,7 +26,7 @@ export function getInngestConfig() {
  * non-JSON, non-2xx, or the request fails (the dev server sometimes
  * returns HTML for paths it doesn't recognise).
  */
-export async function fetchDevServerJson(url: string): Promise<unknown | null> {
+export async function fetchDevServerJson(url: string): Promise<unknown> {
   try {
     const response = await fetch(url)
     if (!response.ok) return null
@@ -57,6 +57,9 @@ export async function sendEvent(
     body: JSON.stringify({ name, data }),
   })
 
+  // Drain the response body to avoid resource leaks in tight polling loops
+  await response.text().catch(() => {})
+
   return {
     status: response.status,
     accepted: response.ok,
@@ -65,7 +68,8 @@ export async function sendEvent(
 
 export type InngestEvent = {
   id: string
-  name?: string
+  name: string
+  received_at?: string
   [key: string]: unknown
 }
 
@@ -81,29 +85,38 @@ export type InngestRun = {
 
 /**
  * Poll `GET /v1/events?name={name}` until an event with the given name
- * appears, or the timeout expires. Returns the event or null.
+ * appears that was sent after `sentAfter` (epoch ms). Returns the event or null.
+ *
+ * The `sentAfter` filter prevents matching stale events from previous test runs.
  */
 export async function findRecentEventByName(
   name: string,
-  options?: { timeoutMs?: number; intervalMs?: number },
+  options?: { timeoutMs?: number; intervalMs?: number; sentAfter?: number },
 ): Promise<InngestEvent | null> {
   const { baseUrl } = getInngestConfig()
-  if (!baseUrl) return null
+  if (!baseUrl) throw new Error('INNGEST_BASE_URL is not set')
 
   const timeout = options?.timeoutMs ?? 10_000
   const interval = options?.intervalMs ?? 1_000
+  const sentAfter = options?.sentAfter ?? 0
   const deadline = Date.now() + timeout
 
   while (Date.now() < deadline) {
     const body = await fetchDevServerJson(
-      `${baseUrl}/v1/events?name=${encodeURIComponent(name)}&limit=5`,
+      `${baseUrl}/v1/events?name=${encodeURIComponent(name)}&limit=10`,
     )
     if (body && typeof body === 'object') {
       const events = (body as { data?: InngestEvent[] }).data
         ?? (Array.isArray(body) ? body as InngestEvent[] : [])
-      if (events.length > 0 && events[0]?.id) {
-        return events[0]
-      }
+      // Find the most recent event that was sent after our timestamp
+      const match = events.find((e) => {
+        if (!e.id) return false
+        if (sentAfter && e.received_at) {
+          return new Date(e.received_at).getTime() >= sentAfter
+        }
+        return true
+      })
+      if (match) return match
     }
     await new Promise((resolve) => setTimeout(resolve, interval))
   }
@@ -140,13 +153,6 @@ export async function waitForEventRuns(
     await new Promise((resolve) => setTimeout(resolve, interval))
   }
 
-  // Final attempt
-  const body = await fetchDevServerJson(`${baseUrl}/v1/events/${eventId}/runs`)
-  if (body && typeof body === 'object') {
-    return (body as { data?: InngestRun[] }).data
-      ?? (Array.isArray(body) ? body as InngestRun[] : [])
-  }
-
   return []
 }
 
@@ -156,7 +162,7 @@ export async function waitForEventRuns(
  */
 export async function listRegisteredFunctions(): Promise<Array<{ name?: string; id?: string; slug?: string; [key: string]: unknown }> | null> {
   const { baseUrl } = getInngestConfig()
-  if (!baseUrl) return null
+  if (!baseUrl) throw new Error('INNGEST_BASE_URL is not set')
 
   const body = await fetchDevServerJson(`${baseUrl}/dev`)
   if (!body || typeof body !== 'object') return null

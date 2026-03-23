@@ -1,12 +1,16 @@
 import { test, expect } from '@playwright/test'
 
+const inngestDashboardUrl = process.env.NEXT_PUBLIC_INNGEST_BASE_URL
+
 /**
  * TC-INNGEST-004: Inngest Dashboard sidebar link visibility
  *
  * Verifies the "Inngest Dashboard" link appears in the admin settings sidebar
- * and points to the correct URL (port 8288).
+ * and points to the configured Inngest dashboard URL.
  */
 test.describe('Inngest Dashboard Link', () => {
+  test.skip(!inngestDashboardUrl, 'Requires NEXT_PUBLIC_INNGEST_BASE_URL to be set')
+
   test('Inngest Dashboard link appears in settings sidebar', async ({ page, request }) => {
     const loginResponse = await request.post('/api/auth/login', {
       data: { email: 'admin@open-mercato.com', password: 'password' },
@@ -20,12 +24,9 @@ test.describe('Inngest Dashboard Link', () => {
     await page.waitForLoadState('domcontentloaded')
 
     const inngestLink = page.getByText('Inngest Dashboard')
-    const isVisible = await inngestLink.isVisible().catch(() => false)
+    await expect(inngestLink).toBeVisible({ timeout: 10_000 })
 
-    if (isVisible) {
-      const href = await inngestLink.getAttribute('href')
-      expect(href).toContain('8288')
-    }
-    // Link visibility depends on NEXT_PUBLIC_INNGEST_BASE_URL being set
+    const href = await inngestLink.getAttribute('href')
+    expect(href).toContain(new URL(inngestDashboardUrl!).host)
   })
 })

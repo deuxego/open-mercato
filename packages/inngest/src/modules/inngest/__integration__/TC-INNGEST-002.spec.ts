@@ -20,16 +20,10 @@ test.describe('Inngest Server Integration', () => {
   test('dev server has registered functions', async () => {
     const functions = await listRegisteredFunctions()
     if (!functions) {
-      console.log('[TC-INNGEST-002] GET /dev not available — skipping function discovery')
+      test.skip(true, 'GET /dev not available — cannot verify function discovery')
       return
     }
     expect(functions.length).toBeGreaterThanOrEqual(1)
-    const hasExampleWorkflow = functions.some(
-      (fn) => JSON.stringify(fn).includes('todo-followup'),
-    )
-    if (!hasExampleWorkflow) {
-      console.log('[TC-INNGEST-002] example.todo-followup not found among', functions.length, 'functions')
-    }
   })
 
   test('event API accepts events', async () => {
@@ -37,8 +31,6 @@ test.describe('Inngest Server Integration', () => {
       testRun: true,
       timestamp: Date.now(),
     })
-    // The event should be accepted (HTTP 200). The dev server response body
-    // format varies by version — we only assert on acceptance, not IDs.
     expect(result.accepted).toBe(true)
   })
 })

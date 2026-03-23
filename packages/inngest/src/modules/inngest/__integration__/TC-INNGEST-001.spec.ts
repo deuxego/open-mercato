@@ -12,13 +12,16 @@ test.describe('Inngest Serve Route', () => {
     expect(response.status()).not.toBe(404)
 
     const contentType = response.headers()['content-type'] ?? ''
-    if (contentType.includes('application/json')) {
-      const body = await response.json()
-      // The SDK returns function_count and signing key status in introspection
-      expect(body).toHaveProperty('function_count')
-      expect(typeof body.function_count).toBe('number')
-      expect(body.function_count).toBeGreaterThanOrEqual(1)
+    // In dev mode the SDK may return HTML; in cloud mode it returns JSON.
+    // If JSON, validate the introspection payload.
+    if (!contentType.includes('application/json')) {
+      test.skip(true, 'Endpoint returned non-JSON (HTML landing page in dev mode)')
+      return
     }
+    const body = await response.json()
+    expect(body).toHaveProperty('function_count')
+    expect(typeof body.function_count).toBe('number')
+    expect(body.function_count).toBeGreaterThanOrEqual(1)
   })
 
   test('PUT /api/inngest triggers function sync', async ({ request }) => {
@@ -32,7 +35,7 @@ test.describe('Inngest Serve Route', () => {
       data: { invalid: 'payload' },
       headers: { 'Content-Type': 'application/json' },
     })
-    // Should not crash — may return 4xx but not 500
     expect(response.status()).not.toBe(404)
+    expect(response.status()).toBeLessThan(500)
   })
 })
