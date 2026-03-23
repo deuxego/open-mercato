@@ -62,7 +62,7 @@ test.describe('TC-LOCK-008: Reactive contention handling without legacy notifica
 
       // Navigate to the edit page; use domcontentloaded (not networkidle — SSE
       // EventSource keeps a persistent connection that prevents networkidle)
-      const editUrl = `/backend/example/todos/${encodeURIComponent(todoId)}/edit`;
+      const editUrl = `/backend/todos/${encodeURIComponent(todoId)}/edit`;
       await page.goto(editUrl);
       await page.waitForLoadState('domcontentloaded');
 
