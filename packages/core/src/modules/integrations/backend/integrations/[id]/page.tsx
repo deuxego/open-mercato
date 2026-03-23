@@ -423,7 +423,7 @@ export default function IntegrationDetailPage({ params }: IntegrationDetailPageP
       detailWidgets,
       (widget) => (
         widget.placement?.groupLabel
-          ? t(widget.placement.groupLabel, widget.module.metadata.title ?? widget.widgetId)
+          ? (t(widget.placement.groupLabel, '') || widget.placement.groupLabel)
           : (widget.module.metadata.title ?? widget.widgetId)
       ),
     ),

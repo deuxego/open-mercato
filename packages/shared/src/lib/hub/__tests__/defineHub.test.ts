@@ -334,54 +334,54 @@ describe('defineHub', () => {
       process.env.NODE_ENV = originalNodeEnv
     })
 
-    it('warns on console when registering a duplicate key in non-production mode', () => {
+    it('logs debug message when registering a duplicate key in non-production mode', () => {
       process.env.NODE_ENV = 'development'
       const warnHub = defineHub<TestAdapter>({ id: uniqueId('test-warn') })
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      const debugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {})
 
       try {
         warnHub.register({ providerKey: 'stripe', name: 'Stripe 1' })
         warnHub.register({ providerKey: 'stripe', name: 'Stripe 2' })
 
-        expect(warnSpy).toHaveBeenCalledTimes(1)
-        expect(warnSpy).toHaveBeenCalledWith(
+        expect(debugSpy).toHaveBeenCalledTimes(1)
+        expect(debugSpy).toHaveBeenCalledWith(
           expect.stringContaining('Duplicate registration for key "stripe"')
         )
       } finally {
-        warnSpy.mockRestore()
+        debugSpy.mockRestore()
         warnHub.clear()
       }
     })
 
-    it('does not warn on console in production mode', () => {
+    it('does not log debug message in production mode', () => {
       process.env.NODE_ENV = 'production'
       const prodHub = defineHub<TestAdapter>({ id: uniqueId('test-prod') })
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      const debugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {})
 
       try {
         prodHub.register({ providerKey: 'stripe', name: 'Stripe 1' })
         prodHub.register({ providerKey: 'stripe', name: 'Stripe 2' })
 
-        expect(warnSpy).not.toHaveBeenCalled()
+        expect(debugSpy).not.toHaveBeenCalled()
       } finally {
-        warnSpy.mockRestore()
+        debugSpy.mockRestore()
         prodHub.clear()
       }
     })
 
-    it('includes the hub id in the warning message', () => {
+    it('includes the hub id in the debug message', () => {
       process.env.NODE_ENV = 'development'
       const hubId = uniqueId('test-warn-id')
       const warnHub = defineHub<TestAdapter>({ id: hubId })
-      const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
+      const debugSpy = jest.spyOn(console, 'debug').mockImplementation(() => {})
 
       try {
         warnHub.register({ providerKey: 'stripe', name: 'Stripe 1' })
         warnHub.register({ providerKey: 'stripe', name: 'Stripe 2' })
 
-        expect(warnSpy).toHaveBeenCalledWith(expect.stringContaining(`Hub:${hubId}`))
+        expect(debugSpy).toHaveBeenCalledWith(expect.stringContaining(`Hub:${hubId}`))
       } finally {
-        warnSpy.mockRestore()
+        debugSpy.mockRestore()
         warnHub.clear()
       }
     })

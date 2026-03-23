@@ -57,7 +57,7 @@ export function defineHub<T extends object>(options: HubOptions): Hub<T> {
   const map = getBackingMap<T>(id)
   function warnDuplicate(mapKey: string, adapter: T): void {
     if (process.env.NODE_ENV !== 'production' && map.has(mapKey) && map.get(mapKey) !== adapter) {
-      console.warn(`[Hub:${id}] Duplicate registration for key "${mapKey}" — overwriting.`)
+      console.debug(`[Hub:${id}] Duplicate registration for key "${mapKey}" — overwriting.`)
     }
   }
 

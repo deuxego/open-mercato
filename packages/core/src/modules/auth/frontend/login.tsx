@@ -102,7 +102,13 @@ export default function LoginPage() {
   const requiredRoles = requireRole ? requireRole.split(',').map((value) => value.trim()).filter(Boolean) : []
   const requiredFeatures = requireFeature ? requireFeature.split(',').map((value) => value.trim()).filter(Boolean) : []
   const translatedRoles = requiredRoles.map((role) => translate(`auth.roles.${role}`, role))
-  const translatedFeatures = requiredFeatures.map((feature) => translate(`features.${feature}`, feature))
+  const translatedFeatures = requiredFeatures.map((feature) => {
+    const translated = translate(`features.${feature}`, '')
+    if (translated) return translated
+    // Humanize feature ID: "messages.view" → "Messages: View"
+    const parts = feature.split('.')
+    return parts.map((part) => part.replace(/_/g, ' ').replace(/^\w/, (c) => c.toUpperCase())).join(': ')
+  })
   const [error, setError] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [authOverride, setAuthOverride] = useState<AuthOverride | null>(null)
