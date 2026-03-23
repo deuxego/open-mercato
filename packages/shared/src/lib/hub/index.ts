@@ -55,8 +55,8 @@ function compoundKey(key: string, version: string): string {
 export function defineHub<T extends object>(options: HubOptions): Hub<T> {
   const { id, adapterKeyField = 'providerKey', versioned = false } = options
   const map = getBackingMap<T>(id)
-  function warnDuplicate(mapKey: string): void {
-    if (process.env.NODE_ENV !== 'production' && map.has(mapKey)) {
+  function warnDuplicate(mapKey: string, adapter: T): void {
+    if (process.env.NODE_ENV !== 'production' && map.has(mapKey) && map.get(mapKey) !== adapter) {
       console.warn(`[Hub:${id}] Duplicate registration for key "${mapKey}" — overwriting.`)
     }
   }
@@ -69,7 +69,7 @@ export function defineHub<T extends object>(options: HubOptions): Hub<T> {
       )
     }
     if (!version) {
-      warnDuplicate(key)
+      warnDuplicate(key, adapter)
       map.set(key, adapter)
       return () => {
         map.delete(key)
@@ -77,7 +77,7 @@ export function defineHub<T extends object>(options: HubOptions): Hub<T> {
     }
 
     const compound = compoundKey(key, version)
-    warnDuplicate(compound)
+    warnDuplicate(compound, adapter)
     map.set(compound, adapter)
 
     const isFirstUnversioned = !map.has(key)
@@ -94,7 +94,7 @@ export function defineHub<T extends object>(options: HubOptions): Hub<T> {
   }
 
   function registerSimple(adapter: T, key: string): () => void {
-    warnDuplicate(key)
+    warnDuplicate(key, adapter)
     map.set(key, adapter)
     return () => {
       map.delete(key)
