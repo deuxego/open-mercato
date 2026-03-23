@@ -27,10 +27,12 @@ const adapter = paymentHub.get('stripe')
 Every adapter must carry a string key so the hub can index it. By default the field is `providerKey`, but you can customize it.
 
 ```ts title="src/modules/payments/lib/adapter.ts"
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
+
 export interface PaymentAdapter {
   readonly providerKey: string
-  charge(amount: number, currency: string): Promise<{ transactionId: string }>
-  refund(transactionId: string): Promise<void>
+  charge(amount: number, currency: string, ctx?: AdapterContext): Promise<{ transactionId: string }>
+  refund(transactionId: string, ctx?: AdapterContext): Promise<void>
 }
 ```
 ### Create the hub
@@ -83,16 +85,19 @@ The generator reads `adapter` (or `adapters`) exports from every module's `integ
 
 ```ts title="packages/provider-stripe/src/modules/gateway_stripe/lib/adapter.ts"
 import type { PaymentAdapter } from '@open-mercato/core/modules/payments/lib/adapter'
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
 
 export class StripePaymentAdapter implements PaymentAdapter {
   readonly providerKey = 'stripe'
 
-  async charge(amount: number, currency: string) {
+  async charge(amount: number, currency: string, ctx?: AdapterContext) {
+    ctx?.logger.info('Charging via Stripe', { amount, currency })
     // Stripe API call — credentials injected at call-time by the hub service
     return { transactionId: '...' }
   }
 
-  async refund(transactionId: string) {
+  async refund(transactionId: string, ctx?: AdapterContext) {
+    ctx?.logger.info('Refunding via Stripe', { transactionId })
     // ...
   }
 }
@@ -142,12 +147,12 @@ import { paymentHub } from '@open-mercato/core/modules/payments/lib/adapter-regi
 export function register(container) {
   const adapter = {
     providerKey: 'my_provider',
-    async charge(amount, currency) {
-      const client = container.resolve('myProviderClient')
+    async charge(amount, currency, ctx?) {
+      const client = ctx?.resolve('myProviderClient') ?? container.resolve('myProviderClient')
       return client.charge(amount, currency)
     },
-    async refund(transactionId) {
-      const client = container.resolve('myProviderClient')
+    async refund(transactionId, ctx?) {
+      const client = ctx?.resolve('myProviderClient') ?? container.resolve('myProviderClient')
       return client.refund(transactionId)
     },
   }
@@ -205,6 +210,74 @@ export function createPaymentService(deps: {
   }
 }
 ```
+
+## Adapter Context
+
+Adapters that perform I/O (network calls, database access, logging) can receive an optional `AdapterContext` parameter. The context is built by the framework caller (sync engine, API route, hub service) and passed to every adapter method that opts in.
+
+### Type definition
+
+```ts
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
+
+export type AdapterLogger = {
+  info(message: string, data?: Record<string, unknown>): void
+  warn(message: string, data?: Record<string, unknown>): void
+  error(message: string, data?: Record<string, unknown>): void
+  debug(message: string, data?: Record<string, unknown>): void
+}
+
+export type AdapterContext = {
+  resolve: <T = unknown>(name: string) => T
+  logger: AdapterLogger
+  scope: {
+    organizationId: string
+    tenantId: string
+  }
+}
+```
+
+### Constructing context
+
+Framework callers build the context from the DI container and current request scope:
+
+```ts
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
+
+const ctx: AdapterContext = {
+  resolve: <T = unknown>(name: string) => container.resolve(name) as T,
+  logger: { info: ..., warn: ..., error: ..., debug: ... },
+  scope: { organizationId: auth.orgId, tenantId: auth.tenantId },
+}
+```
+
+### Using context in adapters
+
+Adapter methods declare `ctx?` as an optional trailing parameter. Methods that need DI or logging use it; methods that don't simply ignore it:
+
+```ts
+async *streamImport(input, ctx) {
+  const em = ctx!.resolve<EntityManager>('em')
+  ctx!.logger.info('Starting import', { entityType: input.entityType })
+  // ...
+}
+
+async getMapping(input) {
+  // Methods that don't need DI simply ignore ctx
+  return { entityType: input.entityType, fields: [], matchStrategy: 'externalId' }
+}
+```
+
+### Comparison with other extension point contexts
+
+| Extension Point | Context Type | Key Fields |
+|---|---|---|
+| Worker | `JobContext` | `jobId`, `attemptNumber`, `queueName` |
+| Subscriber | `SubscriberContext` | `resolve`, `eventName?` |
+| Workflow | `WorkflowTools` | `resolve`, `logger`, `run`, `step`, `emitToEventBus` |
+| Hub Adapter | `AdapterContext` | `resolve`, `logger`, `scope` |
+
+Subscribers, workflows, and hub adapters provide `resolve` for DI access. Workers receive job metadata but access DI through a separate `HandlerContext` extension. `AdapterContext` adds `scope` for tenant isolation and `logger` for structured logging.
 
 ### DI Wiring for Hub Services
 

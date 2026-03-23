@@ -112,8 +112,8 @@ export const adapter: DataSyncAdapter = {
   providerKey: 'my_provider_products',
   direction: 'import',
   supportedEntities: ['products'],
-  async *streamImport(input) { /* ... */ },
-  async getMapping(input) { /* ... */ },
+  async *streamImport(input, ctx?) { /* ... */ },
+  async getMapping(input, ctx?) { /* ... */ },
 }
 ```
 
@@ -133,9 +133,12 @@ Adapter contract (`data_sync/lib/adapter.ts`) requires:
 - `providerKey`
 - `direction` (`import`, `export`, or `bidirectional`)
 - `supportedEntities`
-- `getMapping(...)`
-- `streamImport(...)` and/or `streamExport(...)`
-- optional `validateConnection(...)`
+- `getMapping(input, ctx?: AdapterContext)`
+- `streamImport(input, ctx?: AdapterContext)` and/or `streamExport(input, ctx?: AdapterContext)`
+- optional `getInitialCursor(input, ctx?: AdapterContext)`
+- optional `validateConnection(input, ctx?: AdapterContext)`
+
+The `ctx` parameter is built by the sync engine and passed to every adapter call. Adapter authors can use `ctx.resolve('em')` for entity manager access and `ctx.logger` for structured logging. Import `AdapterContext` from `@open-mercato/shared/lib/hub`.
 
 ### Hub adapter pattern
 

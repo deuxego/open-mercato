@@ -17,6 +17,7 @@ describe('data sync engine stale jobs', () => {
       integrationCredentialsService: {} as CredentialsService,
       integrationLogService: {} as IntegrationLogService,
       progressService: {} as ProgressService,
+      resolve: () => { throw new Error('unexpected resolve') },
     })
 
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
@@ -47,6 +48,7 @@ describe('data sync engine stale jobs', () => {
       integrationCredentialsService: {} as CredentialsService,
       integrationLogService: {} as IntegrationLogService,
       progressService: {} as ProgressService,
+      resolve: () => { throw new Error('unexpected resolve') },
     })
 
     const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {})
@@ -84,6 +86,7 @@ describe('data sync engine stale jobs', () => {
       integrationCredentialsService: {} as CredentialsService,
       integrationLogService: {} as IntegrationLogService,
       progressService,
+      resolve: () => { throw new Error('unexpected resolve') },
     })
 
     await expect(

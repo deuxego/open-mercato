@@ -350,17 +350,18 @@ Read `references/adapter-contracts.md` for the full type definitions per categor
 ```typescript
 // lib/adapters/v<version>.ts
 import type { GatewayAdapter, CreateSessionInput, CreateSessionResult, ... } from '@open-mercato/shared/modules/payment_gateways/types'
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
 import { createClient } from '../client'
 
 export class MyGatewayAdapter implements GatewayAdapter {
   readonly providerKey = '<provider>'
 
-  async createSession(input: CreateSessionInput): Promise<CreateSessionResult> { ... }
-  async capture(input: CaptureInput): Promise<CaptureResult> { ... }
-  async refund(input: RefundInput): Promise<RefundResult> { ... }
-  async cancel(input: CancelInput): Promise<CancelResult> { ... }
-  async getStatus(input: GetStatusInput): Promise<GatewayPaymentStatus> { ... }
-  async verifyWebhook(input: VerifyWebhookInput): Promise<WebhookEvent> { ... }
+  async createSession(input: CreateSessionInput, ctx?: AdapterContext): Promise<CreateSessionResult> { ... }
+  async capture(input: CaptureInput, ctx?: AdapterContext): Promise<CaptureResult> { ... }
+  async refund(input: RefundInput, ctx?: AdapterContext): Promise<RefundResult> { ... }
+  async cancel(input: CancelInput, ctx?: AdapterContext): Promise<CancelResult> { ... }
+  async getStatus(input: GetStatusInput, ctx?: AdapterContext): Promise<GatewayPaymentStatus> { ... }
+  async verifyWebhook(input: VerifyWebhookInput, ctx?: AdapterContext): Promise<WebhookEvent> { ... }
   mapStatus(providerStatus: string, eventType?: string): UnifiedPaymentStatus { ... }
 }
 ```
@@ -389,15 +390,16 @@ export function register(container: AppContainer): void {
 ```typescript
 // lib/adapters/v<version>.ts
 import type { ShippingAdapter } from '<path>/shipping_carriers/lib/adapter'
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
 
 export class MyShippingAdapter implements ShippingAdapter {
   readonly providerKey = '<provider>'
 
-  async calculateRates(input): Promise<ShippingRate[]> { ... }
-  async createShipment(input): Promise<CreateShipmentResult> { ... }
-  async getTracking(input): Promise<TrackingResult> { ... }
-  async cancelShipment(input): Promise<{ status: UnifiedShipmentStatus }> { ... }
-  async verifyWebhook(input): Promise<ShippingWebhookEvent> { ... }
+  async calculateRates(input, ctx?: AdapterContext): Promise<ShippingRate[]> { ... }
+  async createShipment(input, ctx?: AdapterContext): Promise<CreateShipmentResult> { ... }
+  async getTracking(input, ctx?: AdapterContext): Promise<TrackingResult> { ... }
+  async cancelShipment(input, ctx?: AdapterContext): Promise<{ status: UnifiedShipmentStatus }> { ... }
+  async verifyWebhook(input, ctx?: AdapterContext): Promise<ShippingWebhookEvent> { ... }
   mapStatus(carrierStatus: string): UnifiedShipmentStatus { ... }
 }
 ```
@@ -407,18 +409,26 @@ export class MyShippingAdapter implements ShippingAdapter {
 ```typescript
 // lib/adapters/v<version>.ts
 import type { DataSyncAdapter, StreamImportInput, ImportBatch } from '<path>/data_sync/lib/adapter'
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
 
 export class MySyncAdapter implements DataSyncAdapter {
   readonly providerKey = '<provider>'
   readonly direction = 'import' // or 'export' | 'bidirectional'
   readonly supportedEntities = ['products', 'customers']
 
-  async *streamImport(input: StreamImportInput): AsyncIterable<ImportBatch> {
+  async *streamImport(input: StreamImportInput, ctx?: AdapterContext): AsyncIterable<ImportBatch> {
+    // Use ctx.logger for structured logging instead of console.log
+    ctx?.logger.info('Starting import', { entityType: input.entityType, cursor: input.cursor })
+
+    // Use ctx.resolve() to access DI services when needed
+    const rateLimiter = ctx?.resolve<RateLimiterService>('rateLimiter')
+
     let cursor = input.cursor
     let hasMore = true
     let batchIndex = 0
     while (hasMore) {
       const page = await this.fetchPage(input.entityType, cursor, input.credentials)
+      ctx?.logger.debug('Fetched page', { batchIndex, itemCount: page.items.length })
       yield { items: page.items, cursor: page.nextCursor, hasMore: page.hasMore, batchIndex }
       cursor = page.nextCursor
       hasMore = page.hasMore
@@ -426,8 +436,8 @@ export class MySyncAdapter implements DataSyncAdapter {
     }
   }
 
-  async getMapping(input): Promise<DataMapping> { ... }
-  async validateConnection(input): Promise<ValidationResult> { ... }
+  async getMapping(input, ctx?: AdapterContext): Promise<DataMapping> { ... }
+  async validateConnection(input, ctx?: AdapterContext): Promise<ValidationResult> { ... }
 }
 ```
 
@@ -778,6 +788,9 @@ After completing the implementation:
 - [ ] Workers export `metadata` with `{ queue, id, concurrency }`
 - [ ] Widget injection table maps widgets to correct spots
 - [ ] Package has unit tests for status mapping, webhook verification, client factory
+- [ ] Adapter methods that perform I/O accept optional `ctx?: AdapterContext` parameter
+- [ ] Adapter uses `ctx.logger` for structured logging instead of `console.log`
+- [ ] Adapter resolves services via `ctx.resolve()` — never stores container references
 - [ ] No `any` types — use zod schemas with `z.infer`, narrow with runtime checks
 - [ ] Package-level imports (`@open-mercato/<pkg>/...`) for cross-module references
 

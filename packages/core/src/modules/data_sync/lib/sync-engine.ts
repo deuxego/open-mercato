@@ -5,6 +5,7 @@ import type { IntegrationLogService } from '../../integrations/lib/log-service'
 import type { ProgressService } from '../../progress/lib/progressService'
 import { refreshCoverageSnapshot } from '../../query_index/lib/coverage'
 import { emitDataSyncEvent } from '../events'
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
 import type { DataSyncAdapter, DataMapping, ExportBatch, ImportBatch } from './adapter'
 import { dataSyncHub } from './adapter-registry'
 import type { SyncRunService } from './sync-run-service'
@@ -21,6 +22,7 @@ type EngineDeps = {
   integrationCredentialsService: CredentialsService
   integrationLogService: IntegrationLogService
   progressService: ProgressService
+  resolve: <T = unknown>(name: string) => T
 }
 
 function resolveProviderKey(integrationId: string): string {
@@ -73,11 +75,24 @@ function applyExportCounters(batch: ExportBatch): SyncCounterDelta {
 export function createSyncEngine(deps: EngineDeps) {
   const { syncRunService, integrationCredentialsService, integrationLogService, progressService } = deps
 
-  async function resolveMapping(adapter: DataSyncAdapter, entityType: string, scope: SyncScope): Promise<DataMapping> {
+  function buildAdapterContext(scope: SyncScope): AdapterContext {
+    return {
+      resolve: deps.resolve,
+      logger: {
+        info: (msg, data) => console.log(`[data-sync] ${msg}`, data ? JSON.stringify(data) : ''),
+        warn: (msg, data) => console.warn(`[data-sync] ${msg}`, data ? JSON.stringify(data) : ''),
+        error: (msg, data) => console.error(`[data-sync] ${msg}`, data ? JSON.stringify(data) : ''),
+        debug: (msg, data) => { if (process.env.NODE_ENV !== 'production') console.debug(`[data-sync] ${msg}`, data ? JSON.stringify(data) : '') },
+      },
+      scope: { organizationId: scope.organizationId, tenantId: scope.tenantId },
+    }
+  }
+
+  async function resolveMapping(adapter: DataSyncAdapter, entityType: string, scope: SyncScope, ctx: AdapterContext): Promise<DataMapping> {
     return adapter.getMapping({
       entityType,
       scope: { organizationId: scope.organizationId, tenantId: scope.tenantId },
-    })
+    }, ctx)
   }
 
   async function updateProgress(progressJobId: string | null | undefined, processedCount: number, totalCount: number | null, scope: SyncScope): Promise<void> {
@@ -286,7 +301,8 @@ export function createSyncEngine(deps: EngineDeps) {
         })
       }
 
-      const mapping = await resolveMapping(adapter, run.entityType, scope)
+      const ctx = buildAdapterContext(scope)
+      const mapping = await resolveMapping(adapter, run.entityType, scope, ctx)
       let processedCount = 0
       let totalCount: number | null = null
 
@@ -298,7 +314,7 @@ export function createSyncEngine(deps: EngineDeps) {
           credentials,
           mapping,
           scope: { organizationId: scope.organizationId, tenantId: scope.tenantId },
-        })) {
+        }, ctx)) {
           if (run.progressJobId && await progressService.isCancellationRequested(run.progressJobId)) {
             await finalizeRun(run.id, 'cancelled', scope)
             return
@@ -415,7 +431,8 @@ export function createSyncEngine(deps: EngineDeps) {
         })
       }
 
-      const mapping = await resolveMapping(adapter, run.entityType, scope)
+      const ctx = buildAdapterContext(scope)
+      const mapping = await resolveMapping(adapter, run.entityType, scope, ctx)
       let processedCount = 0
 
       try {
@@ -426,7 +443,7 @@ export function createSyncEngine(deps: EngineDeps) {
           credentials,
           mapping,
           scope: { organizationId: scope.organizationId, tenantId: scope.tenantId },
-        })) {
+        }, ctx)) {
           if (run.progressJobId && await progressService.isCancellationRequested(run.progressJobId)) {
             await finalizeRun(run.id, 'cancelled', scope)
             return

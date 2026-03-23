@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { getAuthFromRequest } from '@open-mercato/shared/lib/auth/server'
 import { createRequestContainer } from '@open-mercato/shared/lib/di/container'
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
 import { getIntegration } from '@open-mercato/shared/modules/integrations/types'
 import type { CredentialsService } from '../../integrations/lib/credentials-service'
 import { validateConnectionSchema } from '../data/validators'
@@ -47,13 +48,24 @@ export async function POST(req: Request) {
     return NextResponse.json({ ok: false, message: 'Missing credentials' }, { status: 422 })
   }
 
+  const ctx: AdapterContext = {
+    resolve: <T = unknown>(name: string) => container.resolve(name) as T,
+    logger: {
+      info: (msg, data) => console.log(`[data-sync:validate] ${msg}`, data ? JSON.stringify(data) : ''),
+      warn: (msg, data) => console.warn(`[data-sync:validate] ${msg}`, data ? JSON.stringify(data) : ''),
+      error: (msg, data) => console.error(`[data-sync:validate] ${msg}`, data ? JSON.stringify(data) : ''),
+      debug: (msg, data) => { if (process.env.NODE_ENV !== 'production') console.debug(`[data-sync:validate] ${msg}`, data ? JSON.stringify(data) : '') },
+    },
+    scope: { organizationId: auth.orgId as string, tenantId: auth.tenantId },
+  }
+
   const mapping = await adapter.getMapping({
     entityType: parsed.data.entityType,
     scope: {
       organizationId: auth.orgId as string,
       tenantId: auth.tenantId,
     },
-  })
+  }, ctx)
 
   if (!adapter.validateConnection) {
     return NextResponse.json({ ok: true, message: 'Adapter does not implement active connection validation' })
@@ -67,7 +79,7 @@ export async function POST(req: Request) {
       organizationId: auth.orgId as string,
       tenantId: auth.tenantId,
     },
-  })
+  }, ctx)
 
   return NextResponse.json(result, { status: result.ok ? 200 : 422 })
 }

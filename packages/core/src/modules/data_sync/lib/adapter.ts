@@ -1,3 +1,5 @@
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
+
 export interface TenantScope {
   organizationId: string
   tenantId: string
@@ -80,14 +82,14 @@ export interface DataSyncAdapter {
   readonly direction: 'import' | 'export' | 'bidirectional'
   readonly supportedEntities: string[]
 
-  streamImport?(input: StreamImportInput): AsyncIterable<ImportBatch>
-  streamExport?(input: StreamExportInput): AsyncIterable<ExportBatch>
-  getInitialCursor?(input: { entityType: string; scope: TenantScope }): Promise<string | null>
-  getMapping(input: { entityType: string; scope: TenantScope }): Promise<DataMapping>
+  streamImport?(input: StreamImportInput, ctx?: AdapterContext): AsyncIterable<ImportBatch>
+  streamExport?(input: StreamExportInput, ctx?: AdapterContext): AsyncIterable<ExportBatch>
+  getInitialCursor?(input: { entityType: string; scope: TenantScope }, ctx?: AdapterContext): Promise<string | null>
+  getMapping(input: { entityType: string; scope: TenantScope }, ctx?: AdapterContext): Promise<DataMapping>
   validateConnection?(input: {
     entityType: string
     credentials: Record<string, unknown>
     mapping: DataMapping
     scope: TenantScope
-  }): Promise<ValidationResult>
+  }, ctx?: AdapterContext): Promise<ValidationResult>
 }

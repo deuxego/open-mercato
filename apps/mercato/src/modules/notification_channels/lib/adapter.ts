@@ -1,7 +1,9 @@
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
+
 export interface NotificationChannelAdapter {
   readonly providerKey: string
   readonly channelType: 'email' | 'sms' | 'push' | 'webhook'
-  send(input: SendNotificationInput): Promise<SendNotificationResult>
+  send(input: SendNotificationInput, ctx?: AdapterContext): Promise<SendNotificationResult>
 }
 
 export interface SendNotificationInput {

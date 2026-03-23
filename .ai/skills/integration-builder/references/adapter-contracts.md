@@ -4,6 +4,38 @@ Full TypeScript type definitions for each integration hub adapter contract. Load
 
 ---
 
+## 0. AdapterContext (shared across all adapters)
+
+**Source**: `packages/shared/src/lib/hub.ts`
+
+All hub adapter interface methods that perform I/O accept an optional `ctx?: AdapterContext` parameter. Pure-logic methods (e.g., `mapStatus`) do not.
+
+```typescript
+export type AdapterLogger = {
+  info(message: string, data?: Record<string, unknown>): void
+  warn(message: string, data?: Record<string, unknown>): void
+  error(message: string, data?: Record<string, unknown>): void
+  debug(message: string, data?: Record<string, unknown>): void
+}
+
+export type AdapterContext = {
+  resolve: <T = unknown>(name: string) => T
+  logger: AdapterLogger
+  scope: {
+    organizationId: string
+    tenantId: string
+  }
+}
+```
+
+- **`ctx.resolve(name)`** — resolve a DI service by name (e.g., `ctx.resolve<SomeService>('someService')`)
+- **`ctx.logger`** — structured logger scoped to the current operation; use instead of `console.log`
+- **`ctx.scope`** — tenant identity for the current request
+
+The context is built by the caller (framework/platform code) and passed into adapter methods. Adapters that don't need DI or logging simply ignore the parameter.
+
+---
+
 ## 1. IntegrationDefinition & Registry (ALL categories)
 
 **Source**: `packages/shared/src/modules/integrations/types.ts`
@@ -198,12 +230,12 @@ export type UnifiedPaymentStatus =
 
 export interface GatewayAdapter {
   readonly providerKey: string
-  createSession(input: CreateSessionInput): Promise<CreateSessionResult>
-  capture(input: CaptureInput): Promise<CaptureResult>
-  refund(input: RefundInput): Promise<RefundResult>
-  cancel(input: CancelInput): Promise<CancelResult>
-  getStatus(input: GetStatusInput): Promise<GatewayPaymentStatus>
-  verifyWebhook(input: VerifyWebhookInput): Promise<WebhookEvent>
+  createSession(input: CreateSessionInput, ctx?: AdapterContext): Promise<CreateSessionResult>
+  capture(input: CaptureInput, ctx?: AdapterContext): Promise<CaptureResult>
+  refund(input: RefundInput, ctx?: AdapterContext): Promise<RefundResult>
+  cancel(input: CancelInput, ctx?: AdapterContext): Promise<CancelResult>
+  getStatus(input: GetStatusInput, ctx?: AdapterContext): Promise<GatewayPaymentStatus>
+  verifyWebhook(input: VerifyWebhookInput, ctx?: AdapterContext): Promise<WebhookEvent>
   mapStatus(providerStatus: string, eventType?: string): UnifiedPaymentStatus
 }
 
@@ -406,27 +438,27 @@ export interface ShippingAdapter {
     destination: Address
     packages: PackageInfo[]
     credentials: Record<string, unknown>
-  }): Promise<ShippingRate[]>
+  }, ctx?: AdapterContext): Promise<ShippingRate[]>
 
-  createShipment(input: CreateShipmentInput): Promise<CreateShipmentResult>
+  createShipment(input: CreateShipmentInput, ctx?: AdapterContext): Promise<CreateShipmentResult>
 
   getTracking(input: {
     shipmentId?: string
     trackingNumber?: string
     credentials: Record<string, unknown>
-  }): Promise<TrackingResult>
+  }, ctx?: AdapterContext): Promise<TrackingResult>
 
   cancelShipment(input: {
     shipmentId: string
     reason?: string
     credentials: Record<string, unknown>
-  }): Promise<{ status: UnifiedShipmentStatus }>
+  }, ctx?: AdapterContext): Promise<{ status: UnifiedShipmentStatus }>
 
   verifyWebhook(input: {
     rawBody: string | Buffer
     headers: Record<string, string | string[] | undefined>
     credentials: Record<string, unknown>
-  }): Promise<ShippingWebhookEvent>
+  }, ctx?: AdapterContext): Promise<ShippingWebhookEvent>
 
   mapStatus(carrierStatus: string): UnifiedShipmentStatus
 }
@@ -528,16 +560,16 @@ export interface DataSyncAdapter {
   readonly direction: 'import' | 'export' | 'bidirectional'
   readonly supportedEntities: string[]
 
-  streamImport?(input: StreamImportInput): AsyncIterable<ImportBatch>
-  streamExport?(input: StreamExportInput): AsyncIterable<ExportBatch>
-  getInitialCursor?(input: { entityType: string; scope: TenantScope }): Promise<string | null>
-  getMapping(input: { entityType: string; scope: TenantScope }): Promise<DataMapping>
+  streamImport?(input: StreamImportInput, ctx?: AdapterContext): AsyncIterable<ImportBatch>
+  streamExport?(input: StreamExportInput, ctx?: AdapterContext): AsyncIterable<ExportBatch>
+  getInitialCursor?(input: { entityType: string; scope: TenantScope }, ctx?: AdapterContext): Promise<string | null>
+  getMapping(input: { entityType: string; scope: TenantScope }, ctx?: AdapterContext): Promise<DataMapping>
   validateConnection?(input: {
     entityType: string
     credentials: Record<string, unknown>
     mapping: DataMapping
     scope: TenantScope
-  }): Promise<ValidationResult>
+  }, ctx?: AdapterContext): Promise<ValidationResult>
 }
 
 // Registry — via dataSyncHub from @open-mercato/shared/lib/hub
@@ -562,10 +594,10 @@ interface ChannelAdapter {
   readonly providerKey: string
   readonly channelType: 'whatsapp' | 'sms' | 'email' | string
 
-  sendMessage(input: SendMessageInput): Promise<SendMessageResult>
-  verifyWebhook(input: VerifyWebhookInput): Promise<InboundMessage>
-  getStatus(input: GetMessageStatusInput): Promise<MessageStatus>
-  listSenders?(input: ListSendersInput): Promise<SenderInfo[]>
+  sendMessage(input: SendMessageInput, ctx?: AdapterContext): Promise<SendMessageResult>
+  verifyWebhook(input: VerifyWebhookInput, ctx?: AdapterContext): Promise<InboundMessage>
+  getStatus(input: GetMessageStatusInput, ctx?: AdapterContext): Promise<MessageStatus>
+  listSenders?(input: ListSendersInput, ctx?: AdapterContext): Promise<SenderInfo[]>
 }
 
 interface SendMessageInput {
@@ -601,9 +633,9 @@ interface NotificationTransportAdapter {
   readonly providerKey: string
   readonly transportType: 'email' | 'sms' | 'push' | string
 
-  send(input: SendNotificationInput): Promise<SendNotificationResult>
-  getDeliveryStatus?(input: GetDeliveryStatusInput): Promise<DeliveryStatus>
-  verifyWebhook?(input: VerifyWebhookInput): Promise<DeliveryReceipt>
+  send(input: SendNotificationInput, ctx?: AdapterContext): Promise<SendNotificationResult>
+  getDeliveryStatus?(input: GetDeliveryStatusInput, ctx?: AdapterContext): Promise<DeliveryStatus>
+  verifyWebhook?(input: VerifyWebhookInput, ctx?: AdapterContext): Promise<DeliveryReceipt>
 }
 
 interface SendNotificationInput {
@@ -643,9 +675,9 @@ interface WebhookEndpointAdapter {
   readonly providerKey: string
   readonly subscribedEvents: string[]
 
-  formatPayload(event: EventPayload): Promise<WebhookPayload>
-  verifyWebhook(input: VerifyWebhookInput): Promise<InboundWebhookEvent>
-  processInbound(event: InboundWebhookEvent): Promise<void>
+  formatPayload(event: EventPayload, ctx?: AdapterContext): Promise<WebhookPayload>
+  verifyWebhook(input: VerifyWebhookInput, ctx?: AdapterContext): Promise<InboundWebhookEvent>
+  processInbound(event: InboundWebhookEvent, ctx?: AdapterContext): Promise<void>
 }
 
 interface WebhookPayload {
@@ -667,12 +699,12 @@ interface WebhookPayload {
 interface StorageAdapter {
   readonly providerKey: string
 
-  upload(input: UploadInput): Promise<UploadResult>
-  download(input: DownloadInput): Promise<ReadableStream>
-  delete(input: DeleteInput): Promise<void>
-  getSignedUrl?(input: SignedUrlInput): Promise<string>
-  list?(input: ListInput): Promise<StorageFileInfo[]>
-  exists?(input: ExistsInput): Promise<boolean>
+  upload(input: UploadInput, ctx?: AdapterContext): Promise<UploadResult>
+  download(input: DownloadInput, ctx?: AdapterContext): Promise<ReadableStream>
+  delete(input: DeleteInput, ctx?: AdapterContext): Promise<void>
+  getSignedUrl?(input: SignedUrlInput, ctx?: AdapterContext): Promise<string>
+  list?(input: ListInput, ctx?: AdapterContext): Promise<StorageFileInfo[]>
+  exists?(input: ExistsInput, ctx?: AdapterContext): Promise<boolean>
 }
 ```
 

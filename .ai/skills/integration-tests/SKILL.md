@@ -309,3 +309,36 @@ When converting multiple scenarios at once:
 2. Convert one category at a time
 3. Run the full suite after each category to catch cross-test issues
 4. Report summary: total converted, passed, failed
+
+## Adapter Context Mocking
+
+When unit-testing hub adapters or engine code that passes `AdapterContext`:
+
+**Mock context for adapter tests:**
+```typescript
+import type { AdapterContext } from '@open-mercato/shared/lib/hub'
+
+const ctx: AdapterContext = {
+  resolve: jest.fn((name) => {
+    if (name === 'em') return mockEm
+    throw new Error(`unexpected resolve: ${name}`)
+  }),
+  logger: { info: jest.fn(), warn: jest.fn(), error: jest.fn(), debug: jest.fn() },
+  scope: { organizationId: 'org-1', tenantId: 'tenant-1' },
+}
+```
+
+**Mock resolve for engine tests** (when the engine doesn't call adapter-level resolve):
+```typescript
+const engine = createSyncEngine({
+  // ...existing deps
+  resolve: () => { throw new Error('unexpected resolve') },
+})
+```
+
+**Assert logger calls:**
+```typescript
+expect(ctx.logger.info).toHaveBeenCalledWith('Starting import', expect.any(Object))
+```
+
+E2E integration tests are unaffected — `ctx` is built server-side and transparent to API consumers.

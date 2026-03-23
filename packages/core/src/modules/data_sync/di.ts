@@ -26,14 +26,15 @@ export function register(container: AppContainer) {
     externalIdMappingService: asFunction(({ em }: Cradle) => createExternalIdMappingService(em)).scoped().proxy(),
     dataSyncRunService: asFunction(({ em }: Cradle) => createSyncRunService(em)).scoped().proxy(),
     dataSyncScheduleService: asFunction(({ em, schedulerService }: Cradle) => createSyncScheduleService(em, schedulerService)).scoped().proxy(),
-    dataSyncEngine: asFunction(({ em, dataSyncRunService, integrationCredentialsService, integrationLogService, progressService }: Cradle & {
+    dataSyncEngine: asFunction((cradle: Cradle & {
       dataSyncRunService: ReturnType<typeof createSyncRunService>
     }) => createSyncEngine({
-      em,
-      syncRunService: dataSyncRunService,
-      integrationCredentialsService,
-      integrationLogService,
-      progressService,
+      em: cradle.em,
+      syncRunService: cradle.dataSyncRunService,
+      integrationCredentialsService: cradle.integrationCredentialsService,
+      integrationLogService: cradle.integrationLogService,
+      progressService: cradle.progressService,
+      resolve: <T = unknown>(name: string) => (cradle as Record<string, unknown>)[name] as T,
     })).scoped().proxy(),
 
     SyncRun: asValue(SyncRun),

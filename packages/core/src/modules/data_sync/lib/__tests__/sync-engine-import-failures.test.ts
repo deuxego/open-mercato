@@ -124,6 +124,7 @@ describe('data sync engine import item failures', () => {
       integrationCredentialsService,
       integrationLogService,
       progressService,
+      resolve: () => { throw new Error('unexpected resolve') },
     })
 
     await engine.runImport('run-1', 100, {
@@ -259,6 +260,7 @@ describe('data sync engine import item failures', () => {
       integrationCredentialsService,
       integrationLogService,
       progressService,
+      resolve: () => { throw new Error('unexpected resolve') },
     })
 
     await engine.runImport('run-2', 100, {

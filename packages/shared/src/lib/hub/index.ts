@@ -1,3 +1,19 @@
+export type AdapterLogger = {
+  info(message: string, data?: Record<string, unknown>): void
+  warn(message: string, data?: Record<string, unknown>): void
+  error(message: string, data?: Record<string, unknown>): void
+  debug(message: string, data?: Record<string, unknown>): void
+}
+
+export type AdapterContext = {
+  resolve: <T = unknown>(name: string) => T
+  logger: AdapterLogger
+  scope: {
+    organizationId: string
+    tenantId: string
+  }
+}
+
 export interface HubOptions {
   id: string
   adapterKeyField?: string
